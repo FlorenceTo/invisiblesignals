@@ -17,10 +17,9 @@
             color: rgba(255, 255, 255, 0.85);
             line-height: 1.4;
             -webkit-font-smoothing: antialiased;
-            position: relative;
         }
 
-        /* colour filter overlay (original warm tint) */
+        /* colour filter overlay */
         body::before {
             content: '';
             position: fixed;
@@ -35,67 +34,7 @@
             z-index: 1;
         }
 
-        /* --- SMOKE EFFECT – no gradients, no blur, no colour cast --- */
-        .smoke-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 2;
-            overflow: hidden;
-        }
-
-        /* Individual smoke particles (circles) */
-        .smoke-particle {
-            position: absolute;
-            background: rgba(230, 225, 215, 0.08);
-            border-radius: 50%;
-            animation: driftSmoke linear infinite;
-        }
-
-        /* Different sizes and animation durations */
-        .particle-1 { width: 150px; height: 150px; opacity: 0.06; }
-        .particle-2 { width: 250px; height: 250px; opacity: 0.05; }
-        .particle-3 { width: 100px; height: 100px; opacity: 0.08; }
-        .particle-4 { width: 80px; height: 80px; opacity: 0.07; }
-        .particle-5 { width: 300px; height: 300px; opacity: 0.04; }
-
-        @keyframes driftSmoke {
-            0% {
-                transform: translate(0%, 0%);
-            }
-            100% {
-                transform: translate(30%, 20%);
-            }
-        }
-
-        /* Additional very fine dust particles (small dots) */
-        .dust-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: radial-gradient(1px 1px at 10% 20%, rgba(220, 215, 205, 0.15) 0%, transparent 0%),
-                              radial-gradient(1.5px 1.5px at 60% 80%, rgba(200, 195, 185, 0.1) 0%, transparent 0%),
-                              radial-gradient(0.8px 0.8px at 85% 30%, rgba(190, 185, 175, 0.12) 0%, transparent 0%);
-            background-size: 80px 80px, 120px 120px, 150px 150px;
-            background-repeat: repeat;
-            animation: driftDust 60s linear infinite;
-        }
-
-        @keyframes driftDust {
-            0% {
-                background-position: 0% 0%, 0% 0%, 0% 0%;
-            }
-            100% {
-                background-position: 200% 100%, 150% 80%, 180% 120%;
-            }
-        }
-
-        /* Typography – unchanged */
+        /* typography – consistent base size for contact, marquee, email block */
         .bodycopy-2 {
             font-size: clamp(0.9rem, 4vw, 1.05rem);
             letter-spacing: 0.058em;
@@ -126,11 +65,14 @@
         .nav-links a:hover {
             opacity: 0.7;
         }
+
+        /* contact, marquee, email block all share the same font size */
         .contact-text,
         .marquee-text,
         .right-col-bottom {
             font-size: clamp(0.85rem, 4vw, 1rem);
         }
+
         .contact-text {
             color: rgba(255, 255, 255, 0.72);
         }
@@ -147,20 +89,22 @@
             display: block;
         }
 
-        /* Layout */
+        /* layout */
         .content {
             max-width: 1400px;
             margin: 0 auto;
             padding: 1.3rem;
             position: relative;
-            z-index: 3;
+            z-index: 2;
         }
+
+        /* sticky navigation – solid background, with transition for hide/show */
         .nav-bar {
             position: sticky;
             top: 0;
-            background: #1c1c1b;
+            background: ;
             backdrop-filter: none;
-            padding: 1rem 1.3rem 3rem 1.3rem;
+            padding: -1rem 1.3rem 3rem 1.3rem;
             margin-bottom: 2rem;
             z-index: 10;
             display: flex;
@@ -171,6 +115,7 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             transition: transform 0.3s ease-in-out;
         }
+        /* class added by JavaScript when scrolling down */
         .nav-bar.header-hidden {
             transform: translateY(-100%);
         }
@@ -180,6 +125,8 @@
             gap: 1.5rem;
             list-style: none;
         }
+
+        /* episode sections – two columns */
         .episode {
             margin: 4rem 0;
             padding-top: 2rem;
@@ -196,6 +143,8 @@
             line-height: 1.5;
             color: rgba(255, 255, 255, 0.7);
         }
+
+        /* info section – vertical stack */
         .info-section {
             margin: 3rem 0 6rem;
         }
@@ -220,43 +169,59 @@
             100% { transform: translateX(-50%); }
         }
 
+        /* mobile optimisations – no extra font size overrides for right-col-bottom */
         @media (max-width: 640px) {
-            .content { padding: 0.8rem; }
+            .content {
+                padding: 0.8rem;
+            }
             .nav-bar {
                 flex-direction: column;
                 align-items: flex-start;
                 padding: 0.8rem 0.8rem 2rem 0.8rem;
                 gap: 0.8rem;
             }
-            .nav-links { gap: 1rem; }
-            .nav-links a { padding: 0.5rem 0; display: inline-block; }
-            .episode-grid { grid-template-columns: 1fr; gap: 1rem; }
-            .marquee-content { animation-duration: 35s; }
-            .episode { margin: 2.5rem 0; }
-            .info-section { margin: 2rem 0 4rem; }
+            .nav-links {
+                gap: 1rem;
+            }
+            .nav-links a {
+                padding: 0.5rem 0;
+                display: inline-block;
+            }
+            .episode-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .marquee-content {
+                animation-duration: 35s;
+            }
+            .episode {
+                margin: 2.5rem 0;
+            }
+            .info-section {
+                margin: 2rem 0 4rem;
+            }
         }
+
         @media (max-width: 480px) {
-            .content { padding: 0.6rem; }
-            .nav-bar { padding: 0.6rem 0.6rem 1.5rem 0.6rem; }
-            .nav-links { gap: 0.7rem; }
-            .nav-links a { font-size: 0.7rem; }
-            .marquee-content { animation-duration: 30s; }
+            .content {
+                padding: 0.6rem;
+            }
+            .nav-bar {
+                padding: 0.6rem 0.6rem 1.5rem 0.6rem;
+            }
+            .nav-links {
+                gap: 0.7rem;
+            }
+            .nav-links a {
+                font-size: 0.7rem;
+            }
+            .marquee-content {
+                animation-duration: 30s;
+            }
         }
     </style>
 </head>
 <body>
-
-<!-- Pure smoke overlay with particles (no gradients, no blur) -->
-<div class="smoke-overlay">
-    <div class="smoke-particle particle-1" style="top: 10%; left: 5%; animation-duration: 45s;"></div>
-    <div class="smoke-particle particle-2" style="top: 60%; left: 20%; animation-duration: 55s;"></div>
-    <div class="smoke-particle particle-3" style="top: 30%; left: 70%; animation-duration: 38s;"></div>
-    <div class="smoke-particle particle-4" style="top: 80%; left: 40%; animation-duration: 50s;"></div>
-    <div class="smoke-particle particle-5" style="top: 15%; left: 85%; animation-duration: 42s;"></div>
-    <div class="smoke-particle particle-1" style="top: 45%; left: 55%; animation-duration: 48s;"></div>
-    <div class="smoke-particle particle-3" style="top: 70%; left: 10%; animation-duration: 52s;"></div>
-    <div class="dust-layer"></div>
-</div>
 
 <div class="content">
     <div class="nav-bar" id="mainHeader">
@@ -289,7 +254,7 @@
         </div>
     </section>
 
-    <!-- EPISODES (same as earlier) -->
+    <!-- EPISODE 01 -->
     <section id="ep1" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 01</div>
@@ -300,6 +265,7 @@
         </div>
     </section>
 
+    <!-- EPISODE 02 -->
     <section id="ep2" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 02</div>
@@ -310,6 +276,7 @@
         </div>
     </section>
 
+    <!-- EPISODE 03 -->
     <section id="ep3" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 03</div>
@@ -320,6 +287,7 @@
         </div>
     </section>
 
+    <!-- EPISODE 04 -->
     <section id="ep4" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 04</div>
@@ -330,6 +298,7 @@
         </div>
     </section>
 
+    <!-- EPISODE 05 -->
     <section id="ep5" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 05</div>
@@ -340,6 +309,7 @@
         </div>
     </section>
 
+    <!-- EPISODE 06 -->
     <section id="ep6" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 06</div>
@@ -352,6 +322,7 @@
 </div>
 
 <script>
+    // Clock update
     function updateClock() {
         const now = new Date();
         const hours = String(now.getHours()).padStart(2, '0');
@@ -364,15 +335,20 @@
     updateClock();
     setInterval(updateClock, 1000);
 
+    // Scroll-driven header hide/show (mobile-friendly)
     let lastScrollTop = 0;
     const header = document.getElementById('mainHeader');
-    const scrollThreshold = 5;
+    const scrollThreshold = 5; // minimum scroll distance to trigger
+
     window.addEventListener('scroll', function() {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         if (Math.abs(scrollTop - lastScrollTop) <= scrollThreshold) return;
+
         if (scrollTop > lastScrollTop && scrollTop > 80) {
+            // Scrolling down & past 80px – hide header
             header.classList.add('header-hidden');
         } else {
+            // Scrolling up – show header
             header.classList.remove('header-hidden');
         }
         lastScrollTop = scrollTop;
