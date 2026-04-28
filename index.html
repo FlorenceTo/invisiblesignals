@@ -17,9 +17,10 @@
             color: rgba(255, 255, 255, 0.85);
             line-height: 1.4;
             -webkit-font-smoothing: antialiased;
+            position: relative;
         }
 
-        /* colour filter overlay */
+        /* colour filter overlay (original) */
         body::before {
             content: '';
             position: fixed;
@@ -32,6 +33,41 @@
             opacity: 0.8;
             pointer-events: none;
             z-index: 1;
+        }
+
+        /* --- ATMOSPHERIC MIST OVERLAY --- */
+        .mist-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(210, 230, 250, 0.08) 0%, rgba(160, 190, 220, 0.12) 100%);
+            backdrop-filter: blur(4px);
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0.5;
+            animation: mistPulse 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes mistPulse {
+            0% {
+                opacity: 0.3;
+                backdrop-filter: blur(3px);
+            }
+            50% {
+                opacity: 0.7;
+                backdrop-filter: blur(6px);
+            }
+            100% {
+                opacity: 0.3;
+                backdrop-filter: blur(3px);
+            }
+        }
+
+        /* optional: slightly different variation for a smoother drift */
+        .mist-overlay {
+            animation: mistPulse 24s ease-in-out infinite alternate;
         }
 
         /* typography – consistent base size for contact, marquee, email block */
@@ -95,7 +131,7 @@
             margin: 0 auto;
             padding: 1.3rem;
             position: relative;
-            z-index: 2;
+            z-index: 3;  /* above the mist overlay */
         }
 
         /* sticky navigation – solid background, with transition for hide/show */
@@ -115,7 +151,6 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             transition: transform 0.3s ease-in-out;
         }
-        /* class added by JavaScript when scrolling down */
         .nav-bar.header-hidden {
             transform: translateY(-100%);
         }
@@ -169,7 +204,7 @@
             100% { transform: translateX(-50%); }
         }
 
-        /* mobile optimisations – no extra font size overrides for right-col-bottom */
+        /* mobile optimisations */
         @media (max-width: 640px) {
             .content {
                 padding: 0.8rem;
@@ -222,6 +257,9 @@
     </style>
 </head>
 <body>
+
+<!-- Atmospheric mist overlay -->
+<div class="mist-overlay"></div>
 
 <div class="content">
     <div class="nav-bar" id="mainHeader">
@@ -335,20 +373,18 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // Scroll-driven header hide/show (mobile-friendly)
+    // Scroll-driven header hide/show
     let lastScrollTop = 0;
     const header = document.getElementById('mainHeader');
-    const scrollThreshold = 5; // minimum scroll distance to trigger
+    const scrollThreshold = 5;
 
     window.addEventListener('scroll', function() {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         if (Math.abs(scrollTop - lastScrollTop) <= scrollThreshold) return;
 
         if (scrollTop > lastScrollTop && scrollTop > 80) {
-            // Scrolling down & past 80px – hide header
             header.classList.add('header-hidden');
         } else {
-            // Scrolling up – show header
             header.classList.remove('header-hidden');
         }
         lastScrollTop = scrollTop;
