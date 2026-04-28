@@ -4,6 +4,15 @@
     box-sizing: border-box;
 }
 
+/* Apply invert to the entire page including background */
+html {
+    background-color: #F5F3EF;
+}
+
+html.invert {
+    filter: invert(85%);
+}
+
 body {
     font-family: 'Aptos', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     background-color: #F5F3EF;
@@ -11,7 +20,6 @@ body {
     line-height: 1.45;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    transition: filter 0.3s ease;
 }
 
 .container {
@@ -140,39 +148,29 @@ body {
     font-size: 0.65rem;
     background: none;
     border: 1px solid #E2E0DB;
-    padding: 0.3rem 0.6rem;
+    padding: 0.4rem 0.8rem;
     cursor: pointer;
     margin-top: 1rem;
     color: #1A1A1A;
     transition: all 0.2s ease;
     width: fit-content;
+    border-radius: 20px;
 }
 
 .invert-button:hover {
     border-color: #C73D2F;
+    background-color: rgba(199, 61, 47, 0.05);
 }
 
-/* Invert filter applied to body */
-body.invert {
-    filter: invert(85%);
-}
-
-/* Keep the invert button readable in both modes */
-body.invert .invert-button {
+/* Keep the button readable in dark mode */
+html.invert .invert-button {
     border-color: #555;
     color: #E5E5E5;
 }
 
-body.invert .invert-button:hover {
+html.invert .invert-button:hover {
     border-color: #38C2D0;
 }
-
-/* If you add images later, uncomment these lines to keep them looking normal */
-/*
-body.invert img {
-    filter: invert(100%);
-}
-*/
 
 /* RESPONSIVE */
 @media (max-width: 800px) {
