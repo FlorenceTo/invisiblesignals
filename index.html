@@ -1,39 +1,110 @@
-/* Invert Toggle Button */
-.invert-button {
-    font-family: 'Aptos', sans-serif;
-    font-size: 0.65rem;
-    background: none;
-    border: 1px solid #E2E0DB;
-    padding: 0.3rem 0.6rem;
-    cursor: pointer;
-    margin-top: 1rem;
-    color: #1A1A1A;
-    transition: all 0.2s ease;
-    width: fit-content;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Invisible Signals</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="fonts.css">
+</head>
+<body>
+    <div class="container">
+        <!-- LEFT COLUMN - Index Navigation -->
+        <div class="left-column">
+            <div class="index-header">
+                Index
+            </div>
+            <ul class="index-list">
+                <li><a href="#" data-page="info" class="active">00. Information</a></li>
+                <li><a href="#" data-page="ep1">01. Episode 01</a></li>
+                <li><a href="#" data-page="ep2">02. Episode 02</a></li>
+                <li><a href="#" data-page="ep3">03. Episode 03</a></li>
+                <li><a href="#" data-page="ep4">04. Episode 04</a></li>
+                <li><a href="#" data-page="ep5">05. Episode 05</a></li>
+                <li><a href="#" data-page="ep6">06. Episode 06</a></li>
+            </ul>
+            <div class="broadcast-info">
+                <div class="broadcast-time">16:30 – 17:30 / Thursday 28.05.2026</div>
+                <div class="resonance-fm">RESONANCE FM</div>
+            </div>
+            <!-- Invert Toggle Button -->
+            <button id="invertToggle" class="invert-button">☾ Invert View</button>
+        </div>
 
-.invert-button:hover {
-    border-color: #C73D2F;
-}
+        <!-- MIDDLE COLUMN - Full Description -->
+        <div class="middle-column" id="middle-content">
+            <div class="full-description">
+                Invisible Signals is an experimental radio series, structured as a live progression through live electronics, field recordings, and archival fragments. Taking its title from waves that remain imperceptible even as they are heard and felt, the series attends to signal as a materially distributed condition of vibration, shaped through bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, examining rupture, resistance, and repair across borders, technological infrastructures, and contested atmospheres. This is the first series hosted by Florence To.
+            </div>
+        </div>
 
-/* Invert filter applied to body */
-body.invert {
-    filter: invert(85%);
-}
+        <!-- RIGHT COLUMN - Contact & Info -->
+        <div class="right-column">
+            <div class="contact-message">
+                <p>If you'd like to submit audio, field recordings, archival material, or have an idea for a collaboration, please get in touch :)</p>
+                <div class="email">
+                    <strong>Invisible Signals</strong><br>
+                    <a href="mailto:seirynx@mailfence.com">seirynx@mailfence.com</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-/* For the invert button itself - keep it readable in both modes */
-body.invert .invert-button {
-    border-color: #555;
-    color: #E5E5E5;
-}
+    <script>
+        // Episode content data
+        const episodes = {
+            info: {
+                description: `Invisible Signals is an experimental radio series, structured as a live progression through live electronics, field recordings, and archival fragments. Taking its title from waves that remain imperceptible even as they are heard and felt, the series attends to signal as a materially distributed condition of vibration, shaped through bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, examining rupture, resistance, and repair across borders, technological infrastructures, and contested atmospheres. This is the first series hosted by Florence To.`
+            },
+            ep1: {
+                description: `Episode 01 content goes here. The full description of the first episode would appear in this space, with details about the sonic essay, field recordings, and live composition elements featured in this broadcast.`
+            },
+            ep2: {
+                description: `Episode 02 content goes here. Each episode examines different aspects of rupture, resistance, and repair across various technological and environmental contexts.`
+            },
+            ep3: {
+                description: `Episode 03 content goes here. The series moves between different formats including sonic essay, radio play, and live composition.`
+            },
+            ep4: {
+                description: `Episode 04 content goes here. Exploring contested atmospheres and infrastructural systems through sound.`
+            },
+            ep5: {
+                description: `Episode 05 content goes here. Field recordings and archival fragments shape each unique episode.`
+            },
+            ep6: {
+                description: `Episode 06 content goes here. The final episode of the first series hosted by Florence To.`
+            }
+        };
 
-body.invert .invert-button:hover {
-    border-color: #38C2D0;
-}
+        function loadPage(pageId) {
+            const episode = episodes[pageId];
+            if (episode) {
+                document.getElementById('middle-content').innerHTML = `<div class="full-description">${episode.description}</div>`;
+                
+                document.querySelectorAll('.index-list a').forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('data-page') === pageId) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        }
 
-/* Optional: If you have images, uncomment this to keep them normal */
-/*
-body.invert img {
-    filter: invert(100%);
-}
-*/
+        // Invert toggle functionality
+        const invertBtn = document.getElementById('invertToggle');
+        if (invertBtn) {
+            invertBtn.addEventListener('click', () => {
+                document.body.classList.toggle('invert');
+                if (document.body.classList.contains('invert')) {
+                    invertBtn.innerHTML = '☀︎ Light View';
+                } else {
+                    invertBtn.innerHTML = '☾ Invert View';
+                }
+            });
+        }
+
+        // Load info page by default
+        loadPage('info');
+    </script>
+</body>
+</html>
