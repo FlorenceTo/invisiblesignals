@@ -35,39 +35,101 @@
             z-index: 1;
         }
 
-        /* --- ATMOSPHERIC MIST OVERLAY --- */
+        /* --- DIRECTIONAL ATMOSPHERIC MIST (Arabian Wind) --- */
         .mist-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at 50% 50%, rgba(210, 230, 250, 0.08) 0%, rgba(160, 190, 220, 0.12) 100%);
-            backdrop-filter: blur(8px);
             pointer-events: none;
             z-index: 2;
-            opacity: 0.5;
-            animation: mistPulse 50s ease-in-out infinite alternate;
+            overflow: hidden;
         }
 
-        @keyframes mistPulse {
+        /* Layer 1: drifting haze from top-left to bottom-right */
+        .mist-layer-1 {
+            position: absolute;
+            top: -20%;
+            left: -20%;
+            width: 140%;
+            height: 140%;
+            background: radial-gradient(ellipse at 30% 40%, rgba(210, 200, 180, 0.15) 0%, rgba(160, 140, 120, 0.08) 40%, transparent 70%);
+            filter: blur(30px);
+            animation: driftWind 28s linear infinite;
+            transform: rotate(15deg);
+        }
+
+        /* Layer 2: scattered particles moving diagonally */
+        .mist-layer-2 {
+            position: absolute;
+            top: -10%;
+            left: -10%;
+            width: 120%;
+            height: 120%;
+            background-image: repeating-linear-gradient(45deg, 
+                rgba(220, 200, 170, 0.08) 0px, rgba(220, 200, 170, 0.08) 2px,
+                transparent 2px, transparent 8px,
+                rgba(190, 170, 140, 0.05) 8px, rgba(190, 170, 140, 0.05) 12px,
+                transparent 12px, transparent 30px);
+            filter: blur(8px);
+            animation: driftWindScatter 35s linear infinite;
+        }
+
+        /* Layer 3: slow moving wisp from top-left */
+        .mist-layer-3 {
+            position: absolute;
+            top: -30%;
+            left: -30%;
+            width: 160%;
+            height: 160%;
+            background: radial-gradient(circle at 20% 30%, rgba(200, 180, 150, 0.12), transparent 60%);
+            filter: blur(45px);
+            animation: driftWind 40s linear infinite reverse;
+            opacity: 0.6;
+        }
+
+        /* Layer 4: fine dust particles (small dots) moving with wind */
+        .mist-layer-4 {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(2px 2px at 10% 20%, rgba(230, 210, 180, 0.2) 0%, transparent 0%),
+                              radial-gradient(1px 1px at 60% 80%, rgba(200, 180, 150, 0.15) 0%, transparent 0%),
+                              radial-gradient(3px 3px at 85% 30%, rgba(210, 190, 160, 0.1) 0%, transparent 0%);
+            background-size: 60px 60px, 90px 90px, 120px 120px;
+            background-repeat: repeat;
+            filter: blur(1px);
+            animation: driftParticles 45s linear infinite;
+        }
+
+        @keyframes driftWind {
             0% {
-                opacity: 0.3;
-                backdrop-filter: blur(3px);
-            }
-            50% {
-                opacity: 0.7;
-                backdrop-filter: blur(6px);
+                transform: translate(0%, 0%) rotate(15deg);
             }
             100% {
-                opacity: 0.3;
-                backdrop-filter: blur(3px);
+                transform: translate(15%, 10%) rotate(15deg);
             }
         }
 
-        /* optional: slightly different variation for a smoother drift */
-        .mist-overlay {
-            animation: mistPulse 24s ease-in-out infinite alternate;
+        @keyframes driftWindScatter {
+            0% {
+                transform: translate(0%, 0%);
+            }
+            100% {
+                transform: translate(12%, 8%);
+            }
+        }
+
+        @keyframes driftParticles {
+            0% {
+                background-position: 0% 0%, 0% 0%, 0% 0%;
+            }
+            100% {
+                background-position: 200% 100%, 150% 80%, 180% 120%;
+            }
         }
 
         /* typography – consistent base size for contact, marquee, email block */
@@ -131,10 +193,10 @@
             margin: 0 auto;
             padding: 1.3rem;
             position: relative;
-            z-index: 3;  /* above the mist overlay */
+            z-index: 3;  /* above mist */
         }
 
-        /* sticky navigation – solid background, with transition for hide/show */
+        /* sticky navigation */
         .nav-bar {
             position: sticky;
             top: 0;
@@ -258,8 +320,13 @@
 </head>
 <body>
 
-<!-- Atmospheric mist overlay -->
-<div class="mist-overlay"></div>
+<!-- Directional atmospheric mist (Arabian wind) -->
+<div class="mist-overlay">
+    <div class="mist-layer-1"></div>
+    <div class="mist-layer-2"></div>
+    <div class="mist-layer-3"></div>
+    <div class="mist-layer-4"></div>
+</div>
 
 <div class="content">
     <div class="nav-bar" id="mainHeader">
@@ -292,7 +359,7 @@
         </div>
     </section>
 
-    <!-- EPISODE 01 -->
+    <!-- EPISODES 01–06 (same as before) -->
     <section id="ep1" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 01</div>
@@ -303,7 +370,6 @@
         </div>
     </section>
 
-    <!-- EPISODE 02 -->
     <section id="ep2" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 02</div>
@@ -314,7 +380,6 @@
         </div>
     </section>
 
-    <!-- EPISODE 03 -->
     <section id="ep3" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 03</div>
@@ -325,7 +390,6 @@
         </div>
     </section>
 
-    <!-- EPISODE 04 -->
     <section id="ep4" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 04</div>
@@ -336,7 +400,6 @@
         </div>
     </section>
 
-    <!-- EPISODE 05 -->
     <section id="ep5" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 05</div>
@@ -347,7 +410,6 @@
         </div>
     </section>
 
-    <!-- EPISODE 06 -->
     <section id="ep6" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 06</div>
@@ -360,7 +422,6 @@
 </div>
 
 <script>
-    // Clock update
     function updateClock() {
         const now = new Date();
         const hours = String(now.getHours()).padStart(2, '0');
@@ -373,15 +434,12 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // Scroll-driven header hide/show
     let lastScrollTop = 0;
     const header = document.getElementById('mainHeader');
     const scrollThreshold = 5;
-
     window.addEventListener('scroll', function() {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         if (Math.abs(scrollTop - lastScrollTop) <= scrollThreshold) return;
-
         if (scrollTop > lastScrollTop && scrollTop > 80) {
             header.classList.add('header-hidden');
         } else {
