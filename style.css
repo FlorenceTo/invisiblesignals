@@ -105,6 +105,16 @@ body {
     font-size: 0.85rem;
     line-height: 1.5;
     color: #333333;
+    transition: opacity 0.2s ease;
+}
+
+/* Episode title styling */
+.episode-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #1A1A1A;
+    letter-spacing: 0.5px;
 }
 
 /* RIGHT COLUMN */
@@ -213,17 +223,4 @@ html.invert .invert-button:hover {
     .right-column {
         width: 100%;
     }
-    /* Episode title styling - appears in middle column */
-.episode-title {
-    font-size: 0.85rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    color: #1A1A1A;
-    letter-spacing: 0.5px;
-}
-
-/* Optional: Add a subtle transition when content changes */
-.full-description {
-    transition: opacity 0.2s ease;
-}
 }
