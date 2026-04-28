@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invisible Signals</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="fonts.css">
 </head>
 <body>
     <div class="container">
-        <!-- LEFT COLUMN - Index Navigation -->
-        <div class="left-column">
+        <!-- LEFT COLUMN - Index -->
+        <nav class="index">
             <div class="index-header">
-                Index
+                <h1>Index</h1>
             </div>
-            <ul class="index-list" id="indexList">
+            <ul class="index-list">
                 <li><a href="#" data-page="info" class="active">00. Information</a></li>
                 <li><a href="#" data-page="ep1">01. Episode 01</a></li>
                 <li><a href="#" data-page="ep2">02. Episode 02</a></li>
@@ -23,74 +23,91 @@
                 <li><a href="#" data-page="ep5">05. Episode 05</a></li>
                 <li><a href="#" data-page="ep6">06. Episode 06</a></li>
             </ul>
-            <div class="broadcast-info">
-                <div class="broadcast-time">16:30 – 17:30 / Thursday 28.05.2026</div>
-                <div class="resonance-fm">RESONANCE FM</div>
+            <div class="clock">
+                16:30 – 17:30 / Thursday 28.05.2026<br>
+                RESONANCE FM
             </div>
-            <!-- Invert Toggle Button -->
-            <button id="invertToggle" class="invert-button">☾ Dark Mode</button>
-        </div>
+        </nav>
 
-        <!-- MIDDLE COLUMN - Full Description -->
-        <div class="middle-column" id="middle-content">
-            <div class="full-description">
-                Invisible Signals is an experimental radio series, structured as a live progression through live electronics, field recordings, and archival fragments. Taking its title from waves that remain imperceptible even as they are heard and felt, the series attends to signal as a materially distributed condition of vibration, shaped through bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, examining rupture, resistance, and repair across borders, technological infrastructures, and contested atmospheres. This is the first series hosted by Florence To.
+        <!-- CENTER COLUMN - Dynamic Content -->
+        <main class="content" id="content">
+            <!-- Content loads here dynamically -->
+        </main>
+
+        <!-- RIGHT COLUMN - Info/Sidebar -->
+        <aside class="info">
+            <div class="broadcast-time">
+                <span class="label">Broadcast</span>
+                <span class="time">16:30 – 17:30 / Thursday 28.05.2026</span>
             </div>
-        </div>
-
-        <!-- RIGHT COLUMN - Contact & Info -->
-        <div class="right-column">
-            <div class="contact-message">
+            <div class="episode-title" id="episode-title">
+                01.
+            </div>
+            <div class="description" id="description">
+                <!-- Dynamic description loads here -->
+            </div>
+            <div class="contact">
                 <p>If you'd like to submit audio, field recordings, archival material, or have an idea for a collaboration, please get in touch :)</p>
                 <div class="email">
                     <strong>Invisible Signals</strong><br>
                     <a href="mailto:seirynx@mailfence.com">seirynx@mailfence.com</a>
                 </div>
             </div>
-        </div>
+        </aside>
     </div>
 
     <script>
-        // Episode content data
+        // Episode data
         const episodes = {
             info: {
-                title: "00. Information",
-                description: `Invisible Signals is an experimental radio series, structured as a live progression through live electronics, field recordings, and archival fragments. Taking its title from waves that remain imperceptible even as they are heard and felt, the series attends to signal as a materially distributed condition of vibration, shaped through bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, examining rupture, resistance, and repair across borders, technological infrastructures, and contested atmospheres. This is the first series hosted by Florence To.`
+                title: "00.",
+                description: "Invisible Signals is an experimental radio series, structured as a live progression through live electronics, field recordings, and archival fragments. Taking its title from waves that remain imperceptible even as they are heard and felt, the series attends to signal as a materially distributed condition of vibration, shaped through bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, examining rupture, resistance, and repair across borders, technological infrastructures, and contested atmospheres. This is the first series hosted by Florence To."
             },
             ep1: {
-                title: "01. Episode 01",
-                description: `Episode 01 content goes here. The full description of the first episode would appear in this space, with details about the sonic essay, field recordings, and live composition elements featured in this broadcast.`
+                title: "01.",
+                description: "Episode 01 content goes here. The full description of the first episode would appear in this space, with details about the sonic essay, field recordings, and live composition elements featured in this broadcast."
             },
             ep2: {
-                title: "02. Episode 02",
-                description: `Episode 02 content goes here. Each episode examines different aspects of rupture, resistance, and repair across various technological and environmental contexts.`
+                title: "02.",
+                description: "Episode 02 content goes here. Each episode examines different aspects of rupture, resistance, and repair across various technological and environmental contexts."
             },
             ep3: {
-                title: "03. Episode 03",
-                description: `Episode 03 content goes here. The series moves between different formats including sonic essay, radio play, and live composition.`
+                title: "03.",
+                description: "Episode 03 content goes here. The series moves between different formats including sonic essay, radio play, and live composition."
             },
             ep4: {
-                title: "04. Episode 04",
-                description: `Episode 04 content goes here. Exploring contested atmospheres and infrastructural systems through sound.`
+                title: "04.",
+                description: "Episode 04 content goes here. Exploring contested atmospheres and infrastructural systems through sound."
             },
             ep5: {
-                title: "05. Episode 05",
-                description: `Episode 05 content goes here. Field recordings and archival fragments shape each unique episode.`
+                title: "05.",
+                description: "Episode 05 content goes here. Field recordings and archival fragments shape each unique episode."
             },
             ep6: {
-                title: "06. Episode 06",
-                description: `Episode 06 content goes here. The final episode of the first series hosted by Florence To.`
+                title: "06.",
+                description: "Episode 06 content goes here. The final episode of the first series hosted by Florence To."
             }
         };
 
-        // Function to load page content
+        // Function to load content
         function loadPage(pageId) {
             const episode = episodes[pageId];
             if (episode) {
-                // Update the middle column with full description
-                document.getElementById('middle-content').innerHTML = `<div class="full-description">${episode.description}</div>`;
+                document.getElementById('episode-title').innerHTML = episode.title;
+                document.getElementById('description').innerHTML = `<p>${episode.description}</p>`;
                 
-                // Update active state on index links
+                // Also update center column with full content
+                const contentDiv = document.getElementById('content');
+                contentDiv.innerHTML = `
+                    <div class="episode-full">
+                        <h2>${episode.title}</h2>
+                        <div class="episode-body">
+                            ${episode.description.split('. ').join('.<br><br>')}
+                        </div>
+                    </div>
+                `;
+                
+                // Update active state on index
                 document.querySelectorAll('.index-list a').forEach(link => {
                     link.classList.remove('active');
                     if (link.getAttribute('data-page') === pageId) {
@@ -100,42 +117,17 @@
             }
         }
 
-        // Set up event listeners for all index links
-        function setupIndexLinks() {
-            const links = document.querySelectorAll('.index-list a');
-            links.forEach(link => {
-                // Remove existing listeners to avoid duplicates
-                link.removeEventListener('click', handleClick);
-                // Add new listener
-                link.addEventListener('click', handleClick);
-            });
-        }
-
-        // Handle click on index links
-        function handleClick(e) {
-            e.preventDefault();
-            const pageId = this.getAttribute('data-page');
-            loadPage(pageId);
-        }
-
-        // Invert toggle functionality
-        const invertBtn = document.getElementById('invertToggle');
-        if (invertBtn) {
-            invertBtn.addEventListener('click', () => {
-                document.documentElement.classList.toggle('invert');
-                if (document.documentElement.classList.contains('invert')) {
-                    invertBtn.innerHTML = '☀︎ Light Mode';
-                } else {
-                    invertBtn.innerHTML = '☾ Dark Mode';
-                }
-            });
-        }
-
-        // Initialize everything when page loads
-        setupIndexLinks();
-        
         // Load info page by default
         loadPage('info');
+
+        // Add click handlers
+        document.querySelectorAll('.index-list a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const pageId = link.getAttribute('data-page');
+                loadPage(pageId);
+            });
+        });
     </script>
 </body>
 </html>
