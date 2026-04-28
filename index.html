@@ -2,132 +2,334 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invisible Signals</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="fonts.css">
-</head>
-<body>
-    <div class="container">
-        <!-- LEFT COLUMN - Index -->
-        <nav class="index">
-            <div class="index-header">
-                <h1>Index</h1>
-            </div>
-            <ul class="index-list">
-                <li><a href="#" data-page="info" class="active">00. Information</a></li>
-                <li><a href="#" data-page="ep1">01. Episode 01</a></li>
-                <li><a href="#" data-page="ep2">02. Episode 02</a></li>
-                <li><a href="#" data-page="ep3">03. Episode 03</a></li>
-                <li><a href="#" data-page="ep4">04. Episode 04</a></li>
-                <li><a href="#" data-page="ep5">05. Episode 05</a></li>
-                <li><a href="#" data-page="ep6">06. Episode 06</a></li>
-            </ul>
-            <div class="clock">
-                16:30 – 17:30 / Thursday 28.05.2026<br>
-                RESONANCE FM
-            </div>
-        </nav>
-
-        <!-- CENTER COLUMN - Dynamic Content -->
-        <main class="content" id="content">
-            <!-- Content loads here dynamically -->
-        </main>
-
-        <!-- RIGHT COLUMN - Info/Sidebar -->
-        <aside class="info">
-            <div class="broadcast-time">
-                <span class="label">Broadcast</span>
-                <span class="time">16:30 – 17:30 / Thursday 28.05.2026</span>
-            </div>
-            <div class="episode-title" id="episode-title">
-                01.
-            </div>
-            <div class="description" id="description">
-                <!-- Dynamic description loads here -->
-            </div>
-            <div class="contact">
-                <p>If you'd like to submit audio, field recordings, archival material, or have an idea for a collaboration, please get in touch :)</p>
-                <div class="email">
-                    <strong>Invisible Signals</strong><br>
-                    seirynx@mailfence.com
-                </div>
-            </div>
-        </aside>
-    </div>
-
-    <script>
-        // Episode data
-        const episodes = {
-            info: {
-                title: "00.",
-                description: "Invisible Signals is an experimental radio series, structured as a live progression through live electronics, field recordings, and archival fragments. Taking its title from waves that remain imperceptible even as they are heard and felt, the series attends to signal as a materially distributed condition of vibration, shaped through bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, examining rupture, resistance, and repair across borders, technological infrastructures, and contested atmospheres. This is the first series hosted by Florence To."
-            },
-            ep1: {
-                title: "01.",
-                description: "Episode 01 content goes here. The full description of the first episode would appear in this space, with details about the sonic essay, field recordings, and live composition elements featured in this broadcast."
-            },
-            ep2: {
-                title: "02.",
-                description: "Episode 02 content goes here. Each episode examines different aspects of rupture, resistance, and repair across various technological and environmental contexts."
-            },
-            ep3: {
-                title: "03.",
-                description: "Episode 03 content goes here. The series moves between different formats including sonic essay, radio play, and live composition."
-            },
-            ep4: {
-                title: "04.",
-                description: "Episode 04 content goes here. Exploring contested atmospheres and infrastructural systems through sound."
-            },
-            ep5: {
-                title: "05.",
-                description: "Episode 05 content goes here. Field recordings and archival fragments shape each unique episode."
-            },
-            ep6: {
-                title: "06.",
-                description: "Episode 06 content goes here. The final episode of the first series hosted by Florence To."
-            }
-        };
-
-        // Function to load content
-        function loadPage(pageId) {
-            const episode = episodes[pageId];
-            if (episode) {
-                document.getElementById('episode-title').innerHTML = episode.title;
-                document.getElementById('description').innerHTML = `<p>${episode.description}</p>`;
-                
-                // Also update center column with full content
-                const contentDiv = document.getElementById('content');
-                contentDiv.innerHTML = `
-                    <div class="episode-full">
-                        <h2>${episode.title}</h2>
-                        <div class="episode-body">
-                            ${episode.description.split('. ').join('.<br><br>')}
-                        </div>
-                    </div>
-                `;
-                
-                // Update active state on index
-                document.querySelectorAll('.index-list a').forEach(link => {
-                    link.classList.remove('active');
-                    if (link.getAttribute('data-page') === pageId) {
-                        link.classList.add('active');
-                    }
-                });
-            }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Invisible Signals – Radio Series</title>
+    <style>
+        /* ---------- RESET & BASE ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        // Load info page by default
-        loadPage('info');
+        body {
+            background: #0a0a0a;
+            font-family: 'Inter', 'Monument Grotesk Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.4;
+            -webkit-font-smoothing: antialiased;
+        }
 
-        // Add click handlers
-        document.querySelectorAll('.index-list a').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const pageId = link.getAttribute('data-page');
-                loadPage(pageId);
-            });
-        });
-    </script>
+        /* ---------- COLOUR FILTER (overlay effect) ---------- */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #30342f;
+            mix-blend-mode: overlay;
+            opacity: 0.8;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* ---------- TYPOGRAPHY ---------- */
+        h1, h2, h3 {
+            font-weight: normal;
+        }
+
+        .bodycopy, .bodycopy-2 {
+            font-size: 1rem;
+            line-height: 1.3;
+            letter-spacing: 0.014em;
+        }
+
+        .bodycopy-2 {
+            font-size: 1.05rem;
+            letter-spacing: 0.058em;
+        }
+
+        .grey-caption {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-family: 'Monument Grotesk Variable', monospace;
+            letter-spacing: 0.037em;
+        }
+
+        .marquee-text {
+            font-weight: bold;
+            font-size: 1.13rem;
+        }
+
+        /* ---------- LAYOUT ---------- */
+        .content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.3rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* pinned navigation */
+        .nav-bar {
+            position: sticky;
+            top: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            padding: 1rem 1.3rem;
+            margin-bottom: 2rem;
+            z-index: 10;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: inherit;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
+        }
+
+        .nav-links a:hover {
+            opacity: 0.7;
+        }
+
+        /* episode sections */
+        .episode {
+            margin: 4rem 0;
+            padding-top: 2rem;
+            scroll-margin-top: 80px;
+        }
+
+        .episode-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr 2fr;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .episode-number {
+            font-size: 2rem;
+            font-weight: 500;
+        }
+
+        .episode-title {
+            font-size: 1.4rem;
+        }
+
+        .episode-desc {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* info page (marquee + contact) */
+        .info-section {
+            margin: 3rem 0 6rem;
+        }
+
+        .marquee-container {
+            overflow: hidden;
+            white-space: nowrap;
+            margin: 2rem 0;
+        }
+
+        .marquee-content {
+            display: inline-block;
+            animation: scrollMarquee 40s linear infinite;
+            padding-right: 2rem;
+        }
+
+        @keyframes scrollMarquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .contact-info {
+            margin-top: 3rem;
+            text-align: right;
+        }
+
+        .contact-info a {
+            color: rgba(255, 255, 255, 0.64);
+            text-decoration: none;
+            border-bottom: 1px dotted;
+        }
+
+        /* clock (bottom left) */
+        .clock {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 1.5rem;
+            font-family: monospace;
+            font-size: 0.85rem;
+            background: rgba(0,0,0,0.5);
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
+            z-index: 20;
+            letter-spacing: 0.5px;
+        }
+
+        /* responsive */
+        @media (max-width: 800px) {
+            .episode-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .nav-links {
+                gap: 0.8rem;
+            }
+            .marquee-content {
+                font-size: 0.9rem;
+            }
+            .clock {
+                bottom: 0.8rem;
+                left: 0.8rem;
+                font-size: 0.7rem;
+            }
+            .content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="clock" id="liveClock">--:--:--</div>
+
+<div class="content">
+    <!-- fixed navigation (mimics Cargo pinned page) -->
+    <div class="nav-bar">
+        <div class="index-label" style="font-size: 0.85rem;">Index</div>
+        <ul class="nav-links">
+            <li><a href="#info">00. Information</a></li>
+            <li><a href="#ep1">01. Episode 01</a></li>
+            <li><a href="#ep2">02. Episode 02</a></li>
+            <li><a href="#ep3">03. Episode 03</a></li>
+            <li><a href="#ep4">04. Episode 04</a></li>
+            <li><a href="#ep5">05. Episode 05</a></li>
+            <li><a href="#ep6">06. Episode 06</a></li>
+        </ul>
+    </div>
+
+    <!-- INFORMATION SECTION (marquee + contact) -->
+    <section id="info" class="info-section">
+        <div class="episode-grid">
+            <div></div> <!-- spacer for 3-col layout -->
+            <div class="marquee-container">
+                <div class="marquee-content marquee-text">
+                    Invisible Signals is an experimental radio series, structured as a live progression through live electronics, field recordings, and archival fragments. Taking its title from waves that remain imperceptible even as they are heard and felt, the series attends to signal as a materially distributed condition of vibration, shaped through bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, examining rupture, resistance, and repair across borders, technological infrastructures, and contested atmospheres. &nbsp;&nbsp;&nbsp;
+                </div>
+            </div>
+            <div class="contact-info">
+                <p style="margin-bottom: 1rem;">If you’d like to submit audio, field recordings, archival material, or have an idea for a collaboration, please get in touch :)</p>
+                <div><strong>Invisible Signals</strong><br>
+                <a href="mailto:seirynx@mailfence.com">seirynx@mailfence.com</a></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EPISODE 01 -->
+    <section id="ep1" class="episode">
+        <div class="episode-grid">
+            <div class="episode-number">01.</div>
+            <div class="episode-title">Episode 01</div>
+            <div class="episode-desc">
+                <div class="bodycopy-2">Invisible Signals is an experimental radio series, structured as a live progression through live electronics, field recordings, and archival fragments. Taking its title from waves that remain imperceptible even as they are heard and felt, the series attends to signal as a materially distributed condition of vibration, shaped through bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, examining rupture, resistance, and repair across borders, technological infrastructures, and contested atmospheres. This is the first series hosted by Florence To.</div>
+                <div style="margin-top: 1.5rem;"><span class="grey-caption">INSERT TRACK LISTING</span></div>
+                <!-- placeholder for image (original had a media-item) -->
+            </div>
+        </div>
+    </section>
+
+    <!-- EPISODE 02 -->
+    <section id="ep2" class="episode">
+        <div class="episode-grid">
+            <div class="episode-number">02.</div>
+            <div class="episode-title">Episode 02</div>
+            <div class="episode-desc">
+                <div>Mauris leo erat, placerat quis semper eu, pulvinar in est. Nam eget justo quis ligula faucibus pretium ac nec mi. Aliquam lacus est, auctor sed arcu at, luctus condimentum lectus. Quisque vitae eleifend quam, vel suscipit nisl. Duis efficitur est nunc, eget efficitur felis porttitor in. Donec facilisis ultrices mattis.</div>
+                <div class="grey-caption" style="margin-top: 1rem;">Resonance FM – 2026</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EPISODE 03 -->
+    <section id="ep3" class="episode">
+        <div class="episode-grid">
+            <div class="episode-number">03.</div>
+            <div class="episode-title">Episode 03</div>
+            <div class="episode-desc">
+                <div>Mauris leo erat, placerat quis semper eu, pulvinar in est. Nam eget justo quis ligula faucibus pretium ac nec mi. Aliquam lacus est, auctor sed arcu at, luctus condimentum lectus. Quisque vitae eleifend quam, vel suscipit nisl. Duis efficitur est nunc, eget efficitur felis porttitor in. Donec facilisis ultrices mattis.</div>
+                <div class="grey-caption" style="margin-top: 1rem;">Resonance FM – 2026</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EPISODE 04 -->
+    <section id="ep4" class="episode">
+        <div class="episode-grid">
+            <div class="episode-number">04.</div>
+            <div class="episode-title">Episode 04</div>
+            <div class="episode-desc">
+                <div>Mauris leo erat, placerat quis semper eu, pulvinar in est. Nam eget justo quis ligula faucibus pretium ac nec mi. Aliquam lacus est, auctor sed arcu at, luctus condimentum lectus. Quisque vitae eleifend quam, vel suscipit nisl. Duis efficitur est nunc, eget efficitur felis porttitor in. Donec facilisis ultrices mattis.</div>
+                <div class="grey-caption" style="margin-top: 1rem;">Resonance FM – 2026</div>
+                <!-- optional gallery caption from original: "2/3 Hussein Chalayan, Rizzoli" -->
+            </div>
+        </div>
+    </section>
+
+    <!-- EPISODE 05 -->
+    <section id="ep5" class="episode">
+        <div class="episode-grid">
+            <div class="episode-number">05.</div>
+            <div class="episode-title">Episode 05</div>
+            <div class="episode-desc">
+                <div>Praesent bibendum a elit non efficitur. Etiam et velit vitae quam aliquet fermentum. Quisque sit amet nulla dictum, cursus erat a, tempus est. Sed laoreet, magna eget mattis tincidunt, felis tellus vestibulum augue, in lobortis mauris risus eu nunc. Vivamus sed condimentum leo. Nunc efficitur, magna condimentum gravida egestas, ligula mauris posuere neque, sit amet sagittis dui velit vitae neque. Donec in dapibus arcu. Aliquam efficitur suscipit magna, vel pretium mi. Aenean nisl nulla, porttitor interdum enim nec, sagittis suscipit mauris. Quisque malesuada ullamcorper lacus.</div>
+                <div class="grey-caption" style="margin-top: 1rem;">Resonance FM – 2026</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EPISODE 06 -->
+    <section id="ep6" class="episode">
+        <div class="episode-grid">
+            <div class="episode-number">06.</div>
+            <div class="episode-title">Episode 06</div>
+            <div class="episode-desc">
+                <div>Text for episode six would go here – as per original content.</div>
+                <div class="grey-caption" style="margin-top: 1rem;">Resonance FM – 2026</div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    // Digital clock (24h format)
+    function updateClock() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const timeString = `${hours}:${minutes}:${seconds}`;
+        const clockEl = document.getElementById('liveClock');
+        if (clockEl) clockEl.textContent = timeString;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+</script>
 </body>
 </html>
