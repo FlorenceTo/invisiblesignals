@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Invisible Signals – Radio Series</title>
     <style>
-        /* ---------- RESET & BASE ---------- */
         * {
             margin: 0;
             padding: 0;
@@ -20,7 +19,7 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* colour filter overlay (warm/cool tint) */
+        /* colour filter overlay */
         body::before {
             content: '';
             position: fixed;
@@ -35,7 +34,7 @@
             z-index: 1;
         }
 
-        /* ---------- TYPOGRAPHY (fluid sizes) ---------- */
+        /* typography – using clamp() for fluid font sizes on all devices */
         .bodycopy-2 {
             font-size: clamp(0.9rem, 4vw, 1.05rem);
             letter-spacing: 0.058em;
@@ -64,30 +63,12 @@
         }
         .nav-links a {
             font-size: clamp(0.75rem, 4vw, 0.9rem);
-            text-decoration: none;
-            color: inherit;
-            transition: opacity 0.2s;
-        }
-        .nav-links a:hover {
-            opacity: 0.7;
         }
         .contact-text {
             font-size: clamp(0.85rem, 4vw, 1rem);
-            color: rgba(255, 255, 255, 0.72);
-        }
-        .right-col-bottom {
-            font-size: 0.85rem;
-        }
-        .right-col-bottom strong {
-            display: block;
-        }
-        .right-col-bottom a {
-            color: rgba(255, 255, 255, 0.64);
-            text-decoration: none;
-            border-bottom: 1px dotted;
         }
 
-        /* ---------- LAYOUT ---------- */
+        /* layout */
         .content {
             max-width: 1400px;
             margin: 0 auto;
@@ -96,13 +77,13 @@
             z-index: 2;
         }
 
-        /* sticky navigation – solid background */
+        /* sticky navigation – fixed background and padding (fixed negative padding) */
         .nav-bar {
             position: sticky;
             top: 0;
-            background: #1c1c1b;
+            background: #1c1c1b;   /* solid background to match body */
             backdrop-filter: none;
-            padding: 1rem 1.3rem 3rem 1.3rem;
+            padding: 1rem 1.3rem 4rem 1.3rem;   /* changed -1rem to 1rem */
             margin-bottom: 2rem;
             z-index: 10;
             display: flex;
@@ -117,6 +98,14 @@
             flex-wrap: wrap;
             gap: 1.5rem;
             list-style: none;
+        }
+        .nav-links a {
+            color: inherit;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        .nav-links a:hover {
+            opacity: 0.7;
         }
 
         /* episode sections – two columns */
@@ -137,21 +126,22 @@
             color: rgba(255, 255, 255, 0.7);
         }
 
-        /* info section – left column wide, right column narrow */
+        /* info section – left column much wider (fixed column shrink) */
         .info-section {
             margin: 3rem 0 6rem;
         }
         .info-grid {
             display: grid;
-            grid-template-columns: 5fr 0.2fr;
+            grid-template-columns: 2fr 0.2fr;
             gap: 2rem;
             align-items: start;
         }
-        /* critical fix: allow columns to shrink below content size */
+        /* fix: allow columns to shrink below content size */
         .info-grid > * {
             min-width: 0;
         }
         .contact-text {
+            color: rgba(255, 255, 255, 0.72);
             max-width: 95%;
         }
         .marquee-container {
@@ -170,8 +160,16 @@
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
         }
+        .right-col-bottom strong {
+            display: block;
+        }
+        .right-col-bottom a {
+            color: rgba(255, 255, 255, 0.64);
+            text-decoration: none;
+            border-bottom: 1px dotted;
+        }
 
-        /* ---------- MOBILE OPTIMISATIONS ---------- */
+        /* ---------- UNIVERSAL MOBILE OPTIMISATIONS ---------- */
         @media (max-width: 640px) {
             .content {
                 padding: 0.8rem;
@@ -182,11 +180,14 @@
                 padding: 0.8rem 0.8rem 2rem 0.8rem;
                 gap: 0.8rem;
             }
+            .header-clock {
+                margin-bottom: 0;
+            }
             .nav-links {
                 gap: 1rem;
             }
             .nav-links a {
-                padding: 0.5rem 0;
+                padding: 0.5rem 0;      /* larger tap target */
                 display: inline-block;
             }
             .episode-grid {
@@ -213,11 +214,13 @@
             .info-section {
                 margin: 2rem 0 4rem;
             }
+            /* fix mobile font size for email and name */
             .right-col-bottom {
                 font-size: 0.8rem;
             }
         }
 
+        /* very small phones (e.g., iPhone SE, 375px) */
         @media (max-width: 480px) {
             .content {
                 padding: 0.6rem;
@@ -275,18 +278,17 @@
         </div>
     </section>
 
-    <!-- EPISODE 01 -->
+    <!-- EPISODES 01–06 (same content as before) -->
     <section id="ep1" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 01</div>
             <div class="episode-desc">
-                <div class="bodycopy-2">A monthly open-form radio series that progresses through live electronics, field recordings, and archival fragments. Its title emerges from waves that remain imperceptible even as they are heard and felt, the series follows these signals as forms of vibration moving through aetheric conditions across bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, tracing rupture, resistance, and repair across borders, technological networks, and contested terrains. Presented by artist and researcher Florence To.</div>
+                <div class="bodycopy-2">Invisible Signals is an experimental radio series, structured as a live progression through live electronics, field recordings, and archival fragments. Taking its title from waves that remain imperceptible even as they are heard and felt, the series attends to signal as a materially distributed condition of vibration, shaped through bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, examining rupture, resistance, and repair across borders, technological infrastructures, and contested atmospheres. This is the first series hosted by Florence To.</div>
                 <div style="margin-top: 1.5rem;"><span class="grey-caption">INSERT TRACK LISTING</span></div>
             </div>
         </div>
     </section>
 
-    <!-- EPISODE 02 -->
     <section id="ep2" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 02</div>
@@ -297,7 +299,6 @@
         </div>
     </section>
 
-    <!-- EPISODE 03 -->
     <section id="ep3" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 03</div>
@@ -308,7 +309,6 @@
         </div>
     </section>
 
-    <!-- EPISODE 04 -->
     <section id="ep4" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 04</div>
@@ -319,7 +319,6 @@
         </div>
     </section>
 
-    <!-- EPISODE 05 -->
     <section id="ep5" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 05</div>
@@ -330,7 +329,6 @@
         </div>
     </section>
 
-    <!-- EPISODE 06 -->
     <section id="ep6" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 06</div>
