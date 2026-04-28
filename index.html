@@ -17,6 +17,7 @@
             color: rgba(255, 255, 255, 0.85);
             line-height: 1.4;
             -webkit-font-smoothing: antialiased;
+            position: relative;
         }
 
         /* colour filter overlay */
@@ -34,33 +35,28 @@
             z-index: 1;
         }
 
-        /* --- ASCII LINE WAVE BACKGROUND (no smoke, no blur) --- */
-        .ascii-wave-bg {
+        /* Canvas for animated ASCII particles (sparse, wind-like) */
+        #asciiCanvas {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 0;          /* behind everything (content is z-index 2) */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Courier New', monospace;
-            font-size: clamp(0.6rem, 2.5vw, 1rem);
-            line-height: 1.2;
-            white-space: pre;
-            color: #9afc97;       /* your green outline colour, very subtle */
-            opacity: 0.70;        /* very faint, adjust as desired */
-            overflow: hidden;
+            z-index: 0;
+            opacity: 0.15;          /* very subtle, adjust as desired */
         }
 
-        .ascii-wave-bg pre {
-            margin: 0;
-            user-select: none;
+        /* All content sits above the canvas */
+        .content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.3rem;
+            position: relative;
+            z-index: 2;
         }
 
-        /* typography – consistent base size for contact, marquee, email block */
+        /* typography – unchanged from your working version */
         .bodycopy-2 {
             font-size: clamp(0.9rem, 4vw, 1.05rem);
             letter-spacing: 0.058em;
@@ -92,13 +88,11 @@
             opacity: 0.7;
         }
 
-        /* contact, marquee, email block all share the same font size */
         .contact-text,
         .marquee-text,
         .right-col-bottom {
             font-size: clamp(0.85rem, 4vw, 1rem);
         }
-
         .contact-text {
             color: rgba(255, 255, 255, 0.72);
         }
@@ -113,15 +107,6 @@
         }
         .right-col-bottom strong {
             display: block;
-        }
-
-        /* layout */
-        .content {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 1.3rem;
-            position: relative;
-            z-index: 2;
         }
 
         /* sticky navigation – transparent background, green outline */
@@ -196,62 +181,32 @@
 
         /* mobile optimisations */
         @media (max-width: 640px) {
-            .content {
-                padding: 0.8rem;
-            }
+            .content { padding: 0.8rem; }
             .nav-bar {
                 flex-direction: column;
                 align-items: flex-start;
                 padding: 0.8rem 0.8rem 2rem 0.8rem;
                 gap: 0.8rem;
             }
-            .nav-links {
-                gap: 1rem;
-            }
-            .nav-links a {
-                padding: 0.5rem 0;
-                display: inline-block;
-            }
-            .episode-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-            .marquee-content {
-                animation-duration: 35s;
-            }
-            .episode {
-                margin: 2.5rem 0;
-            }
-            .info-section {
-                margin: 2rem 0 4rem;
-            }
+            .nav-links { gap: 1rem; }
+            .nav-links a { padding: 0.5rem 0; display: inline-block; }
+            .episode-grid { grid-template-columns: 1fr; gap: 1rem; }
+            .marquee-content { animation-duration: 35s; }
+            .episode { margin: 2.5rem 0; }
+            .info-section { margin: 2rem 0 4rem; }
         }
-
         @media (max-width: 480px) {
-            .content {
-                padding: 0.6rem;
-            }
-            .nav-bar {
-                padding: 0.6rem 0.6rem 1.5rem 0.6rem;
-            }
-            .nav-links {
-                gap: 0.7rem;
-            }
-            .nav-links a {
-                font-size: 0.7rem;
-            }
-            .marquee-content {
-                animation-duration: 30s;
-            }
+            .content { padding: 0.6rem; }
+            .nav-bar { padding: 0.6rem 0.6rem 1.5rem 0.6rem; }
+            .nav-links { gap: 0.7rem; }
+            .nav-links a { font-size: 0.7rem; }
+            .marquee-content { animation-duration: 30s; }
         }
     </style>
 </head>
 <body>
 
-<!-- ASCII LINE WAVE BACKGROUND (animated, only line characters) -->
-<div class="ascii-wave-bg">
-    <pre id="asciiWave">/ \ | - _ + . · / \ | - _ + . ·</pre>
-</div>
+<canvas id="asciiCanvas"></canvas>
 
 <div class="content">
     <div class="nav-bar" id="mainHeader">
@@ -270,7 +225,7 @@
     <section id="info" class="info-section">
         <div class="info-stack">
             <div class="contact-text">
-                If you’d like to submit audio, field recordings, archival material, or have an idea for a collaboration, please get in touch ░▒▓█
+                If you’d like to submit audio, field recordings, archival material, or have an idea for a collaboration, please get in touch ░░░░░░░░░░
             </div>
             <div class="marquee-container">
                 <div class="marquee-content marquee-text">
@@ -352,52 +307,81 @@
 </div>
 
 <script>
-    // ----- ASCII LINE WAVE ANIMATION (scattered, only line characters) -----
-    const lineChars = ['/', '\\', '|', '-', '_', '+', '.', '·'];
-    const waveContainer = document.getElementById('asciiWave');
-    let animationFrame;
+    // ========== ASCII WAVE PARTICLES (sparse, wind-like) ==========
+    const canvas = document.getElementById('asciiCanvas');
+    let ctx = canvas.getContext('2d');
+    let particles = [];
+    let animationId = null;
+    let width = window.innerWidth;
+    let height = window.innerHeight;
 
-    function generateWaveLine() {
-        let line = '';
-        // Number of characters per row – adapts to screen width
-        const cols = Math.floor(window.innerWidth / 15);
-        for (let i = 0; i < cols; i++) {
-            // Random choice, but create a slight wave pattern using sine
-            const noise = Math.sin(i * 0.2 + Date.now() * 0.002) * 0.8 + 0.5;
-            let ch;
-            if (Math.random() < 0.4) {
-                ch = lineChars[Math.floor(Math.random() * lineChars.length)];
-            } else {
-                ch = noise > 0.6 ? '/' : (noise > 0.3 ? '\\' : '|');
-            }
-            line += ch + ' ';
-        }
-        return line;
+    // Allowed characters: only line/dot symbols
+    const chars = ['/', '\\', '|', '-', '_', '+', '.', '·'];
+
+    function resizeCanvas() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+        initParticles();
     }
 
-    function updateWaveBackground() {
-        const rows = Math.floor(window.innerHeight / 24);
-        let fullText = '';
-        for (let r = 0; r < rows; r++) {
-            fullText += generateWaveLine() + '\n';
+    function initParticles() {
+        // Sparse distribution: about 200–300 particles, depending on screen size
+        let particleCount = Math.floor(width * height / 8000);
+        particleCount = Math.min(500, Math.max(150, particleCount));
+        particles = [];
+        for (let i = 0; i < particleCount; i++) {
+            particles.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                char: chars[Math.floor(Math.random() * chars.length)],
+                vx: (Math.random() - 0.5) * 0.3,    // slow drift
+                vy: (Math.random() - 0.5) * 0.2 + 0.1, // slight downward bias (like wind)
+                size: 12 + Math.random() * 8,       // font size (pixels)
+                opacity: 0.3 + Math.random() * 0.5
+            });
         }
-        waveContainer.textContent = fullText;
-        animationFrame = requestAnimationFrame(updateWaveBackground);
     }
 
-    // Start the animation, but throttle to ~15fps for performance
-    let lastTimestamp = 0;
-    function throttledUpdate(timestamp) {
-        if (timestamp - lastTimestamp >= 66) { // ~15 fps
-            updateWaveBackground();
-            lastTimestamp = timestamp;
-        }
-        requestAnimationFrame(throttledUpdate);
-    }
-    // Start the wave animation
-    throttledUpdate();
+    function drawParticles() {
+        if (!ctx) return;
+        ctx.clearRect(0, 0, width, height);
+        ctx.font = '14px "Courier New", monospace';
+        ctx.fillStyle = '#9afc97';   // match your green outline
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center';
 
-    // Clock update
+        for (let p of particles) {
+            // update position
+            p.x += p.vx;
+            p.y += p.vy;
+            // wrap around edges to keep them flowing
+            if (p.x < -50) p.x = width + 50;
+            if (p.x > width + 50) p.x = -50;
+            if (p.y < -50) p.y = height + 50;
+            if (p.y > height + 50) p.y = -50;
+
+            ctx.font = `${p.size}px "Courier New", monospace`;
+            ctx.globalAlpha = p.opacity * 0.7;   // subtle overall opacity
+            ctx.fillText(p.char, p.x, p.y);
+        }
+        ctx.globalAlpha = 1;
+    }
+
+    function animate() {
+        drawParticles();
+        requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', () => {
+        resizeCanvas();
+    });
+
+    resizeCanvas();
+    animate();
+
+    // ----- Clock and header hide/show (unchanged) -----
     function updateClock() {
         const now = new Date();
         const hours = String(now.getHours()).padStart(2, '0');
@@ -410,7 +394,6 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // Scroll-driven header hide/show
     let lastScrollTop = 0;
     const header = document.getElementById('mainHeader');
     const scrollThreshold = 5;
