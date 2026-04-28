@@ -65,7 +65,7 @@
             z-index: 2;
         }
 
-        /* sticky navigation – no Index label */
+        /* sticky navigation – no numbers */
         .nav-bar {
             position: sticky;
             top: 0;
@@ -112,19 +112,20 @@
             color: rgba(255, 255, 255, 0.7);
         }
 
-        /* info section – two columns exactly like original Cargo layout */
+        /* info section – left column twice as wide as right column */
         .info-section {
             margin: 3rem 0 6rem;
         }
         .info-grid {
             display: grid;
-            grid-template-columns: 1fr 2fr;
+            grid-template-columns: 2fr 1fr;  /* left is twice the width of right */
             gap: 2rem;
             align-items: start;
         }
         .contact-text {
             color: rgba(255, 255, 255, 0.72);
-            font-size: 1rem; /* roughly 1.09 * default */
+            font-size: 1rem;
+            max-width: 90%;  /* prevent overly long lines on huge screens */
         }
         .marquee-container {
             overflow: hidden;
@@ -141,9 +142,6 @@
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
         }
-        .right-col-bottom {
-            margin-top: 0;
-        }
         .right-col-bottom strong {
             display: block;
         }
@@ -151,9 +149,6 @@
             color: rgba(255, 255, 255, 0.64);
             text-decoration: none;
             border-bottom: 1px dotted;
-        }
-        .right-col-bottom a:hover {
-            opacity: 0.8;
         }
 
         /* clock */
@@ -177,8 +172,11 @@
                 gap: 1rem;
             }
             .info-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr;  /* stack on mobile */
                 gap: 1.5rem;
+            }
+            .contact-text {
+                max-width: 100%;
             }
             .nav-links {
                 gap: 0.8rem;
@@ -194,9 +192,6 @@
             .nav-bar {
                 justify-content: center;
             }
-            .contact-text {
-                margin-bottom: 0.5rem;
-            }
         }
     </style>
 </head>
@@ -205,35 +200,31 @@
 <div class="clock" id="liveClock">--:--:--</div>
 
 <div class="content">
-    <!-- navigation bar -->
+    <!-- navigation bar – numbers removed -->
     <div class="nav-bar">
         <ul class="nav-links">
-            <li><a href="#info">00. Information</a></li>
-            <li><a href="#ep1">01. Episode 01</a></li>
-            <li><a href="#ep2">02. Episode 02</a></li>
-            <li><a href="#ep3">03. Episode 03</a></li>
-            <li><a href="#ep4">04. Episode 04</a></li>
-            <li><a href="#ep5">05. Episode 05</a></li>
-            <li><a href="#ep6">06. Episode 06</a></li>
+            <li><a href="#info">Information</a></li>
+            <li><a href="#ep1">Episode 01</a></li>
+            <li><a href="#ep2">Episode 02</a></li>
+            <li><a href="#ep3">Episode 03</a></li>
+            <li><a href="#ep4">Episode 04</a></li>
+            <li><a href="#ep5">Episode 05</a></li>
+            <li><a href="#ep6">Episode 06</a></li>
         </ul>
     </div>
 
-    <!-- INFORMATION SECTION: two‑column, exactly as original -->
+    <!-- INFORMATION SECTION with wider left column -->
     <section id="info" class="info-section">
         <div class="info-grid">
-            <!-- left column: submission text -->
             <div class="contact-text">
                 If you’d like to submit audio, field recordings, archival material, or have an idea for a collaboration, please get in touch :)
             </div>
-            <!-- right column: marquee + email -->
             <div>
-                <!-- horizontal scrolling marquee -->
                 <div class="marquee-container">
                     <div class="marquee-content marquee-text">
                         Invisible Signals is an experimental radio series, structured as a live progression through live electronics, field recordings, and archival fragments. Taking its title from waves that remain imperceptible even as they are heard and felt, the series attends to signal as a materially distributed condition of vibration, shaped through bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, examining rupture, resistance, and repair across borders, technological infrastructures, and contested atmospheres. &nbsp;&nbsp;&nbsp;
                     </div>
                 </div>
-                <!-- email and name (below marquee) -->
                 <div class="right-col-bottom">
                     <strong>Invisible Signals</strong><br>
                     <a href="mailto:seirynx@mailfence.com">seirynx@mailfence.com</a>
