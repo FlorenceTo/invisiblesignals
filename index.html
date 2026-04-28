@@ -363,7 +363,7 @@
             if (p.y > height + 50) p.y = -50;
 
             ctx.font = `${p.size}px "Courier New", monospace`;
-            ctx.globalAlpha = p.opacity * 0.7;   // subtle overall opacity
+            ctx.globalAlpha = p.opacity * 0.9;   // subtle overall opacity
             ctx.fillText(p.char, p.x, p.y);
         }
         ctx.globalAlpha = 1;
