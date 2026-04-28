@@ -5,10 +5,11 @@
 }
 
 body {
-    font-family: 'Inter', 'Monument Grotesk Variable', -apple-system, BlinkMacSystemFont, sans-serif;
-    background-color: #FAFAFA;
+    font-family: 'Aptos', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #F5F3EF;
     color: #1A1A1A;
-    line-height: 1.5;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
 }
 
 .container {
