@@ -49,6 +49,7 @@
         .marquee-text {
             font-weight: bold;
             font-size: 1.13rem;
+            white-space: nowrap;
         }
         .episode-title-left {
             font-size: 1.2rem;
@@ -93,7 +94,7 @@
             opacity: 0.7;
         }
 
-        /* episode sections – two columns now */
+        /* episode sections – two columns */
         .episode {
             margin: 4rem 0;
             padding-top: 2rem;
@@ -111,20 +112,25 @@
             color: rgba(255, 255, 255, 0.7);
         }
 
-        /* info section – marquee above contact, still three columns for alignment */
+        /* info section – two columns exactly like original Cargo layout */
         .info-section {
             margin: 3rem 0 6rem;
         }
         .info-grid {
             display: grid;
-            grid-template-columns: 1fr 2fr 2fr;
+            grid-template-columns: 1fr 2fr;
             gap: 2rem;
+            align-items: start;
+        }
+        .contact-text {
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 1rem; /* roughly 1.09 * default */
         }
         .marquee-container {
             overflow: hidden;
             white-space: nowrap;
-            margin-bottom: 1.5rem;
             width: 100%;
+            margin-bottom: 1.5rem;
         }
         .marquee-content {
             display: inline-block;
@@ -135,14 +141,19 @@
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
         }
-        .contact-info {
+        .right-col-bottom {
             margin-top: 0;
-            text-align: right;
         }
-        .contact-info a {
+        .right-col-bottom strong {
+            display: block;
+        }
+        .right-col-bottom a {
             color: rgba(255, 255, 255, 0.64);
             text-decoration: none;
             border-bottom: 1px dotted;
+        }
+        .right-col-bottom a:hover {
+            opacity: 0.8;
         }
 
         /* clock */
@@ -167,7 +178,7 @@
             }
             .info-grid {
                 grid-template-columns: 1fr;
-                gap: 1rem;
+                gap: 1.5rem;
             }
             .nav-links {
                 gap: 0.8rem;
@@ -180,12 +191,11 @@
                 left: 0.8rem;
                 font-size: 0.7rem;
             }
-            .contact-info {
-                text-align: left;
-                margin-top: 1rem;
-            }
             .nav-bar {
                 justify-content: center;
+            }
+            .contact-text {
+                margin-bottom: 0.5rem;
             }
         }
     </style>
@@ -208,21 +218,25 @@
         </ul>
     </div>
 
-    <!-- INFORMATION SECTION: marquee above contact -->
+    <!-- INFORMATION SECTION: two‑column, exactly as original -->
     <section id="info" class="info-section">
         <div class="info-grid">
-            <div></div> <!-- left spacer -->
-            <div></div> <!-- middle spacer -->
+            <!-- left column: submission text -->
+            <div class="contact-text">
+                If you’d like to submit audio, field recordings, archival material, or have an idea for a collaboration, please get in touch :)
+            </div>
+            <!-- right column: marquee + email -->
             <div>
+                <!-- horizontal scrolling marquee -->
                 <div class="marquee-container">
                     <div class="marquee-content marquee-text">
                         Invisible Signals is an experimental radio series, structured as a live progression through live electronics, field recordings, and archival fragments. Taking its title from waves that remain imperceptible even as they are heard and felt, the series attends to signal as a materially distributed condition of vibration, shaped through bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, examining rupture, resistance, and repair across borders, technological infrastructures, and contested atmospheres. &nbsp;&nbsp;&nbsp;
                     </div>
                 </div>
-                <div class="contact-info">
-                    <p style="margin-bottom: 1rem;">If you’d like to submit audio, field recordings, archival material, or have an idea for a collaboration, please get in touch :)</p>
-                    <div><strong>Invisible Signals</strong><br>
-                    <a href="mailto:seirynx@mailfence.com">seirynx@mailfence.com</a></div>
+                <!-- email and name (below marquee) -->
+                <div class="right-col-bottom">
+                    <strong>Invisible Signals</strong><br>
+                    <a href="mailto:seirynx@mailfence.com">seirynx@mailfence.com</a>
                 </div>
             </div>
         </div>
