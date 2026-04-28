@@ -65,7 +65,7 @@
             z-index: 2;
         }
 
-        /* sticky navigation – no numbers */
+        /* sticky navigation – now with clock on the left */
         .nav-bar {
             position: sticky;
             top: 0;
@@ -75,8 +75,17 @@
             margin-bottom: 2rem;
             z-index: 10;
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 1rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .header-clock {
+            font-family: monospace;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.7);
         }
         .nav-links {
             display: flex;
@@ -112,20 +121,20 @@
             color: rgba(255, 255, 255, 0.7);
         }
 
-        /* info section – left column twice as wide as right column */
+        /* info section – left column THREE times wider than right column */
         .info-section {
             margin: 3rem 0 6rem;
         }
         .info-grid {
             display: grid;
-            grid-template-columns: 2fr 1fr;  /* left is twice the width of right */
+            grid-template-columns: 3fr 1fr;  /* left is three times wider */
             gap: 2rem;
             align-items: start;
         }
         .contact-text {
             color: rgba(255, 255, 255, 0.72);
             font-size: 1rem;
-            max-width: 90%;  /* prevent overly long lines on huge screens */
+            max-width: 95%;
         }
         .marquee-container {
             overflow: hidden;
@@ -151,32 +160,15 @@
             border-bottom: 1px dotted;
         }
 
-        /* clock */
-        .clock {
-            position: fixed;
-            bottom: 1.5rem;
-            left: 1.5rem;
-            font-family: monospace;
-            font-size: 0.85rem;
-            background: rgba(0,0,0,0.5);
-            padding: 0.2rem 0.6rem;
-            border-radius: 20px;
-            backdrop-filter: blur(4px);
-            z-index: 20;
-            letter-spacing: 0.5px;
-        }
-
+        /* responsive */
         @media (max-width: 800px) {
             .episode-grid {
                 grid-template-columns: 1fr;
                 gap: 1rem;
             }
             .info-grid {
-                grid-template-columns: 1fr;  /* stack on mobile */
+                grid-template-columns: 1fr;
                 gap: 1.5rem;
-            }
-            .contact-text {
-                max-width: 100%;
             }
             .nav-links {
                 gap: 0.8rem;
@@ -184,24 +176,22 @@
             .marquee-content {
                 font-size: 0.9rem;
             }
-            .clock {
-                bottom: 0.8rem;
-                left: 0.8rem;
-                font-size: 0.7rem;
-            }
             .nav-bar {
-                justify-content: center;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .header-clock {
+                margin-bottom: 0.25rem;
             }
         }
     </style>
 </head>
 <body>
 
-<div class="clock" id="liveClock">--:--:--</div>
-
 <div class="content">
-    <!-- navigation bar – numbers removed -->
+    <!-- navigation bar – clock now on the left -->
     <div class="nav-bar">
+        <div class="header-clock" id="liveClock">--:--:--</div>
         <ul class="nav-links">
             <li><a href="#info">Information</a></li>
             <li><a href="#ep1">Episode 01</a></li>
@@ -213,7 +203,7 @@
         </ul>
     </div>
 
-    <!-- INFORMATION SECTION with wider left column -->
+    <!-- INFORMATION SECTION – wider left column -->
     <section id="info" class="info-section">
         <div class="info-grid">
             <div class="contact-text">
