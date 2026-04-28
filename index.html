@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Invisible Signals – Radio Series</title>
     <style>
-        /* ---------- RESET & BASE ---------- */
         * {
             margin: 0;
             padding: 0;
@@ -20,7 +19,7 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ---------- COLOUR FILTER (overlay effect) ---------- */
+        /* colour filter overlay */
         body::before {
             content: '';
             position: fixed;
@@ -35,35 +34,28 @@
             z-index: 1;
         }
 
-        /* ---------- TYPOGRAPHY ---------- */
-        h1, h2, h3 {
-            font-weight: normal;
-        }
-
-        .bodycopy, .bodycopy-2 {
-            font-size: 1rem;
-            line-height: 1.3;
-            letter-spacing: 0.014em;
-        }
-
+        /* typography */
         .bodycopy-2 {
             font-size: 1.05rem;
             letter-spacing: 0.058em;
+            line-height: 1.5;
         }
-
         .grey-caption {
             font-size: 0.9rem;
             color: rgba(255, 255, 255, 0.6);
             font-family: 'Monument Grotesk Variable', monospace;
             letter-spacing: 0.037em;
         }
-
         .marquee-text {
             font-weight: bold;
             font-size: 1.13rem;
         }
+        .episode-title-left {
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
 
-        /* ---------- LAYOUT ---------- */
+        /* layout */
         .content {
             max-width: 1400px;
             margin: 0 auto;
@@ -72,7 +64,7 @@
             z-index: 2;
         }
 
-        /* pinned navigation */
+        /* sticky navigation – no Index label */
         .nav-bar {
             position: sticky;
             top: 0;
@@ -82,93 +74,78 @@
             margin-bottom: 2rem;
             z-index: 10;
             display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: baseline;
+            justify-content: flex-end;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
-
         .nav-links {
             display: flex;
             flex-wrap: wrap;
             gap: 1.5rem;
             list-style: none;
         }
-
         .nav-links a {
             color: inherit;
             text-decoration: none;
             font-size: 0.9rem;
             transition: opacity 0.2s;
         }
-
         .nav-links a:hover {
             opacity: 0.7;
         }
 
-        /* episode sections */
+        /* episode sections – two columns now */
         .episode {
             margin: 4rem 0;
             padding-top: 2rem;
             scroll-margin-top: 80px;
         }
-
         .episode-grid {
             display: grid;
-            grid-template-columns: 1fr 2fr 2fr;
+            grid-template-columns: 1fr 2fr;
             gap: 2rem;
             margin-top: 1rem;
         }
-
-        .episode-number {
-            font-size: 2rem;
-            font-weight: 500;
-        }
-
-        .episode-title {
-            font-size: 1.4rem;
-        }
-
         .episode-desc {
             font-size: 0.95rem;
             line-height: 1.5;
             color: rgba(255, 255, 255, 0.7);
         }
 
-        /* info page (marquee + contact) */
+        /* info section – marquee above contact, still three columns for alignment */
         .info-section {
             margin: 3rem 0 6rem;
         }
-
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr 2fr;
+            gap: 2rem;
+        }
         .marquee-container {
             overflow: hidden;
             white-space: nowrap;
-            margin: 2rem 0;
+            margin-bottom: 1.5rem;
+            width: 100%;
         }
-
         .marquee-content {
             display: inline-block;
             animation: scrollMarquee 40s linear infinite;
             padding-right: 2rem;
         }
-
         @keyframes scrollMarquee {
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
         }
-
         .contact-info {
-            margin-top: 3rem;
+            margin-top: 0;
             text-align: right;
         }
-
         .contact-info a {
             color: rgba(255, 255, 255, 0.64);
             text-decoration: none;
             border-bottom: 1px dotted;
         }
 
-        /* clock (bottom left) */
+        /* clock */
         .clock {
             position: fixed;
             bottom: 1.5rem;
@@ -183,9 +160,12 @@
             letter-spacing: 0.5px;
         }
 
-        /* responsive */
         @media (max-width: 800px) {
             .episode-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .info-grid {
                 grid-template-columns: 1fr;
                 gap: 1rem;
             }
@@ -200,8 +180,12 @@
                 left: 0.8rem;
                 font-size: 0.7rem;
             }
-            .content {
-                padding: 1rem;
+            .contact-info {
+                text-align: left;
+                margin-top: 1rem;
+            }
+            .nav-bar {
+                justify-content: center;
             }
         }
     </style>
@@ -211,9 +195,8 @@
 <div class="clock" id="liveClock">--:--:--</div>
 
 <div class="content">
-    <!-- fixed navigation (mimics Cargo pinned page) -->
+    <!-- navigation bar -->
     <div class="nav-bar">
-        <div class="index-label" style="font-size: 0.85rem;">Index</div>
         <ul class="nav-links">
             <li><a href="#info">00. Information</a></li>
             <li><a href="#ep1">01. Episode 01</a></li>
@@ -225,19 +208,22 @@
         </ul>
     </div>
 
-    <!-- INFORMATION SECTION (marquee + contact) -->
+    <!-- INFORMATION SECTION: marquee above contact -->
     <section id="info" class="info-section">
-        <div class="episode-grid">
-            <div></div> <!-- spacer for 3-col layout -->
-            <div class="marquee-container">
-                <div class="marquee-content marquee-text">
-                    Invisible Signals is an experimental radio series, structured as a live progression through live electronics, field recordings, and archival fragments. Taking its title from waves that remain imperceptible even as they are heard and felt, the series attends to signal as a materially distributed condition of vibration, shaped through bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, examining rupture, resistance, and repair across borders, technological infrastructures, and contested atmospheres. &nbsp;&nbsp;&nbsp;
+        <div class="info-grid">
+            <div></div> <!-- left spacer -->
+            <div></div> <!-- middle spacer -->
+            <div>
+                <div class="marquee-container">
+                    <div class="marquee-content marquee-text">
+                        Invisible Signals is an experimental radio series, structured as a live progression through live electronics, field recordings, and archival fragments. Taking its title from waves that remain imperceptible even as they are heard and felt, the series attends to signal as a materially distributed condition of vibration, shaped through bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, examining rupture, resistance, and repair across borders, technological infrastructures, and contested atmospheres. &nbsp;&nbsp;&nbsp;
+                    </div>
                 </div>
-            </div>
-            <div class="contact-info">
-                <p style="margin-bottom: 1rem;">If you’d like to submit audio, field recordings, archival material, or have an idea for a collaboration, please get in touch :)</p>
-                <div><strong>Invisible Signals</strong><br>
-                <a href="mailto:seirynx@mailfence.com">seirynx@mailfence.com</a></div>
+                <div class="contact-info">
+                    <p style="margin-bottom: 1rem;">If you’d like to submit audio, field recordings, archival material, or have an idea for a collaboration, please get in touch :)</p>
+                    <div><strong>Invisible Signals</strong><br>
+                    <a href="mailto:seirynx@mailfence.com">seirynx@mailfence.com</a></div>
+                </div>
             </div>
         </div>
     </section>
@@ -245,12 +231,10 @@
     <!-- EPISODE 01 -->
     <section id="ep1" class="episode">
         <div class="episode-grid">
-            <div class="episode-number">01.</div>
-            <div class="episode-title">Episode 01</div>
+            <div class="episode-title-left">Episode 01</div>
             <div class="episode-desc">
                 <div class="bodycopy-2">Invisible Signals is an experimental radio series, structured as a live progression through live electronics, field recordings, and archival fragments. Taking its title from waves that remain imperceptible even as they are heard and felt, the series attends to signal as a materially distributed condition of vibration, shaped through bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, examining rupture, resistance, and repair across borders, technological infrastructures, and contested atmospheres. This is the first series hosted by Florence To.</div>
                 <div style="margin-top: 1.5rem;"><span class="grey-caption">INSERT TRACK LISTING</span></div>
-                <!-- placeholder for image (original had a media-item) -->
             </div>
         </div>
     </section>
@@ -258,8 +242,7 @@
     <!-- EPISODE 02 -->
     <section id="ep2" class="episode">
         <div class="episode-grid">
-            <div class="episode-number">02.</div>
-            <div class="episode-title">Episode 02</div>
+            <div class="episode-title-left">Episode 02</div>
             <div class="episode-desc">
                 <div>Mauris leo erat, placerat quis semper eu, pulvinar in est. Nam eget justo quis ligula faucibus pretium ac nec mi. Aliquam lacus est, auctor sed arcu at, luctus condimentum lectus. Quisque vitae eleifend quam, vel suscipit nisl. Duis efficitur est nunc, eget efficitur felis porttitor in. Donec facilisis ultrices mattis.</div>
                 <div class="grey-caption" style="margin-top: 1rem;">Resonance FM – 2026</div>
@@ -270,8 +253,7 @@
     <!-- EPISODE 03 -->
     <section id="ep3" class="episode">
         <div class="episode-grid">
-            <div class="episode-number">03.</div>
-            <div class="episode-title">Episode 03</div>
+            <div class="episode-title-left">Episode 03</div>
             <div class="episode-desc">
                 <div>Mauris leo erat, placerat quis semper eu, pulvinar in est. Nam eget justo quis ligula faucibus pretium ac nec mi. Aliquam lacus est, auctor sed arcu at, luctus condimentum lectus. Quisque vitae eleifend quam, vel suscipit nisl. Duis efficitur est nunc, eget efficitur felis porttitor in. Donec facilisis ultrices mattis.</div>
                 <div class="grey-caption" style="margin-top: 1rem;">Resonance FM – 2026</div>
@@ -282,12 +264,10 @@
     <!-- EPISODE 04 -->
     <section id="ep4" class="episode">
         <div class="episode-grid">
-            <div class="episode-number">04.</div>
-            <div class="episode-title">Episode 04</div>
+            <div class="episode-title-left">Episode 04</div>
             <div class="episode-desc">
                 <div>Mauris leo erat, placerat quis semper eu, pulvinar in est. Nam eget justo quis ligula faucibus pretium ac nec mi. Aliquam lacus est, auctor sed arcu at, luctus condimentum lectus. Quisque vitae eleifend quam, vel suscipit nisl. Duis efficitur est nunc, eget efficitur felis porttitor in. Donec facilisis ultrices mattis.</div>
                 <div class="grey-caption" style="margin-top: 1rem;">Resonance FM – 2026</div>
-                <!-- optional gallery caption from original: "2/3 Hussein Chalayan, Rizzoli" -->
             </div>
         </div>
     </section>
@@ -295,8 +275,7 @@
     <!-- EPISODE 05 -->
     <section id="ep5" class="episode">
         <div class="episode-grid">
-            <div class="episode-number">05.</div>
-            <div class="episode-title">Episode 05</div>
+            <div class="episode-title-left">Episode 05</div>
             <div class="episode-desc">
                 <div>Praesent bibendum a elit non efficitur. Etiam et velit vitae quam aliquet fermentum. Quisque sit amet nulla dictum, cursus erat a, tempus est. Sed laoreet, magna eget mattis tincidunt, felis tellus vestibulum augue, in lobortis mauris risus eu nunc. Vivamus sed condimentum leo. Nunc efficitur, magna condimentum gravida egestas, ligula mauris posuere neque, sit amet sagittis dui velit vitae neque. Donec in dapibus arcu. Aliquam efficitur suscipit magna, vel pretium mi. Aenean nisl nulla, porttitor interdum enim nec, sagittis suscipit mauris. Quisque malesuada ullamcorper lacus.</div>
                 <div class="grey-caption" style="margin-top: 1rem;">Resonance FM – 2026</div>
@@ -307,10 +286,9 @@
     <!-- EPISODE 06 -->
     <section id="ep6" class="episode">
         <div class="episode-grid">
-            <div class="episode-number">06.</div>
-            <div class="episode-title">Episode 06</div>
+            <div class="episode-title-left">Episode 06</div>
             <div class="episode-desc">
-                <div>Text for episode six would go here – as per original content.</div>
+                <div>Text for episode six – as per original content.</div>
                 <div class="grey-caption" style="margin-top: 1rem;">Resonance FM – 2026</div>
             </div>
         </div>
@@ -318,7 +296,6 @@
 </div>
 
 <script>
-    // Digital clock (24h format)
     function updateClock() {
         const now = new Date();
         const hours = String(now.getHours()).padStart(2, '0');
