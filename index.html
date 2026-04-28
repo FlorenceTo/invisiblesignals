@@ -1,49 +1,39 @@
-/* Contact Form Styles */
-.contact-form {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin: 1rem 0 1.5rem 0;
-}
-
-.contact-form input,
-.contact-form textarea {
+/* Invert Toggle Button */
+.invert-button {
     font-family: 'Aptos', sans-serif;
-    font-size: 0.75rem;
-    padding: 0.5rem;
+    font-size: 0.65rem;
+    background: none;
     border: 1px solid #E2E0DB;
-    background-color: transparent;
-    border-radius: 0;
-    width: 100%;
-}
-
-.contact-form input:focus,
-.contact-form textarea:focus {
-    outline: none;
-    border-color: #C73D2F;
-}
-
-.contact-form button {
-    font-family: 'Aptos', sans-serif;
-    font-size: 0.75rem;
-    padding: 0.5rem 1rem;
-    background-color: #C73D2F;
-    color: white;
-    border: none;
+    padding: 0.3rem 0.6rem;
     cursor: pointer;
+    margin-top: 1rem;
+    color: #1A1A1A;
+    transition: all 0.2s ease;
     width: fit-content;
 }
 
-.contact-form button:hover {
-    opacity: 0.85;
+.invert-button:hover {
+    border-color: #C73D2F;
 }
 
-.email a {
-    color: #1A1A1A;
-    text-decoration: none;
-    border-bottom: 1px solid #E2E0DB;
+/* Invert filter applied to body */
+body.invert {
+    filter: invert(85%);
 }
 
-.email a:hover {
-    border-bottom-color: #C73D2F;
+/* For the invert button itself - keep it readable in both modes */
+body.invert .invert-button {
+    border-color: #555;
+    color: #E5E5E5;
 }
+
+body.invert .invert-button:hover {
+    border-color: #38C2D0;
+}
+
+/* Optional: If you have images, uncomment this to keep them normal */
+/*
+body.invert img {
+    filter: invert(100%);
+}
+*/
