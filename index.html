@@ -17,10 +17,10 @@
             color: rgba(255, 255, 255, 0.85);
             line-height: 1.4;
             -webkit-font-smoothing: antialiased;
-            position: relative;
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
 
-        /* colour filter overlay */
+        /* colour filter overlay (will be disabled when background is light) */
         body::before {
             content: '';
             position: fixed;
@@ -33,6 +33,11 @@
             opacity: 0.8;
             pointer-events: none;
             z-index: 1;
+            transition: opacity 0.2s ease;
+        }
+        /* when light background, reduce overlay intensity to avoid washing out */
+        body.light-bg::before {
+            opacity: 0.2;
         }
 
         /* Canvas for animated ASCII particles (sparse, wind-like) */
@@ -44,7 +49,7 @@
             height: 100%;
             pointer-events: none;
             z-index: 0;
-            opacity: 1;          /* very subtle, adjust as desired */
+            opacity: 1;
         }
 
         /* All content sits above the canvas */
@@ -56,7 +61,7 @@
             z-index: 2;
         }
 
-        /* typography – unchanged from your working version */
+        /* typography – unchanged */
         .bodycopy-2 {
             font-size: clamp(0.9rem, 4vw, 1.05rem);
             letter-spacing: 0.058em;
@@ -67,6 +72,7 @@
             color: rgba(255, 255, 255, 0.6);
             font-family: 'Monument Grotesk Variable', monospace;
             letter-spacing: 0.037em;
+            transition: color 0.2s ease;
         }
         .episode-title-left {
             font-size: clamp(1rem, 5vw, 1.2rem);
@@ -77,12 +83,13 @@
             font-size: clamp(0.7rem, 3.5vw, 0.85rem);
             letter-spacing: 0.5px;
             color: rgba(255, 255, 255, 0.7);
+            transition: color 0.2s ease;
         }
         .nav-links a {
             font-size: clamp(0.75rem, 4vw, 0.9rem);
             text-decoration: none;
             color: inherit;
-            transition: opacity 0.2s;
+            transition: opacity 0.2s, color 0.2s ease;
         }
         .nav-links a:hover {
             opacity: 0.7;
@@ -92,6 +99,7 @@
         .marquee-text,
         .right-col-bottom {
             font-size: clamp(0.85rem, 4vw, 1rem);
+            transition: color 0.2s ease;
         }
         .contact-text {
             color: rgba(255, 255, 255, 0.72);
@@ -104,6 +112,7 @@
             color: rgba(255, 255, 255, 0.64);
             text-decoration: none;
             border-bottom: 1px dotted;
+            transition: color 0.2s ease, border-color 0.2s ease;
         }
         .right-col-bottom strong {
             display: block;
@@ -124,7 +133,7 @@
             flex-wrap: wrap;
             gap: 1rem;
             border: 1px solid #9afc97;
-            transition: transform 0.3s ease-in-out;
+            transition: transform 0.3s ease-in-out, border-color 0.2s ease;
         }
         .nav-bar.header-hidden {
             transform: translateY(-100%);
@@ -134,6 +143,22 @@
             flex-wrap: wrap;
             gap: 1.5rem;
             list-style: none;
+        }
+
+        /* Color switcher button */
+        .color-switcher {
+            background: transparent;
+            border: 1px solid #9afc97;
+            border-radius: 20px;
+            padding: 0.2rem 0.6rem;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: inherit;
+            font-family: monospace;
+        }
+        .color-switcher:hover {
+            background: rgba(154, 252, 151, 0.2);
         }
 
         /* episode sections – two columns */
@@ -152,6 +177,7 @@
             font-size: 0.95rem;
             line-height: 1.5;
             color: rgba(255, 255, 255, 0.7);
+            transition: color 0.2s ease;
         }
 
         /* info section – vertical stack */
@@ -173,10 +199,37 @@
             animation: scrollMarquee 40s linear infinite;
             padding-right: 2rem;
             opacity: 0.7;
+            transition: opacity 0.2s ease;
         }
         @keyframes scrollMarquee {
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
+        }
+
+        /* light background overrides – text becomes dark */
+        body.light-bg {
+            color: rgba(0, 0, 0, 0.85);
+        }
+        body.light-bg .contact-text,
+        body.light-bg .marquee-text,
+        body.light-bg .episode-desc,
+        body.light-bg .grey-caption,
+        body.light-bg .header-clock,
+        body.light-bg .right-col-bottom a,
+        body.light-bg .nav-links a {
+            color: rgba(0, 0, 0, 0.7);
+        }
+        body.light-bg .grey-caption {
+            color: rgba(0, 0, 0, 0.5);
+        }
+        body.light-bg .right-col-bottom a {
+            border-bottom-color: rgba(0, 0, 0, 0.3);
+        }
+        body.light-bg .nav-bar {
+            border-color: #2c2c2c;
+        }
+        body.light-bg .color-switcher {
+            border-color: #2c2c2c;
         }
 
         /* mobile optimisations */
@@ -210,7 +263,10 @@
 
 <div class="content">
     <div class="nav-bar" id="mainHeader">
-        <div class="header-clock" id="liveClock">--:--:--</div>
+        <div style="display: flex; align-items: baseline; gap: 1rem;">
+            <div class="header-clock" id="liveClock">--:--:--</div>
+            <button class="color-switcher" id="colorSwitcher">🎨 Light mode</button>
+        </div>
         <ul class="nav-links">
             <li><a href="#info">Information</a></li>
             <li><a href="#ep1">Episode 01</a></li>
@@ -245,9 +301,7 @@
             <div class="episode-title-left">Episode 01</div>
             <div class="episode-desc">
                 <div class="bodycopy-2">A monthly open-form radio series that progresses through live electronics, field recordings, and archival fragments. Its title emerges from waves that remain imperceptible even as they are heard and felt, the series follows these signals as forms of vibration moving through aetheric conditions across bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, tracing rupture, resistance, and repair across borders, technological networks, and contested terrains. Presented by artist and researcher Florence To.</div>
-                 <!-- GIF image inserted here -->
                 <img src="episode01.gif" alt="Episode 01 visual" style="display: block; margin: 1.5rem 0; max-width: 100%; height: auto; border-radius: 4px;">
-                
                 <div style="margin-top: 1.5rem;"><span class="grey-caption">INSERT TRACK LISTING</span></div>
             </div>
         </div>
@@ -314,11 +368,9 @@
     const canvas = document.getElementById('asciiCanvas');
     let ctx = canvas.getContext('2d');
     let particles = [];
-    let animationId = null;
     let width = window.innerWidth;
     let height = window.innerHeight;
 
-    // Allowed characters: only line/dot symbols
     const chars = ['/', '\\', '|', '-', '_', '+', '.', '·'];
 
     function resizeCanvas() {
@@ -330,7 +382,6 @@
     }
 
     function initParticles() {
-        // Sparse distribution: about 200–300 particles, depending on screen size
         let particleCount = Math.floor(width * height / 8000);
         particleCount = Math.min(500, Math.max(150, particleCount));
         particles = [];
@@ -339,9 +390,9 @@
                 x: Math.random() * width,
                 y: Math.random() * height,
                 char: chars[Math.floor(Math.random() * chars.length)],
-                vx: (Math.random() - 0.5) * 0.3,    // slow drift
-                vy: (Math.random() - 0.5) * 0.2 + 0.1, // slight downward bias (like wind)
-                size: 12 + Math.random() * 8,       // font size (pixels)
+                vx: (Math.random() - 0.5) * 0.3,
+                vy: (Math.random() - 0.5) * 0.2 + 0.1,
+                size: 12 + Math.random() * 8,
                 opacity: 0.3 + Math.random() * 0.5
             });
         }
@@ -351,22 +402,20 @@
         if (!ctx) return;
         ctx.clearRect(0, 0, width, height);
         ctx.font = '14px "Courier New", monospace';
-        ctx.fillStyle = '#e3ffa9';   // match your green outline
+        ctx.fillStyle = '#e3ffa9';
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'center';
 
         for (let p of particles) {
-            // update position
             p.x += p.vx;
             p.y += p.vy;
-            // wrap around edges to keep them flowing
             if (p.x < -50) p.x = width + 50;
             if (p.x > width + 50) p.x = -50;
             if (p.y < -50) p.y = height + 50;
             if (p.y > height + 50) p.y = -50;
 
             ctx.font = `${p.size}px "Courier New", monospace`;
-            ctx.globalAlpha = p.opacity * 0.9;   // subtle overall opacity
+            ctx.globalAlpha = p.opacity * 0.9;
             ctx.fillText(p.char, p.x, p.y);
         }
         ctx.globalAlpha = 1;
@@ -384,7 +433,37 @@
     resizeCanvas();
     animate();
 
-    // ----- Clock and header hide/show (unchanged) -----
+    // ========== BACKGROUND COLOR SWITCHER ==========
+    const colorBtn = document.getElementById('colorSwitcher');
+    let colorIndex = 0;
+    const schemes = [
+        { name: 'Dark mode', bg: '#1c1c1b', light: false },
+        { name: 'Light mode', bg: '#f5f3ef', light: true },
+        { name: 'Warm grey', bg: '#2a2825', light: false },
+        { name: 'Paper', bg: '#ece8e0', light: true }
+    ];
+
+    function applyScheme(index) {
+        const scheme = schemes[index % schemes.length];
+        document.body.style.backgroundColor = scheme.bg;
+        if (scheme.light) {
+            document.body.classList.add('light-bg');
+            colorBtn.textContent = `🎨 ${scheme.name}`;
+        } else {
+            document.body.classList.remove('light-bg');
+            colorBtn.textContent = `🎨 ${scheme.name}`;
+        }
+        colorIndex = index;
+    }
+
+    colorBtn.addEventListener('click', () => {
+        applyScheme(colorIndex + 1);
+    });
+
+    // initial default
+    applyScheme(0);
+
+    // Clock update
     function updateClock() {
         const now = new Date();
         const hours = String(now.getHours()).padStart(2, '0');
@@ -397,6 +476,7 @@
     updateClock();
     setInterval(updateClock, 1000);
 
+    // Scroll-driven header hide/show
     let lastScrollTop = 0;
     const header = document.getElementById('mainHeader');
     const scrollThreshold = 5;
