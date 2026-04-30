@@ -39,7 +39,7 @@
             opacity: 0.2;
         }
 
-        /* ASCII canvas */
+        /* Canvas for animated ASCII particles (sparse, wind-like) */
         #asciiCanvas {
             position: fixed;
             top: 0;
@@ -51,7 +51,7 @@
             opacity: 1;
         }
 
-        /* content */
+        /* All content sits above the canvas */
         .content {
             max-width: 1400px;
             margin: 0 auto;
@@ -60,7 +60,7 @@
             z-index: 2;
         }
 
-        /* typography */
+        /* typography – unchanged from your working version */
         .bodycopy-2 {
             font-size: clamp(0.9rem, 4vw, 1.05rem);
             letter-spacing: 0.058em;
@@ -117,7 +117,7 @@
             display: block;
         }
 
-        /* header */
+        /* sticky navigation – transparent background, green outline */
         .nav-bar {
             position: sticky;
             top: 0;
@@ -214,7 +214,7 @@
             color: #9afc97;
         }
 
-        /* episode sections */
+        /* episode sections – two columns */
         .episode {
             margin: 4rem 0;
             padding-top: 2rem;
@@ -233,6 +233,7 @@
             transition: color 0.2s ease;
         }
 
+        /* info section – vertical stack */
         .info-section {
             margin: 3rem 0 6rem;
         }
@@ -447,13 +448,19 @@
 </div>
 
 <script>
-    // ========== ASCII WAVE PARTICLES ==========
+    // ========== ASCII WAVE PARTICLES (sparse, wind-like, with mouse attraction) ==========
     const canvas = document.getElementById('asciiCanvas');
     let ctx = canvas.getContext('2d');
     let particles = [];
     let width = window.innerWidth;
     let height = window.innerHeight;
     const chars = ['/', '\\', '|', '-', '_', '+', '.', '·'];
+
+    // Mouse position (null when not over canvas)
+    let mouseX = null, mouseY = null;
+    const MAGNET_RADIUS = 150;      // pixels
+    const MAGNET_STRENGTH = 0.15;   // acceleration factor
+    const MAX_SPEED = 1.5;           // max velocity to avoid wild movement
 
     function resizeCanvas() {
         width = window.innerWidth;
@@ -462,6 +469,7 @@
         canvas.height = height;
         initParticles();
     }
+
     function initParticles() {
         let particleCount = Math.floor(width * height / 8000);
         particleCount = Math.min(500, Math.max(150, particleCount));
@@ -478,6 +486,44 @@
             });
         }
     }
+
+    function updateParticles() {
+        // Apply magnetic force if mouse is inside canvas
+        if (mouseX !== null && mouseY !== null) {
+            for (let p of particles) {
+                let dx = mouseX - p.x;
+                let dy = mouseY - p.y;
+                let dist = Math.hypot(dx, dy);
+                if (dist < MAGNET_RADIUS && dist > 0.01) {
+                    // Force magnitude: stronger when closer
+                    let force = (1 - dist / MAGNET_RADIUS) * MAGNET_STRENGTH;
+                    // Limit maximum force to avoid sudden jumps
+                    force = Math.min(force, 0.5);
+                    let angle = Math.atan2(dy, dx);
+                    let ax = Math.cos(angle) * force;
+                    let ay = Math.sin(angle) * force;
+                    p.vx += ax;
+                    p.vy += ay;
+                    // Limit speed
+                    let spd = Math.hypot(p.vx, p.vy);
+                    if (spd > MAX_SPEED) {
+                        p.vx = (p.vx / spd) * MAX_SPEED;
+                        p.vy = (p.vy / spd) * MAX_SPEED;
+                    }
+                }
+            }
+        }
+        // Update positions and wrap around
+        for (let p of particles) {
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < -50) p.x = width + 50;
+            if (p.x > width + 50) p.x = -50;
+            if (p.y < -50) p.y = height + 50;
+            if (p.y > height + 50) p.y = -50;
+        }
+    }
+
     function drawParticles() {
         if (!ctx) return;
         ctx.clearRect(0, 0, width, height);
@@ -486,23 +532,40 @@
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'center';
         for (let p of particles) {
-            p.x += p.vx;
-            p.y += p.vy;
-            if (p.x < -50) p.x = width + 50;
-            if (p.x > width + 50) p.x = -50;
-            if (p.y < -50) p.y = height + 50;
-            if (p.y > height + 50) p.y = -50;
             ctx.font = `${p.size}px "Courier New", monospace`;
             ctx.globalAlpha = p.opacity * 0.9;
             ctx.fillText(p.char, p.x, p.y);
         }
         ctx.globalAlpha = 1;
     }
+
     function animate() {
+        updateParticles();
         drawParticles();
         requestAnimationFrame(animate);
     }
+
+    // Mouse move tracking (relative to canvas)
+    function onMouseMove(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        let canvasX = (e.clientX - rect.left) * scaleX;
+        let canvasY = (e.clientY - rect.top) * scaleY;
+        // Clamp to canvas bounds
+        canvasX = Math.min(Math.max(canvasX, 0), width);
+        canvasY = Math.min(Math.max(canvasY, 0), height);
+        mouseX = canvasX;
+        mouseY = canvasY;
+    }
+    function onMouseLeave() {
+        mouseX = null;
+        mouseY = null;
+    }
+
     window.addEventListener('resize', () => resizeCanvas());
+    canvas.addEventListener('mousemove', onMouseMove);
+    canvas.addEventListener('mouseleave', onMouseLeave);
     resizeCanvas();
     animate();
 
@@ -514,12 +577,11 @@
     const alphaSlider = document.getElementById('alphaSlider');
     const rgbaValueSpan = document.getElementById('rgbaValue');
 
-    let currentMode = 'preset';
     let currentPresetIndex = 0;
     const presets = [
         { name: 'Dark', bg: '#1c1c1b', light: false },
         { name: 'Light', bg: '#f5f3ef', light: true },
-        { name: 'Grey', bg: '#adadad', light: true }   // new grey preset
+        { name: 'Grey', bg: '#adadad', light: true }
     ];
 
     function setBackground(color, isLight) {
@@ -532,15 +594,13 @@
     }
 
     function applyPreset(index) {
-        currentMode = 'preset';
         const p = presets[index % presets.length];
         setBackground(p.bg, p.light);
         presetBtn.textContent = p.name;
-        hidePicker(); // close picker if open
+        hidePicker();
     }
 
     function applyCustomColor(hex, alpha) {
-        currentMode = 'custom';
         let r, g, b;
         if (hex.startsWith('#')) {
             r = parseInt(hex.slice(1,3), 16);
@@ -559,7 +619,6 @@
             document.body.classList.remove('light-bg');
         }
         rgbaValueSpan.textContent = `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
-        // reset hide timeout
         resetHideTimeout();
     }
 
@@ -569,7 +628,7 @@
     function showPicker() {
         clearTimeout(hideTimeout);
         customPicker.classList.remove('hidden');
-        // re-sync current bg colour into picker (if custom mode)
+        // sync current bg colour into picker
         const bg = document.body.style.backgroundColor;
         if (bg && bg.startsWith('rgba')) {
             const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
@@ -605,10 +664,9 @@
         clearTimeout(hideTimeout);
         hideTimeout = setTimeout(() => {
             hidePicker();
-        }, 5000); // 5 seconds of inactivity
+        }, 5000);
     }
 
-    // on any interaction inside the picker, reset the timer
     function bindPickerEvents() {
         const pickerElements = [hexColorInput, alphaSlider, customPicker];
         pickerElements.forEach(el => {
@@ -617,13 +675,11 @@
             el.addEventListener('input', resetHideTimeout);
             el.addEventListener('click', resetHideTimeout);
         });
-        // also reset when moving mouse over picker
         customPicker.addEventListener('mouseenter', resetHideTimeout);
         customPicker.addEventListener('mouseleave', resetHideTimeout);
     }
     bindPickerEvents();
 
-    // Click outside the picker and outside the Custom button closes it
     document.addEventListener('click', function(event) {
         if (!customPicker.classList.contains('hidden')) {
             const isClickInsidePicker = customPicker.contains(event.target);
@@ -634,13 +690,11 @@
         }
     });
 
-    // preset button cycles through Dark → Light → Grey
     presetBtn.addEventListener('click', () => {
         currentPresetIndex = (currentPresetIndex + 1) % presets.length;
         applyPreset(currentPresetIndex);
     });
 
-    // custom button toggles picker (show/hide)
     customBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (customPicker.classList.contains('hidden')) {
@@ -658,7 +712,6 @@
     hexColorInput.addEventListener('input', updateCustomColor);
     alphaSlider.addEventListener('input', updateCustomColor);
 
-    // initial preset
     applyPreset(0);
 
     // Clock
