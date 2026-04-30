@@ -518,6 +518,11 @@
         let particleCount = Math.floor(width * height / 8000);
         particleCount = Math.min(500, Math.max(150, particleCount));
         particles = [];
+        
+        const isMobile = width < 640;   // detect mobile screen
+        const minSize = isMobile ? 6 : 10;
+        const maxSize = isMobile ? 12 : 20;
+        
         for (let i = 0; i < particleCount; i++) {
             particles.push({
                 x: Math.random() * width,
@@ -525,7 +530,7 @@
                 char: chars[Math.floor(Math.random() * chars.length)],
                 vx: (Math.random() - 0.5) * 0.3,
                 vy: (Math.random() - 0.5) * 0.2 + 0.1,
-                size: 12 + Math.random() * 8,
+                size: minSize + Math.random() * (maxSize - minSize),
                 opacity: 0.3 + Math.random() * 0.5
             });
         }
