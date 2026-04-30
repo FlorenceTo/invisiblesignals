@@ -11,10 +11,11 @@
             box-sizing: border-box;
         }
 
+        /* ---------- DARK MODE DEFAULTS (no .light-bg) ---------- */
         body {
-            background: #adadad;
+            background: #adadad;      /* will be overridden by preset */
             font-family: 'Inter', 'Monument Grotesk Variable', -apple-system, BlinkMacSystemFont, sans-serif;
-            color: rgba(0, 0, 0, 0.85);
+            color: rgba(255, 255, 255, 0.85);
             line-height: 1.4;
             -webkit-font-smoothing: antialiased;
             transition: background-color 0.2s ease, color 0.2s ease;
@@ -34,9 +35,6 @@
             pointer-events: none;
             z-index: 1;
             transition: opacity 0.2s ease;
-        }
-        body.light-bg::before {
-            opacity: 0.2;
         }
 
         /* Canvas for animated ASCII particles */
@@ -60,15 +58,16 @@
             z-index: 2;
         }
 
-        /* typography */
+        /* ---------- TYPOGRAPHY – DEFAULT DARK MODE ---------- */
         .bodycopy-2 {
             font-size: clamp(0.9rem, 4vw, 1.05rem);
             letter-spacing: 0.058em;
             line-height: 1.5;
+            color: rgba(255, 255, 255, 0.85);
         }
         .grey-caption {
             font-size: clamp(0.75rem, 3.5vw, 0.9rem);
-            color: rgba(0, 0, 0, 0.5);
+            color: rgba(255, 255, 255, 0.6);
             font-family: 'Monument Grotesk Variable', monospace;
             letter-spacing: 0.037em;
             transition: color 0.2s ease;
@@ -76,45 +75,52 @@
         .episode-title-left {
             font-size: clamp(1rem, 5vw, 1.2rem);
             font-weight: 500;
+            color: rgba(255, 255, 255, 0.85);
         }
         .header-clock {
             font-family: monospace;
             font-size: clamp(0.7rem, 3.5vw, 0.85rem);
             letter-spacing: 0.5px;
-            color: rgba(0, 0, 0, 0.7);
+            color: rgba(255, 255, 255, 0.7);
             transition: color 0.2s ease;
         }
-        .nav-links a {
+        .nav-right a {
             font-size: clamp(0.75rem, 4vw, 0.9rem);
             text-decoration: none;
-            color: inherit;
-            transition: opacity 0.2s, color 0.2s ease;
+            color: rgba(255, 255, 255, 0.85);
+            transition: opacity 0.2s;
         }
-        .nav-links a:hover {
+        .nav-right a:hover {
             opacity: 0.7;
         }
-
-        .contact-text,
-        .marquee-text,
-        .right-col-bottom {
-            font-size: clamp(0.85rem, 4vw, 1rem);
-            transition: color 0.2s ease;
-        }
         .contact-text {
-            color: rgba(0, 0, 0, 0.7);
+            font-size: clamp(0.85rem, 4vw, 1rem);
+            color: rgba(255, 255, 255, 0.72);
+            transition: color 0.2s ease;
         }
         .marquee-text {
             font-weight: bold;
             white-space: nowrap;
+            font-size: clamp(0.85rem, 4vw, 1rem);
+            color: rgba(255, 255, 255, 0.85);
+        }
+        .right-col-bottom {
+            font-size: clamp(0.85rem, 4vw, 1rem);
         }
         .right-col-bottom a {
-            color: rgba(0, 0, 0, 0.64);
+            color: rgba(255, 255, 255, 0.64);
             text-decoration: none;
             border-bottom: 1px dotted;
             transition: color 0.2s ease, border-color 0.2s ease;
         }
         .right-col-bottom strong {
             display: block;
+        }
+        .episode-desc {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.85);
+            transition: color 0.2s ease;
         }
 
         /* ---------- DESKTOP HEADER ---------- */
@@ -133,7 +139,6 @@
             transform: translateY(-100%);
         }
 
-        /* Desktop: two columns: left (clock + colour) and right (episode links) */
         .nav-bar-desktop {
             display: flex;
             justify-content: space-between;
@@ -172,7 +177,7 @@
             font-family: monospace;
         }
 
-        /* custom picker panel (absolutely positioned) */
+        /* custom picker panel */
         .picker-panel {
             margin-top: 0.5rem;
             background: rgba(28, 28, 27, 0.9);
@@ -221,7 +226,7 @@
             color: #9afc97;
         }
 
-        /* episode sections */
+        /* episodes */
         .episode {
             margin: 4rem 0;
             padding-top: 2rem;
@@ -232,12 +237,6 @@
             grid-template-columns: 1fr 2fr;
             gap: 2rem;
             margin-top: 1rem;
-        }
-        .episode-desc {
-            font-size: 0.95rem;
-            line-height: 1.5;
-            color: rgba(0, 0, 0, 0.7);
-            transition: color 0.2s ease;
         }
 
         /* info section */
@@ -265,9 +264,25 @@
             100% { transform: translateX(-50%); }
         }
 
-        /* light background overrides (this is already light because grey) */
+        /* ---------- LIGHT BACKGROUND OVERRIDES ---------- */
         body.light-bg {
             color: rgba(0, 0, 0, 0.85);
+        }
+        body.light-bg .bodycopy-2,
+        body.light-bg .episode-title-left,
+        body.light-bg .episode-desc,
+        body.light-bg .nav-right a,
+        body.light-bg .contact-text,
+        body.light-bg .marquee-text,
+        body.light-bg .right-col-bottom a,
+        body.light-bg .header-clock {
+            color: rgba(0, 0, 0, 0.85);
+        }
+        body.light-bg .grey-caption {
+            color: rgba(0, 0, 0, 0.5);
+        }
+        body.light-bg .right-col-bottom a {
+            border-bottom-color: rgba(0, 0, 0, 0.3);
         }
         body.light-bg .nav-bar {
             border-color: #2c2c2c;
@@ -282,8 +297,11 @@
         body.light-bg .rgba-value {
             color: #2c2c2c;
         }
+        body.light-bg::before {
+            opacity: 0.2;
+        }
 
-        /* ---------- MOBILE COMPACT HEADER (stack everything) ---------- */
+        /* ---------- MOBILE COMPACT HEADER ---------- */
         @media (max-width: 640px) {
             .content {
                 padding: 0.8rem;
@@ -376,7 +394,6 @@
                 <li><a href="#ep6">Episode 06</a></li>
             </ul>
         </div>
-        <!-- custom picker panel (outside the flex row, below) -->
         <div id="customPicker" class="picker-panel hidden">
             <div class="color-input-group">
                 <label>Color:</label>
