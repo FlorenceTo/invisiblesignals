@@ -20,7 +20,7 @@
             transition: background-color 0.2s ease, color 0.2s ease;
         }
 
-        /* colour filter overlay (will be disabled when background is light) */
+        /* colour filter overlay (reduced for light backgrounds) */
         body::before {
             content: '';
             position: fixed;
@@ -35,12 +35,11 @@
             z-index: 1;
             transition: opacity 0.2s ease;
         }
-        /* when light background, reduce overlay intensity to avoid washing out */
         body.light-bg::before {
             opacity: 0.2;
         }
 
-        /* Canvas for animated ASCII particles (sparse, wind-like) */
+        /* ASCII canvas */
         #asciiCanvas {
             position: fixed;
             top: 0;
@@ -52,7 +51,7 @@
             opacity: 1;
         }
 
-        /* All content sits above the canvas */
+        /* content */
         .content {
             max-width: 1400px;
             margin: 0 auto;
@@ -61,7 +60,7 @@
             z-index: 2;
         }
 
-        /* typography – unchanged */
+        /* typography */
         .bodycopy-2 {
             font-size: clamp(0.9rem, 4vw, 1.05rem);
             letter-spacing: 0.058em;
@@ -118,7 +117,7 @@
             display: block;
         }
 
-        /* sticky navigation – transparent background, green outline */
+        /* header */
         .nav-bar {
             position: sticky;
             top: 0;
@@ -145,8 +144,13 @@
             list-style: none;
         }
 
-        /* Color switcher button */
-        .color-switcher {
+        /* colour switcher buttons */
+        .color-buttons {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+        .color-btn {
             background: transparent;
             border: 1px solid #9afc97;
             border-radius: 20px;
@@ -157,11 +161,57 @@
             color: inherit;
             font-family: monospace;
         }
-        .color-switcher:hover {
+        .color-btn:hover {
             background: rgba(154, 252, 151, 0.2);
         }
 
-        /* episode sections – two columns */
+        /* custom picker panel */
+        .picker-panel {
+            margin-top: 0.5rem;
+            background: rgba(28, 28, 27, 0.9);
+            backdrop-filter: blur(4px);
+            border: 1px solid #9afc97;
+            border-radius: 12px;
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 20;
+            min-width: 200px;
+        }
+        .picker-panel.hidden {
+            display: none;
+        }
+        .color-input-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .color-input-group label {
+            font-size: 0.7rem;
+        }
+        #hexColor {
+            width: 80px;
+            background: #1c1c1b;
+            border: 1px solid #9afc97;
+            color: inherit;
+            padding: 0.2rem;
+            font-family: monospace;
+        }
+        #alphaSlider {
+            flex: 1;
+        }
+        .rgba-value {
+            font-size: 0.6rem;
+            font-family: monospace;
+            text-align: center;
+            color: #9afc97;
+        }
+
+        /* episode sections */
         .episode {
             margin: 4rem 0;
             padding-top: 2rem;
@@ -180,7 +230,6 @@
             transition: color 0.2s ease;
         }
 
-        /* info section – vertical stack */
         .info-section {
             margin: 3rem 0 6rem;
         }
@@ -199,14 +248,13 @@
             animation: scrollMarquee 40s linear infinite;
             padding-right: 2rem;
             opacity: 0.7;
-            transition: opacity 0.2s ease;
         }
         @keyframes scrollMarquee {
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
         }
 
-        /* light background overrides – text becomes dark */
+        /* light background overrides */
         body.light-bg {
             color: rgba(0, 0, 0, 0.85);
         }
@@ -228,11 +276,18 @@
         body.light-bg .nav-bar {
             border-color: #2c2c2c;
         }
-        body.light-bg .color-switcher {
+        body.light-bg .color-btn {
             border-color: #2c2c2c;
         }
+        body.light-bg .picker-panel {
+            background: rgba(245, 243, 239, 0.95);
+            border-color: #2c2c2c;
+        }
+        body.light-bg .rgba-value {
+            color: #2c2c2c;
+        }
 
-        /* mobile optimisations */
+        /* responsive */
         @media (max-width: 640px) {
             .content { padding: 0.8rem; }
             .nav-bar {
@@ -247,6 +302,14 @@
             .marquee-content { animation-duration: 35s; }
             .episode { margin: 2.5rem 0; }
             .info-section { margin: 2rem 0 4rem; }
+            .color-buttons {
+                flex-wrap: wrap;
+            }
+            .picker-panel {
+                position: relative;
+                margin-top: 0.5rem;
+                width: 100%;
+            }
         }
         @media (max-width: 480px) {
             .content { padding: 0.6rem; }
@@ -263,9 +326,26 @@
 
 <div class="content">
     <div class="nav-bar" id="mainHeader">
-        <div style="display: flex; align-items: baseline; gap: 1rem;">
-            <div class="header-clock" id="liveClock">--:--:--</div>
-            <button class="color-switcher" id="colorSwitcher">🎨 Light mode</button>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <div style="display: flex; align-items: baseline; gap: 1rem;">
+                <div class="header-clock" id="liveClock">--:--:--</div>
+                <div class="color-buttons">
+                    <button class="color-btn" id="presetBtn">Dark</button>
+                    <button class="color-btn" id="customBtn">Custom</button>
+                </div>
+            </div>
+            <!-- custom picker panel (hidden by default) -->
+            <div id="customPicker" class="picker-panel hidden">
+                <div class="color-input-group">
+                    <label>Color:</label>
+                    <input type="color" id="hexColor" value="#1c1c1b">
+                </div>
+                <div class="color-input-group">
+                    <label>Opacity:</label>
+                    <input type="range" id="alphaSlider" min="0" max="1" step="0.01" value="1">
+                </div>
+                <div class="rgba-value" id="rgbaValue">rgba(28,28,27,1)</div>
+            </div>
         </div>
         <ul class="nav-links">
             <li><a href="#info">Information</a></li>
@@ -364,13 +444,12 @@
 </div>
 
 <script>
-    // ========== ASCII WAVE PARTICLES (sparse, wind-like) ==========
+    // ========== ASCII WAVE PARTICLES ==========
     const canvas = document.getElementById('asciiCanvas');
     let ctx = canvas.getContext('2d');
     let particles = [];
     let width = window.innerWidth;
     let height = window.innerHeight;
-
     const chars = ['/', '\\', '|', '-', '_', '+', '.', '·'];
 
     function resizeCanvas() {
@@ -380,7 +459,6 @@
         canvas.height = height;
         initParticles();
     }
-
     function initParticles() {
         let particleCount = Math.floor(width * height / 8000);
         particleCount = Math.min(500, Math.max(150, particleCount));
@@ -397,7 +475,6 @@
             });
         }
     }
-
     function drawParticles() {
         if (!ctx) return;
         ctx.clearRect(0, 0, width, height);
@@ -405,7 +482,6 @@
         ctx.fillStyle = '#e3ffa9';
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'center';
-
         for (let p of particles) {
             p.x += p.vx;
             p.y += p.vy;
@@ -413,76 +489,148 @@
             if (p.x > width + 50) p.x = -50;
             if (p.y < -50) p.y = height + 50;
             if (p.y > height + 50) p.y = -50;
-
             ctx.font = `${p.size}px "Courier New", monospace`;
             ctx.globalAlpha = p.opacity * 0.9;
             ctx.fillText(p.char, p.x, p.y);
         }
         ctx.globalAlpha = 1;
     }
-
     function animate() {
         drawParticles();
         requestAnimationFrame(animate);
     }
-
-    window.addEventListener('resize', () => {
-        resizeCanvas();
-    });
-
+    window.addEventListener('resize', () => resizeCanvas());
     resizeCanvas();
     animate();
 
     // ========== BACKGROUND COLOR SWITCHER ==========
-    const colorBtn = document.getElementById('colorSwitcher');
-    let colorIndex = 0;
-    const schemes = [
-        { name: 'Dark mode', bg: '#1c1c1b', light: false },
-        { name: 'Light mode', bg: '#f5f3ef', light: true },
-        { name: 'Warm grey', bg: '#2a2825', light: false },
-        { name: 'Paper', bg: '#ece8e0', light: true }
+    const presetBtn = document.getElementById('presetBtn');
+    const customBtn = document.getElementById('customBtn');
+    const customPicker = document.getElementById('customPicker');
+    const hexColorInput = document.getElementById('hexColor');
+    const alphaSlider = document.getElementById('alphaSlider');
+    const rgbaValueSpan = document.getElementById('rgbaValue');
+
+    let currentMode = 'preset'; // 'preset' or 'custom'
+    let currentPresetIndex = 0; // 0=Dark, 1=Light
+    const presets = [
+        { name: 'Dark', bg: '#1c1c1b', light: false },
+        { name: 'Light', bg: '#f5f3ef', light: true }
     ];
 
-    function applyScheme(index) {
-        const scheme = schemes[index % schemes.length];
-        document.body.style.backgroundColor = scheme.bg;
-        if (scheme.light) {
+    function setBackground(color, isLight) {
+        document.body.style.backgroundColor = color;
+        if (isLight) {
             document.body.classList.add('light-bg');
-            colorBtn.textContent = `🎨 ${scheme.name}`;
         } else {
             document.body.classList.remove('light-bg');
-            colorBtn.textContent = `🎨 ${scheme.name}`;
         }
-        colorIndex = index;
     }
 
-    colorBtn.addEventListener('click', () => {
-        applyScheme(colorIndex + 1);
+    function applyPreset(index) {
+        currentMode = 'preset';
+        const p = presets[index % presets.length];
+        setBackground(p.bg, p.light);
+        presetBtn.textContent = p.name;
+        // close custom picker if open
+        customPicker.classList.add('hidden');
+    }
+
+    function applyCustomColor(hex, alpha) {
+        currentMode = 'custom';
+        // convert hex to rgb
+        let r, g, b;
+        if (hex.startsWith('#')) {
+            r = parseInt(hex.slice(1,3), 16);
+            g = parseInt(hex.slice(3,5), 16);
+            b = parseInt(hex.slice(5,7), 16);
+        } else {
+            // fallback
+            r = 28; g = 28; b = 27;
+        }
+        const bgColor = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        document.body.style.backgroundColor = bgColor;
+        // determine if background is light using luminance
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        const isLight = luminance > 0.5 || alpha < 0.4; // low alpha also considered light
+        if (isLight) {
+            document.body.classList.add('light-bg');
+        } else {
+            document.body.classList.remove('light-bg');
+        }
+        rgbaValueSpan.textContent = `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
+    }
+
+    // preset button cycles
+    presetBtn.addEventListener('click', () => {
+        currentPresetIndex = (currentPresetIndex + 1) % presets.length;
+        applyPreset(currentPresetIndex);
     });
 
-    // initial default
-    applyScheme(0);
+    // custom button toggles picker
+    customBtn.addEventListener('click', () => {
+        customPicker.classList.toggle('hidden');
+        if (!customPicker.classList.contains('hidden')) {
+            // sync current background color into picker? we can read from body
+            const bg = document.body.style.backgroundColor;
+            if (bg && bg.startsWith('rgba')) {
+                // parse
+                const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+                if (match) {
+                    const r = match[1], g = match[2], b = match[3], a = match[4] ? parseFloat(match[4]) : 1;
+                    hexColorInput.value = `#${((1 << 24) + (parseInt(r) << 16) + (parseInt(g) << 8) + parseInt(b)).toString(16).slice(1)}`;
+                    alphaSlider.value = a;
+                }
+            } else if (bg && bg.startsWith('rgb')) {
+                // no alpha
+                const match = bg.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+                if (match) {
+                    hexColorInput.value = `#${((1 << 24) + (parseInt(match[1]) << 16) + (parseInt(match[2]) << 8) + parseInt(match[3])).toString(16).slice(1)}`;
+                    alphaSlider.value = 1;
+                }
+            } else if (bg === '' || bg === 'initial') {
+                // default
+                hexColorInput.value = '#1c1c1b';
+                alphaSlider.value = 1;
+            }
+            // update rgba display
+            const r = parseInt(hexColorInput.value.slice(1,3),16);
+            const g = parseInt(hexColorInput.value.slice(3,5),16);
+            const b = parseInt(hexColorInput.value.slice(5,7),16);
+            const a = parseFloat(alphaSlider.value);
+            rgbaValueSpan.textContent = `rgba(${r},${g},${b},${a.toFixed(2)})`;
+        }
+    });
 
-    // Clock update
+    // update custom color on input change
+    function updateCustomColor() {
+        const hex = hexColorInput.value;
+        const alpha = parseFloat(alphaSlider.value);
+        applyCustomColor(hex, alpha);
+    }
+    hexColorInput.addEventListener('input', updateCustomColor);
+    alphaSlider.addEventListener('input', updateCustomColor);
+
+    // initial preset
+    applyPreset(0);
+
+    // Clock
     function updateClock() {
         const now = new Date();
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
         const seconds = String(now.getSeconds()).padStart(2, '0');
-        const timeString = `${hours}:${minutes}:${seconds}`;
-        const clockEl = document.getElementById('liveClock');
-        if (clockEl) clockEl.textContent = timeString;
+        document.getElementById('liveClock').textContent = `${hours}:${minutes}:${seconds}`;
     }
     updateClock();
     setInterval(updateClock, 1000);
 
-    // Scroll-driven header hide/show
+    // Header hide/show on scroll
     let lastScrollTop = 0;
     const header = document.getElementById('mainHeader');
-    const scrollThreshold = 5;
     window.addEventListener('scroll', function() {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        if (Math.abs(scrollTop - lastScrollTop) <= scrollThreshold) return;
+        if (Math.abs(scrollTop - lastScrollTop) <= 5) return;
         if (scrollTop > lastScrollTop && scrollTop > 80) {
             header.classList.add('header-hidden');
         } else {
