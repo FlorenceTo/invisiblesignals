@@ -46,7 +46,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
+            pointer-events: none;   /* still allows clicking through */
             z-index: 0;
             opacity: 1;
         }
@@ -60,7 +60,7 @@
             z-index: 2;
         }
 
-        /* typography – unchanged from your working version */
+        /* typography – unchanged */
         .bodycopy-2 {
             font-size: clamp(0.9rem, 4vw, 1.05rem);
             letter-spacing: 0.058em;
@@ -338,7 +338,6 @@
                     <button class="color-btn" id="customBtn">Custom</button>
                 </div>
             </div>
-            <!-- custom picker panel (hidden by default) -->
             <div id="customPicker" class="picker-panel hidden">
                 <div class="color-input-group">
                     <label>Color:</label>
@@ -456,11 +455,11 @@
     let height = window.innerHeight;
     const chars = ['/', '\\', '|', '-', '_', '+', '.', '·'];
 
-    // Mouse position (null when not over canvas)
+    // Mouse position in canvas coordinates (initially null)
     let mouseX = null, mouseY = null;
-    const MAGNET_RADIUS = 150;      // pixels
-    const MAGNET_STRENGTH = 0.15;   // acceleration factor
-    const MAX_SPEED = 1.5;           // max velocity to avoid wild movement
+    const MAGNET_RADIUS = 150;
+    const MAGNET_STRENGTH = 0.15;
+    const MAX_SPEED = 1.5;
 
     function resizeCanvas() {
         width = window.innerWidth;
@@ -488,23 +487,19 @@
     }
 
     function updateParticles() {
-        // Apply magnetic force if mouse is inside canvas
         if (mouseX !== null && mouseY !== null) {
             for (let p of particles) {
                 let dx = mouseX - p.x;
                 let dy = mouseY - p.y;
                 let dist = Math.hypot(dx, dy);
                 if (dist < MAGNET_RADIUS && dist > 0.01) {
-                    // Force magnitude: stronger when closer
                     let force = (1 - dist / MAGNET_RADIUS) * MAGNET_STRENGTH;
-                    // Limit maximum force to avoid sudden jumps
                     force = Math.min(force, 0.5);
                     let angle = Math.atan2(dy, dx);
                     let ax = Math.cos(angle) * force;
                     let ay = Math.sin(angle) * force;
                     p.vx += ax;
                     p.vy += ay;
-                    // Limit speed
                     let spd = Math.hypot(p.vx, p.vy);
                     if (spd > MAX_SPEED) {
                         p.vx = (p.vx / spd) * MAX_SPEED;
@@ -513,7 +508,6 @@
                 }
             }
         }
-        // Update positions and wrap around
         for (let p of particles) {
             p.x += p.vx;
             p.y += p.vy;
@@ -545,31 +539,37 @@
         requestAnimationFrame(animate);
     }
 
-    // Mouse move tracking (relative to canvas)
-    function onMouseMove(e) {
+    // ----- Mouse tracking on the whole window (canvas has pointer-events: none) -----
+    function updateMousePosition(clientX, clientY) {
         const rect = canvas.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
-        let canvasX = (e.clientX - rect.left) * scaleX;
-        let canvasY = (e.clientY - rect.top) * scaleY;
-        // Clamp to canvas bounds
+        let canvasX = (clientX - rect.left) * scaleX;
+        let canvasY = (clientY - rect.top) * scaleY;
         canvasX = Math.min(Math.max(canvasX, 0), width);
         canvasY = Math.min(Math.max(canvasY, 0), height);
         mouseX = canvasX;
         mouseY = canvasY;
     }
-    function onMouseLeave() {
+
+    function onWindowMouseMove(e) {
+        updateMousePosition(e.clientX, e.clientY);
+    }
+
+    function onWindowMouseLeave() {
         mouseX = null;
         mouseY = null;
     }
 
+    window.addEventListener('mousemove', onWindowMouseMove);
+    window.addEventListener('mouseleave', onWindowMouseLeave);
+
     window.addEventListener('resize', () => resizeCanvas());
-    canvas.addEventListener('mousemove', onMouseMove);
-    canvas.addEventListener('mouseleave', onMouseLeave);
     resizeCanvas();
     animate();
 
-    // ========== BACKGROUND COLOR SWITCHER ==========
+    // ========== BACKGROUND COLOR SWITCHER (unchanged) ==========
     const presetBtn = document.getElementById('presetBtn');
     const customBtn = document.getElementById('customBtn');
     const customPicker = document.getElementById('customPicker');
@@ -622,13 +622,10 @@
         resetHideTimeout();
     }
 
-    // ---------- Picker show/hide with timeout and click outside ----------
     let hideTimeout = null;
-
     function showPicker() {
         clearTimeout(hideTimeout);
         customPicker.classList.remove('hidden');
-        // sync current bg colour into picker
         const bg = document.body.style.backgroundColor;
         if (bg && bg.startsWith('rgba')) {
             const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
@@ -725,7 +722,7 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // Header hide/show on scroll
+    // Header hide/show
     let lastScrollTop = 0;
     const header = document.getElementById('mainHeader');
     window.addEventListener('scroll', function() {
