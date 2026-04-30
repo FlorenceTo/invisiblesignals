@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Invisible Signals – Research Archive</title>
+    <style>
+        /* ========== same styles as your index.html, but without canvas rules ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ---------- DARK MODE DEFAULTS ---------- */
+        body {
+            background: #adadad;
+            font-family: 'Inter', 'Monument Grotesk Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.4;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        /* colour filter overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #30342f;
+            mix-blend-mode: overlay;
+            opacity: 0.8;
+            pointer-events: none;
+            z-index: 1;
+            transition: opacity 0.2s ease;
+        }
+
+        .content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.3rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Typography */
+        .bodycopy-2 {
+            font-size: clamp(0.9rem, 4vw, 1.05rem);
+            letter-spacing: 0.058em;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.85);
+        }
+        .grey-caption {
+            font-size: clamp(0.75rem, 3.5vw, 0.9rem);
+            color: rgba(255, 255, 255, 0.6);
+            font-family: 'Monument Grotesk Variable', monospace;
+            letter-spacing: 0.037em;
+            transition: color 0.2s ease;
+        }
+        .archive-title {
+            font-size: clamp(1.5rem, 6vw, 2rem);
+            font-weight: 500;
+            margin-bottom: 2rem;
+            color: rgba(255, 255, 255, 0.85);
+        }
+        .header-clock {
+            font-family: monospace;
+            font-size: clamp(0.7rem, 3.5vw, 0.85rem);
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.7);
+            transition: color 0.2s ease;
+        }
+        .nav-right a {
+            font-size: clamp(0.75rem, 4vw, 0.9rem);
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.85);
+            transition: opacity 0.2s;
+        }
+        .nav-right a:hover {
+            opacity: 0.7;
+        }
+
+        /* Header */
+        .nav-bar {
+            position: sticky;
+            top: 0;
+            background: transparent;
+            backdrop-filter: none;
+            padding: 0.8rem 1.3rem 3rem 1.3rem;
+            margin-bottom: 2rem;
+            z-index: 10;
+            border: 1px solid #9afc97;
+            transition: transform 0.3s ease-in-out, border-color 0.2s ease;
+        }
+        .nav-bar.header-hidden {
+            transform: translateY(-100%);
+        }
+        .nav-bar-desktop {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .nav-left {
+            display: flex;
+            align-items: baseline;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .nav-right {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            list-style: none;
+        }
+        .color-buttons {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+        .color-btn {
+            background: transparent;
+            border: 1px solid #9afc97;
+            border-radius: 20px;
+            padding: 0.2rem 0.6rem;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: inherit;
+            font-family: monospace;
+        }
+        .picker-panel {
+            margin-top: 0.5rem;
+            background: rgba(28, 28, 27, 0.9);
+            backdrop-filter: blur(4px);
+            border: 1px solid #9afc97;
+            border-radius: 12px;
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 20;
+            min-width: 200px;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .picker-panel.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .color-input-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .color-input-group label {
+            font-size: 0.7rem;
+        }
+        #hexColor {
+            width: 80px;
+            background: #1c1c1b;
+            border: 1px solid #9afc97;
+            color: inherit;
+            padding: 0.2rem;
+            font-family: monospace;
+        }
+        #alphaSlider {
+            flex: 1;
+        }
+        .rgba-value {
+            font-size: 0.6rem;
+            font-family: monospace;
+            text-align: center;
+            color: #9afc97;
+        }
+
+        /* Archive grid */
+        .archive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .archive-item {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        .archive-item:hover {
+            transform: translateY(-4px);
+        }
+        .archive-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .archive-item .caption {
+            padding: 0.8rem;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .back-link {
+            margin-top: 3rem;
+            text-align: center;
+        }
+        .back-link a {
+            color: inherit;
+            text-decoration: none;
+            border-bottom: 1px dotted #9afc97;
+        }
+
+        /* Light background overrides */
+        body.light-bg {
+            color: rgba(0, 0, 0, 0.85);
+        }
+        body.light-bg .bodycopy-2,
+        body.light-bg .archive-title,
+        body.light-bg .nav-right a,
+        body.light-bg .header-clock,
+        body.light-bg .archive-item .caption {
+            color: rgba(0, 0, 0, 0.85);
+        }
+        body.light-bg .grey-caption {
+            color: rgba(0, 0, 0, 0.5);
+        }
+        body.light-bg .nav-bar {
+            border-color: #2c2c2c;
+        }
+        body.light-bg .color-btn {
+            border-color: #2c2c2c;
+        }
+        body.light-bg .picker-panel {
+            background: rgba(245, 243, 239, 0.95);
+            border-color: #2c2c2c;
+        }
+        body.light-bg .rgba-value {
+            color: #2c2c2c;
+        }
+        body.light-bg::before {
+            opacity: 0.2;
+        }
+
+        /* Mobile */
+        @media (max-width: 640px) {
+            .content {
+                padding: 0.8rem;
+            }
+            .nav-bar {
+                padding: 0.6rem 0.8rem 1rem 0.8rem;
+                margin-bottom: 0.5rem;
+            }
+            .nav-bar-desktop {
+                flex-direction: column;
+                gap: 0.6rem;
+            }
+            .nav-left {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .nav-right {
+                width: 100%;
+                justify-content: space-evenly;
+                flex-wrap: wrap;
+                gap: 0.3rem;
+            }
+            .color-buttons {
+                gap: 0.3rem;
+            }
+            .archive-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .picker-panel {
+                position: relative;
+                width: 100%;
+                margin-top: 0.5rem;
+            }
+            .picker-panel.hidden {
+                display: none;
+            }
+            .picker-panel:not(.hidden) {
+                display: flex;
+            }
+        }
+        @media (max-width: 480px) {
+            .content {
+                padding: 0.6rem;
+            }
+            .nav-bar {
+                padding: 0.5rem 0.6rem 0.8rem 0.6rem;
+            }
+            .nav-right a {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="content">
+    <div class="nav-bar" id="mainHeader">
+        <div class="nav-bar-desktop">
+            <div class="nav-left">
+                <div class="header-clock" id="liveClock">--:--:--</div>
+                <div class="color-buttons">
+                    <button class="color-btn" id="presetBtn">Grey</button>
+                    <button class="color-btn" id="customBtn">Custom</button>
+                </div>
+            </div>
+            <ul class="nav-right">
+                <li><a href="index.html">← Back to main</a></li>
+            </ul>
+        </div>
+        <div id="customPicker" class="picker-panel hidden">
+            <div class="color-input-group">
+                <label>Color:</label>
+                <input type="color" id="hexColor" value="#adadad">
+            </div>
+            <div class="color-input-group">
+                <label>Opacity:</label>
+                <input type="range" id="alphaSlider" min="0" max="1" step="0.01" value="1">
+            </div>
+            <div class="rgba-value" id="rgbaValue">rgba(173,173,173,1)</div>
+        </div>
+    </div>
+
+    <div class="archive-title">📚 Research Archive</div>
+    <div class="grey-caption" style="margin-bottom: 1rem;">Collected notes, references, and visual materials</div>
+
+    <!-- Example archive grid – replace with your own images and text -->
+    <div class="archive-grid">
+        <div class="archive-item">
+            <img src="https://via.placeholder.com/400x300?text=Placeholder+Image" alt="Research image 1">
+            <div class="caption">Caption for first entry. You can add description here.</div>
+        </div>
+        <div class="archive-item">
+            <img src="https://via.placeholder.com/400x300?text=Placeholder+Image" alt="Research image 2">
+            <div class="caption">Another note or reference text.</div>
+        </div>
+        <div class="archive-item">
+            <img src="https://via.placeholder.com/400x300?text=Placeholder+Image" alt="Research image 3">
+            <div class="caption">Replace these with your own research images and texts.</div>
+        </div>
+    </div>
+
+    <div class="back-link">
+        <a href="index.html">← back to Invisible Signals</a>
+    </div>
+</div>
+
+<script>
+    // ========== COLOUR SWITCHER (same as main site, but without ASCII particles) ==========
+    const presetBtn = document.getElementById('presetBtn');
+    const customBtn = document.getElementById('customBtn');
+    const customPicker = document.getElementById('customPicker');
+    const hexColorInput = document.getElementById('hexColor');
+    const alphaSlider = document.getElementById('alphaSlider');
+    const rgbaValueSpan = document.getElementById('rgbaValue');
+
+    let currentPresetIndex = 2;
+    const presets = [
+        { name: 'Dark', bg: '#1c1c1b', light: false },
+        { name: 'Light', bg: '#f5f3ef', light: true },
+        { name: 'Grey', bg: '#adadad', light: true }
+    ];
+
+    function setBackground(color, isLight) {
+        document.body.style.backgroundColor = color;
+        if (isLight) document.body.classList.add('light-bg');
+        else document.body.classList.remove('light-bg');
+    }
+    function applyPreset(index) {
+        const p = presets[index % presets.length];
+        setBackground(p.bg, p.light);
+        presetBtn.textContent = p.name;
+        hidePicker();
+    }
+    function applyCustomColor(hex, alpha) {
+        let r, g, b;
+        if (hex.startsWith('#')) {
+            r = parseInt(hex.slice(1,3), 16);
+            g = parseInt(hex.slice(3,5), 16);
+            b = parseInt(hex.slice(5,7), 16);
+        } else { r = 173; g = 173; b = 173; }
+        const bgColor = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        document.body.style.backgroundColor = bgColor;
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        const isLight = luminance > 0.5 || alpha < 0.4;
+        if (isLight) document.body.classList.add('light-bg');
+        else document.body.classList.remove('light-bg');
+        rgbaValueSpan.textContent = `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
+        resetHideTimeout();
+    }
+    let hideTimeout = null;
+    function showPicker() {
+        clearTimeout(hideTimeout);
+        customPicker.classList.remove('hidden');
+        const bg = document.body.style.backgroundColor;
+        if (bg && bg.startsWith('rgba')) {
+            const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+            if (match) {
+                hexColorInput.value = `#${((1 << 24) + (parseInt(match[1]) << 16) + (parseInt(match[2]) << 8) + parseInt(match[3])).toString(16).slice(1)}`;
+                alphaSlider.value = match[4] ? parseFloat(match[4]) : 1;
+            }
+        } else {
+            hexColorInput.value = '#adadad';
+            alphaSlider.value = 1;
+        }
+        const r = parseInt(hexColorInput.value.slice(1,3),16);
+        const g = parseInt(hexColorInput.value.slice(3,5),16);
+        const b = parseInt(hexColorInput.value.slice(5,7),16);
+        const a = parseFloat(alphaSlider.value);
+        rgbaValueSpan.textContent = `rgba(${r},${g},${b},${a.toFixed(2)})`;
+        resetHideTimeout();
+    }
+    function hidePicker() {
+        clearTimeout(hideTimeout);
+        customPicker.classList.add('hidden');
+    }
+    function resetHideTimeout() {
+        clearTimeout(hideTimeout);
+        hideTimeout = setTimeout(() => hidePicker(), 5000);
+    }
+    function bindPickerEvents() {
+        [hexColorInput, alphaSlider, customPicker].forEach(el => {
+            if (!el) return;
+            el.addEventListener('mousemove', resetHideTimeout);
+            el.addEventListener('input', resetHideTimeout);
+            el.addEventListener('click', resetHideTimeout);
+        });
+        customPicker.addEventListener('mouseenter', resetHideTimeout);
+        customPicker.addEventListener('mouseleave', resetHideTimeout);
+    }
+    bindPickerEvents();
+    document.addEventListener('click', (e) => {
+        if (!customPicker.classList.contains('hidden')) {
+            if (!customPicker.contains(e.target) && !customBtn.contains(e.target)) hidePicker();
+        }
+    });
+    presetBtn.addEventListener('click', () => {
+        currentPresetIndex = (currentPresetIndex + 1) % presets.length;
+        applyPreset(currentPresetIndex);
+    });
+    customBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (customPicker.classList.contains('hidden')) showPicker();
+        else hidePicker();
+    });
+    function updateCustomColor() {
+        applyCustomColor(hexColorInput.value, parseFloat(alphaSlider.value));
+    }
+    hexColorInput.addEventListener('input', updateCustomColor);
+    alphaSlider.addEventListener('input', updateCustomColor);
+    applyPreset(2);
+
+    // Clock
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('liveClock').textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // Header hide/show (same as main site)
+    let lastScrollTop = 0;
+    const header = document.getElementById('mainHeader');
+    window.addEventListener('scroll', () => {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        if (Math.abs(scrollTop - lastScrollTop) <= 5) return;
+        if (scrollTop > lastScrollTop && scrollTop > 80) header.classList.add('header-hidden');
+        else header.classList.remove('header-hidden');
+        lastScrollTop = scrollTop;
+    });
+</script>
+</body>
+</html>
