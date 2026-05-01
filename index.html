@@ -15,7 +15,7 @@
     <meta name="title" content="Invisible Signals – Radio Series">
     <meta name="description" content="A monthly open-form radio series exploring live electronics, field recordings, and archival fragments. Hosted by Florence To.">
     <style>
-        /* ---------- RESET & BASE (unchanged) ---------- */
+        /* ---------- RESET & BASE ---------- */
         * {
             margin: 0;
             padding: 0;
@@ -65,7 +65,6 @@
             z-index: 2;
         }
 
-        /* ---------- TYPOGRAPHY (unchanged) ---------- */
         .bodycopy-2 {
             font-size: clamp(0.9rem, 4vw, 1.05rem);
             letter-spacing: 0.058em;
@@ -121,7 +120,6 @@
             transition: color 0.2s ease;
         }
 
-        /* ---------- HEADER & NAVIGATION ---------- */
         .nav-bar {
             position: sticky;
             top: 0;
@@ -314,7 +312,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* Resonance mobile link – pill style, only visible on mobile */
+        /* Resonance mobile link – solid border */
         .resonance-mobile-link {
             display: inline-block;
             margin-top: 0.8rem;
@@ -328,12 +326,14 @@
             text-decoration: none;
             cursor: pointer;
             transition: opacity 0.2s;
+            border-bottom: 1px solid #9afc97;
         }
         .resonance-mobile-link:hover {
             opacity: 0.7;
         }
         body.light-bg .resonance-mobile-link {
             border-color: #2c2c2c;
+            border-bottom: 1px solid #2c2c2c;
         }
 
         /* Popup player – works on both desktop and mobile */
@@ -414,7 +414,7 @@
             }
         }
 
-        /* Mobile header – simplified (no Resonance button in header) */
+        /* Mobile header – simplified (no Resonance button) */
         .mobile-second-row {
             display: none;
         }
@@ -497,7 +497,7 @@
             </div>
             <ul class="nav-right">
                 <li><a href="archive.html">Research Archive</a></li>
-                <li><a href="#" id="resonanceLinkDesktop">Resonance FM</a></li>
+                <!-- Resonance FM link removed from desktop header -->
                 <li><a href="#ep1">Episode 01</a></li>
                 <li><a href="#ep2">Episode 02</a></li>
                 <li><a href="#ep3">Episode 03</a></li>
@@ -506,7 +506,6 @@
                 <li><a href="#ep6">Episode 06</a></li>
             </ul>
         </div>
-        <!-- Mobile row: Research Archive (left) + episode dropdown (right) – no Resonance button -->
         <div class="mobile-second-row">
             <a href="archive.html" class="archive-link-mobile">Research Archive</a>
             <div class="episode-dropdown">
@@ -550,7 +549,7 @@
                     <div>Next broadcast: 28.05.2026 at 16:30 (London time)</div>
                     <div class="countdown" id="countdownTimer">--d --h --m --s</div>
                 </div>
-                <!-- Mobile Resonance FM link placed here -->
+                <!-- Mobile resonance link only -->
                 <a href="#" id="resonanceLinkMobile" class="resonance-mobile-link">Listen to Resonance FM</a>
             </div>
         </div>
@@ -915,7 +914,7 @@
     updateCountdown();
     setInterval(updateCountdown, 1000);
 
-    // Movable popup player – with robust close on mobile
+    // Movable popup player – only for mobile link now
     const popup = document.getElementById('resonancePopup');
     const popupHeader = document.getElementById('popupHeader');
     let isDragging = false;
@@ -984,19 +983,16 @@
     window.addEventListener('touchmove', onDrag);
     window.addEventListener('touchend', stopDrag);
 
-    // Close button: ensure it works on both click and touch
     const closeBtn = document.getElementById('closePopup');
     closeBtn.addEventListener('click', closePopup);
     closeBtn.addEventListener('touchstart', closePopup);
 
-    // Open popup from desktop link and mobile link (now an anchor)
-    const resonanceLinkDesktop = document.getElementById('resonanceLinkDesktop');
+    // Only the mobile link opens the popup
     const resonanceLinkMobile = document.getElementById('resonanceLinkMobile');
     function openPopupHandler(e) {
         e.preventDefault();
         showPopup();
     }
-    resonanceLinkDesktop.addEventListener('click', openPopupHandler);
     resonanceLinkMobile.addEventListener('click', openPopupHandler);
     resonanceLinkMobile.addEventListener('touchstart', openPopupHandler);
 </script>
