@@ -15,7 +15,7 @@
     <meta name="title" content="Invisible Signals – Radio Series">
     <meta name="description" content="A monthly open-form radio series exploring live electronics, field recordings, and archival fragments. Hosted by Florence To.">
     <style>
-        /* ---------- RESET & BASE ---------- */
+        /* ---------- RESET & BASE (unchanged) ---------- */
         * {
             margin: 0;
             padding: 0;
@@ -165,7 +165,6 @@
             opacity: 0.7;
         }
 
-        /* colour buttons */
         .color-buttons {
             display: flex;
             align-items: baseline;
@@ -230,7 +229,6 @@
             color: #9afc97;
         }
 
-        /* episodes */
         .episode {
             margin: 4rem 0;
             padding-top: 2rem;
@@ -242,8 +240,6 @@
             gap: 2rem;
             margin-top: 1rem;
         }
-
-        /* info section */
         .info-section {
             margin: 3rem 0 6rem;
         }
@@ -268,7 +264,6 @@
             100% { transform: translateX(-50%); }
         }
 
-        /* light mode overrides */
         body.light-bg {
             color: rgba(0, 0, 0, 0.85);
         }
@@ -305,7 +300,6 @@
             opacity: 0.2;
         }
 
-        /* schedule note – custom colour */
         .schedule-note {
             margin-top: 1rem;
             font-size: 0.7rem;
@@ -313,14 +307,14 @@
             color: rgba(175, 218, 139, 1);
         }
         body.light-bg .schedule-note {
-            color: rgba(175, 218, 139, 1); /* keep same colour for consistency */
+            color: rgba(175, 218, 139, 1);
         }
         .countdown {
             font-weight: bold;
             letter-spacing: 0.5px;
         }
 
-        /* movable popup player – solid background, works on mobile */
+        /* Popup player – works on both desktop and mobile */
         .popup-player {
             position: fixed;
             z-index: 1000;
@@ -329,7 +323,6 @@
             border-radius: 12px;
             width: 320px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            transition: box-shadow 0.2s;
             cursor: grab;
         }
         .popup-player:active {
@@ -375,7 +368,6 @@
             border: none;
             border-radius: 8px;
         }
-        /* light mode popup */
         body.light-bg .popup-player {
             background-color: #f5f3ef;
             border-color: #2c2c2c;
@@ -389,8 +381,6 @@
         body.light-bg .popup-header {
             background: rgba(0,0,0,0.05);
         }
-
-        /* mobile responsive for popup */
         @media (max-width: 640px) {
             .popup-player {
                 width: 260px;
@@ -402,7 +392,7 @@
             }
         }
 
-        /* mobile header */
+        /* Mobile header – new row layout */
         .mobile-second-row {
             display: none;
         }
@@ -424,14 +414,10 @@
                 display: flex;
                 flex-wrap: wrap;
                 justify-content: space-between;
-                align-items: baseline;
-                gap: 0.8rem;
+                align-items: center;
+                gap: 0.6rem;
                 width: 100%;
                 margin-top: 0.2rem;
-            }
-            .mobile-second-row a,
-            .mobile-second-row .episode-dropdown {
-                flex: 0 0 auto;
             }
             .archive-link-mobile {
                 font-family: inherit;
@@ -440,11 +426,15 @@
                 color: inherit;
                 white-space: nowrap;
             }
-            .listen-link-mobile {
-                font-family: inherit;
-                font-size: 0.85rem;
-                text-decoration: none;
+            .resonance-btn-mobile {
+                background: transparent;
+                border: 1px solid #9afc97;
+                border-radius: 20px;
+                padding: 0.2rem 0.6rem;
+                font-size: 0.75rem;
+                font-family: monospace;
                 color: inherit;
+                cursor: pointer;
                 white-space: nowrap;
             }
             .episode-dropdown {
@@ -477,8 +467,8 @@
         @media (max-width: 480px) {
             .content { padding: 0.6rem; }
             .nav-bar { padding: 0.5rem 0.6rem 0.8rem 0.6rem; }
-            .archive-link-mobile,
-            .listen-link-mobile { font-size: 0.75rem; }
+            .archive-link-mobile { font-size: 0.75rem; }
+            .resonance-btn-mobile { font-size: 0.7rem; padding: 0.15rem 0.5rem; }
             .episode-dropdown select { font-size: 0.7rem; padding: 0.15rem 0.5rem; max-width: 120px; }
             .marquee-content { animation-duration: 30s; }
         }
@@ -509,9 +499,10 @@
                 <li><a href="#ep6">Episode 06</a></li>
             </ul>
         </div>
+        <!-- Mobile row: Research Archive (left), Resonance FM button (center-right), episode dropdown (right) -->
         <div class="mobile-second-row">
             <a href="archive.html" class="archive-link-mobile">Research Archive</a>
-            <a href="#" id="resonanceLinkMobile" class="listen-link-mobile">Resonance FM</a>
+            <button id="resonanceBtnMobile" class="resonance-btn-mobile">Resonance FM</button>
             <div class="episode-dropdown">
                 <select id="mobileEpisodeSelect">
                     <option value="#ep1">Episode 01</option>
@@ -632,7 +623,7 @@
 </div>
 
 <script>
-    // ========== ASCII WAVE PARTICLES ==========
+    // ========== ASCII WAVE PARTICLES (unchanged) ==========
     const canvas = document.getElementById('asciiCanvas');
     let ctx = canvas.getContext('2d');
     let particles = [];
@@ -916,7 +907,7 @@
     updateCountdown();
     setInterval(updateCountdown, 1000);
 
-    // Movable popup player
+    // Movable popup player – with robust close on mobile
     const popup = document.getElementById('resonancePopup');
     const popupHeader = document.getElementById('popupHeader');
     let isDragging = false;
@@ -930,7 +921,11 @@
         }
     }
 
-    function closePopup() {
+    function closePopup(e) {
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
         popup.style.display = 'none';
     }
 
@@ -981,17 +976,22 @@
     window.addEventListener('touchmove', onDrag);
     window.addEventListener('touchend', stopDrag);
 
+    // Close button: ensure it works on both click and touch
+    const closeBtn = document.getElementById('closePopup');
+    closeBtn.addEventListener('click', closePopup);
+    closeBtn.addEventListener('touchstart', closePopup);
+
+    // Open popup from desktop link and mobile button
     const resonanceLinkDesktop = document.getElementById('resonanceLinkDesktop');
-    const resonanceLinkMobile = document.getElementById('resonanceLinkMobile');
+    const resonanceBtnMobile = document.getElementById('resonanceBtnMobile');
     function openPopupHandler(e) {
         e.preventDefault();
         showPopup();
     }
     resonanceLinkDesktop.addEventListener('click', openPopupHandler);
-    resonanceLinkMobile.addEventListener('click', openPopupHandler);
-
-    const closePopupBtn = document.getElementById('closePopup');
-    closePopupBtn.addEventListener('click', closePopup);
+    resonanceBtnMobile.addEventListener('click', openPopupHandler);
+    // Also handle touch on mobile button (already covered by click, but ensure)
+    resonanceBtnMobile.addEventListener('touchstart', openPopupHandler);
 </script>
 </body>
 </html>
