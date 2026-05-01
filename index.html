@@ -414,18 +414,17 @@
                 width: 100%;
                 margin-top: 0.2rem;
             }
-            .mobile-right-group {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.5rem;
-                align-items: center;
-            }
             .archive-link-mobile {
                 font-family: inherit;
                 font-size: 0.85rem;
                 text-decoration: none;
                 color: inherit;
                 white-space: nowrap;
+            }
+            .mobile-right-group {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
             }
             .resonance-btn-mobile {
                 background: transparent;
@@ -437,6 +436,10 @@
                 color: inherit;
                 cursor: pointer;
                 white-space: nowrap;
+                line-height: 1;
+                height: auto;
+                display: inline-flex;
+                align-items: center;
             }
             .episode-dropdown {
                 display: block;
@@ -452,6 +455,8 @@
                 cursor: pointer;
                 width: auto;
                 max-width: 140px;
+                line-height: 1;
+                height: auto;
             }
             .color-buttons { gap: 0.3rem; }
             .episode-grid { grid-template-columns: 1fr; gap: 1rem; }
@@ -498,6 +503,7 @@
                 <li><a href="#ep6">Episode 06</a></li>
             </ul>
         </div>
+        <!-- Mobile header: Research Archive left, Resonance FM button + Episode dropdown right -->
         <div class="mobile-second-row">
             <a href="archive.html" class="archive-link-mobile">Research Archive</a>
             <div class="mobile-right-group">
@@ -548,7 +554,7 @@
         </div>
     </section>
 
-    <!-- EPISODES -->
+    <!-- EPISODES (unchanged) -->
     <section id="ep1" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 01</div>
