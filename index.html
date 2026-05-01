@@ -314,51 +314,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Contact form styles */
-.contact-form {
-    margin-top: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-}
-.contact-form label {
-    font-size: 0.7rem;
-    font-family: monospace;
-    color: rgba(255, 255, 255, 0.7);
-}
-.contact-form input,
-.contact-form textarea {
-    background: transparent;
-    border: 1px solid #9afc97;
-    border-radius: 12px;
-    padding: 0.4rem 0.6rem;
-    font-size: 0.75rem;
-    font-family: monospace;
-    color: inherit;
-}
-.contact-form button {
-    background: transparent;
-    border: 1px solid #9afc97;
-    border-radius: 20px;
-    padding: 0.2rem 0.6rem;
-    font-size: 0.7rem;
-    font-family: monospace;
-    cursor: pointer;
-    transition: opacity 0.2s;
-    width: fit-content;
-}
-.contact-form button:hover {
-    opacity: 0.7;
-}
-body.light-bg .contact-form label {
-    color: rgba(0, 0, 0, 0.7);
-}
-body.light-bg .contact-form input,
-body.light-bg .contact-form textarea,
-body.light-bg .contact-form button {
-    border-color: #2c2c2c;
-}
-
         /* ---------- POPUP PLAYER STYLES ---------- */
         .popup-player {
             position: fixed;
@@ -576,24 +531,13 @@ body.light-bg .contact-form button {
                 </div>
             </div>
             <div class="right-col-bottom">
-    <strong>Invisible Signals</strong>
-
-    <!-- Contact Form -->
-    <form action="https://invisiblesignals.org/contact" method="POST" class="contact-form">
-        <label for="email">Your email address</label>
-        <input type="email" name="email" id="email" required placeholder="name@example.com">
-
-        <label for="message">Your message</label>
-        <textarea name="message" id="message" rows="4" required placeholder="Audio submissions, collaboration ideas, …"></textarea>
-
-        <button type="submit">Send →</button>
-    </form>
-
-    <div class="schedule-note ascii-color">
-        <div>Next broadcast: <strong>28.05.2026 at 16:30</strong> (London time)</div>
-        <div class="countdown" id="countdownTimer">--d --h --m --s</div>
-    </div>
-</div>
+                <strong>Invisible Signals</strong>
+                <a href="mailto:seirynx@mailfence.com">seirynx@mailfence.com</a>
+                <div class="schedule-note ascii-color">
+                    <div>Next broadcast: <strong>28.05.2026 at 16:30</strong> (London time)</div>
+                    <div class="countdown" id="countdownTimer">--d --h --m --s</div>
+                </div>
+            </div>
         </div>
     </section>
 
