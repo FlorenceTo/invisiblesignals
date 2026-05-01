@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Invisible Signals – Radio Series</title>
-    <!-- Standard Open Graph meta tags -->
+    <!-- Open Graph meta tags -->
     <meta property="og:title" content="Invisible Signals – Radio Series">
     <meta property="og:description" content="A monthly open-form radio series exploring live electronics, field recordings, and archival fragments. Hosted by Florence To.">
     <meta property="og:image" content="compress-wave.gif">
@@ -15,7 +15,7 @@
     <meta name="title" content="Invisible Signals – Radio Series">
     <meta name="description" content="A monthly open-form radio series exploring live electronics, field recordings, and archival fragments. Hosted by Florence To.">
     <style>
-        /* ---------- Your complete original CSS (unchanged) ---------- */
+        /* ---------- RESET & BASE ---------- */
         * {
             margin: 0;
             padding: 0;
@@ -65,6 +65,7 @@
             z-index: 2;
         }
 
+        /* ---------- TYPOGRAPHY (unchanged) ---------- */
         .bodycopy-2 {
             font-size: clamp(0.9rem, 4vw, 1.05rem);
             letter-spacing: 0.058em;
@@ -120,6 +121,7 @@
             transition: color 0.2s ease;
         }
 
+        /* ---------- HEADER & NAVIGATION ---------- */
         .nav-bar {
             position: sticky;
             top: 0;
@@ -163,6 +165,7 @@
             opacity: 0.7;
         }
 
+        /* colour buttons */
         .color-buttons {
             display: flex;
             align-items: baseline;
@@ -227,6 +230,7 @@
             color: #9afc97;
         }
 
+        /* episodes */
         .episode {
             margin: 4rem 0;
             padding-top: 2rem;
@@ -238,6 +242,8 @@
             gap: 2rem;
             margin-top: 1rem;
         }
+
+        /* info section */
         .info-section {
             margin: 3rem 0 6rem;
         }
@@ -262,6 +268,7 @@
             100% { transform: translateX(-50%); }
         }
 
+        /* light mode overrides */
         body.light-bg {
             color: rgba(0, 0, 0, 0.85);
         }
@@ -298,32 +305,30 @@
             opacity: 0.2;
         }
 
-        .ascii-color {
-            color: #e3ffa9;
-        }
-        body.light-bg .ascii-color {
-            color: #2c6e2c;
-        }
+        /* schedule note – custom colour */
         .schedule-note {
             margin-top: 1rem;
             font-size: 0.7rem;
             line-height: 1.4;
+            color: rgba(175, 218, 139, 1);
+        }
+        body.light-bg .schedule-note {
+            color: rgba(175, 218, 139, 1); /* keep same colour for consistency */
         }
         .countdown {
             font-weight: bold;
             letter-spacing: 0.5px;
         }
 
-        /* ---------- POPUP PLAYER STYLES ---------- */
+        /* movable popup player – solid background, works on mobile */
         .popup-player {
             position: fixed;
             z-index: 1000;
-            background: rgba(28, 28, 27, 0.95);
-            backdrop-filter: blur(10px);
+            background-color: #1c1c1b;
             border: 1px solid #9afc97;
             border-radius: 12px;
             width: 320px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
             transition: box-shadow 0.2s;
             cursor: grab;
         }
@@ -335,7 +340,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 0.5rem 0.8rem;
-            background: rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.5);
             border-top-left-radius: 12px;
             border-top-right-radius: 12px;
             cursor: grab;
@@ -370,8 +375,9 @@
             border: none;
             border-radius: 8px;
         }
+        /* light mode popup */
         body.light-bg .popup-player {
-            background: rgba(245, 243, 239, 0.95);
+            background-color: #f5f3ef;
             border-color: #2c2c2c;
         }
         body.light-bg .popup-title {
@@ -380,7 +386,23 @@
         body.light-bg .popup-close {
             color: #2c2c2c;
         }
+        body.light-bg .popup-header {
+            background: rgba(0,0,0,0.05);
+        }
 
+        /* mobile responsive for popup */
+        @media (max-width: 640px) {
+            .popup-player {
+                width: 260px;
+            }
+        }
+        @media (max-width: 480px) {
+            .popup-player {
+                width: 240px;
+            }
+        }
+
+        /* mobile header */
         .mobile-second-row {
             display: none;
         }
@@ -450,9 +472,6 @@
             .picker-panel { position: relative; width: 100%; margin-top: 0.5rem; }
             .picker-panel.hidden { display: none; }
             .picker-panel:not(.hidden) { display: flex; }
-            .popup-player {
-                width: 260px;
-            }
         }
 
         @media (max-width: 480px) {
@@ -462,9 +481,6 @@
             .listen-link-mobile { font-size: 0.75rem; }
             .episode-dropdown select { font-size: 0.7rem; padding: 0.15rem 0.5rem; max-width: 120px; }
             .marquee-content { animation-duration: 30s; }
-            .popup-player {
-                width: 240px;
-            }
         }
     </style>
 </head>
@@ -484,7 +500,7 @@
             </div>
             <ul class="nav-right">
                 <li><a href="archive.html">Research Archive</a></li>
-                <li><a href="#" id="resonanceLinkDesktop">Resonance FM</a></li> <!-- changed link text and behaviour -->
+                <li><a href="#" id="resonanceLinkDesktop">Resonance FM</a></li>
                 <li><a href="#ep1">Episode 01</a></li>
                 <li><a href="#ep2">Episode 02</a></li>
                 <li><a href="#ep3">Episode 03</a></li>
@@ -495,7 +511,7 @@
         </div>
         <div class="mobile-second-row">
             <a href="archive.html" class="archive-link-mobile">Research Archive</a>
-            <a href="#" id="resonanceLinkMobile" class="listen-link-mobile">Resonance FM</a> <!-- changed link text -->
+            <a href="#" id="resonanceLinkMobile" class="listen-link-mobile">Resonance FM</a>
             <div class="episode-dropdown">
                 <select id="mobileEpisodeSelect">
                     <option value="#ep1">Episode 01</option>
@@ -533,7 +549,7 @@
             <div class="right-col-bottom">
                 <strong>Invisible Signals</strong>
                 <a href="mailto:seirynx@mailfence.com">seirynx@mailfence.com</a>
-                <div class="schedule-note ascii-color">
+                <div class="schedule-note">
                     <div>Next broadcast: <strong>28.05.2026 at 16:30</strong> (London time)</div>
                     <div class="countdown" id="countdownTimer">--d --h --m --s</div>
                 </div>
@@ -604,7 +620,7 @@
     </section>
 </div>
 
-<!-- Popup player (hidden by default) -->
+<!-- Popup player -->
 <div id="resonancePopup" class="popup-player" style="display: none; top: 20px; left: 20px;">
     <div class="popup-header" id="popupHeader">
         <span class="popup-title">Resonance FM</span>
@@ -616,7 +632,7 @@
 </div>
 
 <script>
-    // ========== ASCII WAVE PARTICLES (unchanged) ==========
+    // ========== ASCII WAVE PARTICLES ==========
     const canvas = document.getElementById('asciiCanvas');
     let ctx = canvas.getContext('2d');
     let particles = [];
@@ -879,7 +895,7 @@
         });
     }
 
-    // ========== COUNTDOWN TIMER ==========
+    // Countdown timer
     function updateCountdown() {
         const targetDateUTC = Date.UTC(2026, 4, 28, 15, 30, 0);
         const now = new Date();
@@ -900,15 +916,14 @@
     updateCountdown();
     setInterval(updateCountdown, 1000);
 
-    // ========== POPUP PLAYER DRAG & DROP ==========
+    // Movable popup player
     const popup = document.getElementById('resonancePopup');
-    const headerDrag = document.getElementById('popupHeader');
+    const popupHeader = document.getElementById('popupHeader');
     let isDragging = false;
     let offsetX, offsetY;
 
     function showPopup() {
         popup.style.display = 'block';
-        // reset to default position if not set (first time)
         if (!popup.style.top || popup.style.top === 'auto') {
             popup.style.top = '20px';
             popup.style.left = '20px';
@@ -922,8 +937,14 @@
     function startDrag(e) {
         isDragging = true;
         const rect = popup.getBoundingClientRect();
-        const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
-        const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
+        let clientX, clientY;
+        if (e.touches) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        } else {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        }
         offsetX = clientX - rect.left;
         offsetY = clientY - rect.top;
         popup.style.cursor = 'grabbing';
@@ -932,11 +953,16 @@
 
     function onDrag(e) {
         if (!isDragging) return;
-        const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
-        const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
+        let clientX, clientY;
+        if (e.touches) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        } else {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        }
         let newLeft = clientX - offsetX;
         let newTop = clientY - offsetY;
-        // constrain to viewport (optional)
         newLeft = Math.min(Math.max(newLeft, 0), window.innerWidth - popup.offsetWidth);
         newTop = Math.min(Math.max(newTop, 0), window.innerHeight - popup.offsetHeight);
         popup.style.left = newLeft + 'px';
@@ -948,15 +974,13 @@
         popup.style.cursor = '';
     }
 
-    headerDrag.addEventListener('mousedown', startDrag);
+    popupHeader.addEventListener('mousedown', startDrag);
     window.addEventListener('mousemove', onDrag);
     window.addEventListener('mouseup', stopDrag);
-    // Touch events for mobile
-    headerDrag.addEventListener('touchstart', startDrag);
+    popupHeader.addEventListener('touchstart', startDrag);
     window.addEventListener('touchmove', onDrag);
     window.addEventListener('touchend', stopDrag);
 
-    // Open popup when clicking the Resonance FM links
     const resonanceLinkDesktop = document.getElementById('resonanceLinkDesktop');
     const resonanceLinkMobile = document.getElementById('resonanceLinkMobile');
     function openPopupHandler(e) {
@@ -966,7 +990,6 @@
     resonanceLinkDesktop.addEventListener('click', openPopupHandler);
     resonanceLinkMobile.addEventListener('click', openPopupHandler);
 
-    // Close button
     const closePopupBtn = document.getElementById('closePopup');
     closePopupBtn.addEventListener('click', closePopup);
 </script>
