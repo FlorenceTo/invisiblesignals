@@ -396,86 +396,78 @@
         }
 
         @media (max-width: 640px) {
-            .content { padding: 0.8rem; }
-            .nav-bar {
-                padding: 0.6rem 0.8rem 1rem 0.8rem;
-                margin-bottom: 0.5rem;
-                flex-direction: column;
-            }
-            .nav-bar-desktop { flex-direction: column; gap: 0.6rem; }
-            .nav-left { width: 100%; justify-content: space-between; }
-            .nav-right { display: none; }
-            .mobile-second-row {
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: space-between;
-                align-items: center;
-                gap: 0.6rem;
-                width: 100%;
-                margin-top: 0.2rem;
-            }
-            .archive-link-mobile {
-                font-family: inherit;
-                font-size: 0.85rem;
-                text-decoration: none;
-                color: inherit;
-                white-space: nowrap;
-            }
-            .mobile-right-group {
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-            }
-            .resonance-btn-mobile {
-                background: transparent;
-                border: 1px solid #9afc97;
-                border-radius: 20px;
-                padding: 0.2rem 0.6rem;
-                font-size: 0.75rem;
-                font-family: monospace;
-                color: inherit;
-                cursor: pointer;
-                white-space: nowrap;
-                line-height: 1;
-                height: auto;
-                display: inline-flex;
-                align-items: center;
-            }
-            .episode-dropdown {
-                display: block;
-            }
-            .episode-dropdown select {
-                background: transparent;
-                border: 1px solid #9afc97;
-                border-radius: 20px;
-                padding: 0.2rem 0.6rem;
-                font-size: 0.75rem;
-                font-family: monospace;
-                color: inherit;
-                cursor: pointer;
-                width: auto;
-                max-width: 140px;
-                line-height: 1;
-                height: auto;
-            }
-            .color-buttons { gap: 0.3rem; }
-            .episode-grid { grid-template-columns: 1fr; gap: 1rem; }
-            .marquee-content { animation-duration: 35s; }
-            .episode { margin: 2.5rem 0; }
-            .info-section { margin: 2rem 0 4rem; }
-            .picker-panel { position: relative; width: 100%; margin-top: 0.5rem; }
-            .picker-panel.hidden { display: none; }
-            .picker-panel:not(.hidden) { display: flex; }
-        }
+    .content { padding: 0.8rem; }
+    .nav-bar {
+        padding: 0.6rem 0.8rem 1rem 0.8rem;
+        margin-bottom: 0.5rem;
+        flex-direction: column;
+    }
+    .nav-bar-desktop { flex-direction: column; gap: 0.6rem; }
+    .nav-left { width: 100%; justify-content: space-between; }
+    .nav-right { display: none; }
+    .mobile-second-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin-top: 0.2rem;
+    }
+    .archive-link-mobile {
+        font-size: 0.85rem;
+        text-decoration: none;
+        color: inherit;
+        white-space: nowrap;
+    }
+    .mobile-right-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .resonance-btn-mobile,
+    .episode-dropdown select {
+        background: transparent;
+        border: 1px solid #9afc97;
+        border-radius: 20px;
+        padding: 0.2rem 0.6rem;
+        font-size: 0.75rem;
+        font-family: monospace;
+        color: inherit;
+        cursor: pointer;
+        line-height: 1.2;
+        height: auto;
+        display: inline-block;
+        vertical-align: middle;
+    }
+    .episode-dropdown select {
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><polygon points="2,4 6,8 10,4" fill="%239afc97"/></svg>');
+        background-repeat: no-repeat;
+        background-position: right 0.6rem center;
+        padding-right: 1.8rem;
+    }
+    .color-buttons { gap: 0.3rem; }
+    .episode-grid { grid-template-columns: 1fr; gap: 1rem; }
+    .marquee-content { animation-duration: 35s; }
+    .episode { margin: 2.5rem 0; }
+    .info-section { margin: 2rem 0 4rem; }
+    .picker-panel { position: relative; width: 100%; margin-top: 0.5rem; }
+    .picker-panel.hidden { display: none; }
+    .picker-panel:not(.hidden) { display: flex; }
+}
 
-        @media (max-width: 480px) {
-            .content { padding: 0.6rem; }
-            .nav-bar { padding: 0.5rem 0.6rem 0.8rem 0.6rem; }
-            .archive-link-mobile { font-size: 0.75rem; }
-            .resonance-btn-mobile { font-size: 0.7rem; padding: 0.15rem 0.5rem; }
-            .episode-dropdown select { font-size: 0.7rem; padding: 0.15rem 0.5rem; max-width: 120px; }
-            .marquee-content { animation-duration: 30s; }
-        }
+@media (max-width: 480px) {
+    .content { padding: 0.6rem; }
+    .nav-bar { padding: 0.5rem 0.6rem 0.8rem 0.6rem; }
+    .archive-link-mobile { font-size: 0.75rem; }
+    .resonance-btn-mobile,
+    .episode-dropdown select {
+        font-size: 0.7rem;
+        padding: 0.15rem 0.5rem;
+    }
+    .episode-dropdown select { padding-right: 1.6rem; }
+    .marquee-content { animation-duration: 30s; }
+}
     </style>
 </head>
 <body>
