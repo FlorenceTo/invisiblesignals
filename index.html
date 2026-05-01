@@ -312,12 +312,12 @@
             letter-spacing: 0.5px;
         }
 
-        /* Resonance mobile link – solid border */
+        /* Resonance mobile link – solid border forced */
         .resonance-mobile-link {
             display: inline-block;
             margin-top: 0.8rem;
             background: transparent;
-            border: 1px solid #9afc97;
+            border: 1px solid #9afc97 !important;
             border-radius: 20px;
             padding: 0.2rem 0.6rem;
             font-size: 0.7rem;
@@ -326,14 +326,12 @@
             text-decoration: none;
             cursor: pointer;
             transition: opacity 0.2s;
-            border-bottom: 1px solid #9afc97;
         }
         .resonance-mobile-link:hover {
             opacity: 0.7;
         }
         body.light-bg .resonance-mobile-link {
-            border-color: #2c2c2c;
-            border-bottom: 1px solid #2c2c2c;
+            border-color: #2c2c2c !important;
         }
 
         /* Popup player – works on both desktop and mobile */
@@ -497,7 +495,6 @@
             </div>
             <ul class="nav-right">
                 <li><a href="archive.html">Research Archive</a></li>
-                <!-- Resonance FM link removed from desktop header -->
                 <li><a href="#ep1">Episode 01</a></li>
                 <li><a href="#ep2">Episode 02</a></li>
                 <li><a href="#ep3">Episode 03</a></li>
@@ -914,7 +911,7 @@
     updateCountdown();
     setInterval(updateCountdown, 1000);
 
-    // Movable popup player – only for mobile link now
+    // Movable popup player – only for mobile link
     const popup = document.getElementById('resonancePopup');
     const popupHeader = document.getElementById('popupHeader');
     let isDragging = false;
@@ -987,7 +984,6 @@
     closeBtn.addEventListener('click', closePopup);
     closeBtn.addEventListener('touchstart', closePopup);
 
-    // Only the mobile link opens the popup
     const resonanceLinkMobile = document.getElementById('resonanceLinkMobile');
     function openPopupHandler(e) {
         e.preventDefault();
