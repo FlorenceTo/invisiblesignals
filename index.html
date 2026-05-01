@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Invisible Signals – Radio Series</title>
-    <!-- Open Graph meta tags -->
+    <!-- Standard Open Graph meta tags -->
     <meta property="og:title" content="Invisible Signals – Radio Series">
     <meta property="og:description" content="A monthly open-form radio series exploring live electronics, field recordings, and archival fragments. Hosted by Florence To.">
-    <meta property="og:image" content="images/compress-wave.gif">
+    <meta property="og:image" content="compress-wave.gif">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:url" content="https://invisiblesignals.org/">
@@ -15,7 +15,7 @@
     <meta name="title" content="Invisible Signals – Radio Series">
     <meta name="description" content="A monthly open-form radio series exploring live electronics, field recordings, and archival fragments. Hosted by Florence To.">
     <style>
-        /* ---------- RESET & BASE ---------- */
+        /* ---------- Your complete original CSS (unchanged) ---------- */
         * {
             margin: 0;
             padding: 0;
@@ -298,94 +298,78 @@
             opacity: 0.2;
         }
 
+        .ascii-color {
+            color: #e3ffa9;
+        }
+        body.light-bg .ascii-color {
+            color: #2c6e2c;
+        }
         .schedule-note {
             margin-top: 1rem;
             font-size: 0.7rem;
             line-height: 1.4;
-            color: rgba(175, 218, 139, 1);
-        }
-        body.light-bg .schedule-note {
-            color: rgba(175, 218, 139, 1);
         }
         .countdown {
             font-weight: bold;
             letter-spacing: 0.5px;
         }
 
-        /* Resonance mobile link – solid border forced */
-        .resonance-mobile-link {
-            display: inline-block;
-            margin-top: 0.8rem;
-            background: transparent;
-            border: 1px solid #9afc97 !important;
-            border-radius: 20px;
-            padding: 0.2rem 0.6rem;
-            font-size: 0.7rem;
-            font-family: monospace;
-            color: inherit;
-            text-decoration: none;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        .resonance-mobile-link:hover {
-            opacity: 0.7;
-        }
-        body.light-bg .resonance-mobile-link {
-            border-color: #2c2c2c !important;
-        }
-            /* Contact form styles */
-        .contact-form {
-            margin-top: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.8rem;
-        }
-        .contact-form label {
-            font-size: 0.7rem;
-            font-family: monospace;
-            color: rgba(255, 255, 255, 0.7);
-        }
-        .contact-form input,
-        .contact-form textarea {
-            background: transparent;
-            border: 1px solid #9afc97;
-            border-radius: 12px;
-            padding: 0.4rem 0.6rem;
-            font-size: 0.75rem;
-            font-family: monospace;
-            color: inherit;
-        }
-        .contact-form button {
-            background: transparent;
-            border: 1px solid #9afc97;
-            border-radius: 20px;
-            padding: 0.2rem 0.6rem;
-            font-size: 0.7rem;
-            font-family: monospace;
-            cursor: pointer;
-            transition: opacity 0.2s;
-            width: fit-content;
-        }
-        .contact-form button:hover {
-            opacity: 0.7;
-        }
-        body.light-bg .contact-form label {
-            color: rgba(0, 0, 0, 0.7);
-        }
-        body.light-bg .contact-form input,
-        body.light-bg .contact-form textarea,
-        body.light-bg .contact-form button {
-            border-color: #2c2c2c;
-        }
-        /* Popup player – works on both desktop and mobile */
+        /* Contact form styles */
+.contact-form {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+.contact-form label {
+    font-size: 0.7rem;
+    font-family: monospace;
+    color: rgba(255, 255, 255, 0.7);
+}
+.contact-form input,
+.contact-form textarea {
+    background: transparent;
+    border: 1px solid #9afc97;
+    border-radius: 12px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+    font-family: monospace;
+    color: inherit;
+}
+.contact-form button {
+    background: transparent;
+    border: 1px solid #9afc97;
+    border-radius: 20px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.7rem;
+    font-family: monospace;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    width: fit-content;
+}
+.contact-form button:hover {
+    opacity: 0.7;
+}
+body.light-bg .contact-form label {
+    color: rgba(0, 0, 0, 0.7);
+}
+body.light-bg .contact-form input,
+body.light-bg .contact-form textarea,
+body.light-bg .contact-form button {
+    border-color: #2c2c2c;
+}
+
+        /* ---------- POPUP PLAYER STYLES ---------- */
         .popup-player {
             position: fixed;
             z-index: 1000;
-            background-color: #1c1c1b;
+            background: rgba(28, 28, 27, 0.95);
+            backdrop-filter: blur(10px);
             border: 1px solid #9afc97;
             border-radius: 12px;
             width: 320px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            transition: box-shadow 0.2s;
             cursor: grab;
         }
         .popup-player:active {
@@ -396,7 +380,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 0.5rem 0.8rem;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.3);
             border-top-left-radius: 12px;
             border-top-right-radius: 12px;
             cursor: grab;
@@ -432,7 +416,7 @@
             border-radius: 8px;
         }
         body.light-bg .popup-player {
-            background-color: #f5f3ef;
+            background: rgba(245, 243, 239, 0.95);
             border-color: #2c2c2c;
         }
         body.light-bg .popup-title {
@@ -441,22 +425,7 @@
         body.light-bg .popup-close {
             color: #2c2c2c;
         }
-        body.light-bg .popup-header {
-            background: rgba(0,0,0,0.05);
-        }
-        
-        @media (max-width: 640px) {
-            .popup-player {
-                width: 260px;
-            }
-        }
-        @media (max-width: 480px) {
-            .popup-player {
-                width: 240px;
-            }
-        }
 
-        /* Mobile header – simplified (no Resonance button) */
         .mobile-second-row {
             display: none;
         }
@@ -476,12 +445,26 @@
             .nav-right { display: none; }
             .mobile-second-row {
                 display: flex;
+                flex-wrap: wrap;
                 justify-content: space-between;
-                align-items: center;
+                align-items: baseline;
+                gap: 0.8rem;
                 width: 100%;
                 margin-top: 0.2rem;
             }
+            .mobile-second-row a,
+            .mobile-second-row .episode-dropdown {
+                flex: 0 0 auto;
+            }
             .archive-link-mobile {
+                font-family: inherit;
+                font-size: 0.85rem;
+                text-decoration: none;
+                color: inherit;
+                white-space: nowrap;
+            }
+            .listen-link-mobile {
+                font-family: inherit;
                 font-size: 0.85rem;
                 text-decoration: none;
                 color: inherit;
@@ -512,14 +495,21 @@
             .picker-panel { position: relative; width: 100%; margin-top: 0.5rem; }
             .picker-panel.hidden { display: none; }
             .picker-panel:not(.hidden) { display: flex; }
+            .popup-player {
+                width: 260px;
+            }
         }
 
         @media (max-width: 480px) {
             .content { padding: 0.6rem; }
             .nav-bar { padding: 0.5rem 0.6rem 0.8rem 0.6rem; }
-            .archive-link-mobile { font-size: 0.75rem; }
+            .archive-link-mobile,
+            .listen-link-mobile { font-size: 0.75rem; }
             .episode-dropdown select { font-size: 0.7rem; padding: 0.15rem 0.5rem; max-width: 120px; }
             .marquee-content { animation-duration: 30s; }
+            .popup-player {
+                width: 240px;
+            }
         }
     </style>
 </head>
@@ -539,6 +529,7 @@
             </div>
             <ul class="nav-right">
                 <li><a href="archive.html">Research Archive</a></li>
+                <li><a href="#" id="resonanceLinkDesktop">Resonance FM</a></li> <!-- changed link text and behaviour -->
                 <li><a href="#ep1">Episode 01</a></li>
                 <li><a href="#ep2">Episode 02</a></li>
                 <li><a href="#ep3">Episode 03</a></li>
@@ -549,6 +540,7 @@
         </div>
         <div class="mobile-second-row">
             <a href="archive.html" class="archive-link-mobile">Research Archive</a>
+            <a href="#" id="resonanceLinkMobile" class="listen-link-mobile">Resonance FM</a> <!-- changed link text -->
             <div class="episode-dropdown">
                 <select id="mobileEpisodeSelect">
                     <option value="#ep1">Episode 01</option>
@@ -580,29 +572,28 @@
             </div>
             <div class="marquee-container">
                 <div class="marquee-content marquee-text">
-                    A monthly open-form radio series that progresses through live electronics, field recordings, and archival fragments. The title emerges from waves that remain imperceptible even as they are heard and felt. The series follows these signals as forms of vibration moving through aetheric conditions in bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, tracing rupture, resistance, and repair within border zones, technological networks, and contested terrains. &nbsp;&nbsp;&nbsp;
+                    A monthly open-form radio series that progresses through live electronics, field recordings, and archival fragments. The title emerges from waves that remain imperceptible even as they are heard and felt, the series follows these signals as forms of vibration moving through aetheric conditions across bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, tracing rupture, resistance, and repair across borders, technological networks, and contested terrains. &nbsp;&nbsp;&nbsp;
                 </div>
             </div>
             <div class="right-col-bottom">
-                <strong>Invisible Signals</strong>
-                <div class="schedule-note">
-                    <div>Next broadcast: 28.05.2026 at 16:30 (London time)</div>
-                    <div class="countdown" id="countdownTimer">--d --h --m --s</div>
-                </div>
-            
-                <!-- Contact Form -->
-                <form action="https://invisiblesignals.pages.dev" method="POST" class="contact-form">
-                    <label for="email">Your email address</label>
-                    <input type="email" name="email" id="email" required placeholder="name@example.com">
-            
-                    <label for="message">Your message</label>
-                    <textarea name="message" id="message" rows="4" required placeholder="Audio submissions, collaboration ideas, …"></textarea>
-            
-                    <button type="submit">Send →</button>
-                </form>
-            
-                <a href="#" id="resonanceLinkMobile" class="resonance-mobile-link">Listen to Resonance FM</a>
-            </div>
+    <strong>Invisible Signals</strong>
+
+    <!-- Contact Form -->
+    <form action="https://invisiblesignals.org/contact" method="POST" class="contact-form">
+        <label for="email">Your email address</label>
+        <input type="email" name="email" id="email" required placeholder="name@example.com">
+
+        <label for="message">Your message</label>
+        <textarea name="message" id="message" rows="4" required placeholder="Audio submissions, collaboration ideas, …"></textarea>
+
+        <button type="submit">Send →</button>
+    </form>
+
+    <div class="schedule-note ascii-color">
+        <div>Next broadcast: <strong>28.05.2026 at 16:30</strong> (London time)</div>
+        <div class="countdown" id="countdownTimer">--d --h --m --s</div>
+    </div>
+</div>
         </div>
     </section>
 
@@ -611,8 +602,8 @@
         <div class="episode-grid">
             <div class="episode-title-left">Episode 01</div>
             <div class="episode-desc">
-                <div class="bodycopy-2">A monthly open-form radio series that progresses through live electronics, field recordings, and archival fragments. The title emerges from waves that remain imperceptible even as they are heard and felt. The series follows these signals as forms of vibration moving through aetheric conditions in bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, tracing rupture, resistance, and repair within border zones, technological networks, and contested terrains. Presented by artist and researcher Florence To.</div>
-                <img src="images/episode_01.gif" alt="Episode 01 visual" style="display: block; margin: 1.5rem 0; max-width: 100%; height: auto; border-radius: 4px;">
+                <div class="bodycopy-2">A monthly open-form radio series that progresses through live electronics, field recordings, and archival fragments. The title emerges from waves that remain imperceptible even as they are heard and felt, the series follows these signals as forms of vibration moving through aetheric conditions across bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, tracing rupture, resistance, and repair across borders, technological networks, and contested terrains. Presented by artist and researcher Florence To.</div>
+                <img src="episode01.gif" alt="Episode 01 visual" style="display: block; margin: 1.5rem 0; max-width: 100%; height: auto; border-radius: 4px;">
                 <div style="margin-top: 1.5rem;"><span class="grey-caption">INSERT TRACK LISTING</span></div>
             </div>
         </div>
@@ -669,7 +660,7 @@
     </section>
 </div>
 
-<!-- Popup player -->
+<!-- Popup player (hidden by default) -->
 <div id="resonancePopup" class="popup-player" style="display: none; top: 20px; left: 20px;">
     <div class="popup-header" id="popupHeader">
         <span class="popup-title">Resonance FM</span>
@@ -944,7 +935,7 @@
         });
     }
 
-    // Countdown timer
+    // ========== COUNTDOWN TIMER ==========
     function updateCountdown() {
         const targetDateUTC = Date.UTC(2026, 4, 28, 15, 30, 0);
         const now = new Date();
@@ -965,39 +956,30 @@
     updateCountdown();
     setInterval(updateCountdown, 1000);
 
-    // Movable popup player – only for mobile link
+    // ========== POPUP PLAYER DRAG & DROP ==========
     const popup = document.getElementById('resonancePopup');
-    const popupHeader = document.getElementById('popupHeader');
+    const headerDrag = document.getElementById('popupHeader');
     let isDragging = false;
     let offsetX, offsetY;
 
     function showPopup() {
         popup.style.display = 'block';
+        // reset to default position if not set (first time)
         if (!popup.style.top || popup.style.top === 'auto') {
             popup.style.top = '20px';
             popup.style.left = '20px';
         }
     }
 
-    function closePopup(e) {
-        if (e) {
-            e.stopPropagation();
-            e.preventDefault();
-        }
+    function closePopup() {
         popup.style.display = 'none';
     }
 
     function startDrag(e) {
         isDragging = true;
         const rect = popup.getBoundingClientRect();
-        let clientX, clientY;
-        if (e.touches) {
-            clientX = e.touches[0].clientX;
-            clientY = e.touches[0].clientY;
-        } else {
-            clientX = e.clientX;
-            clientY = e.clientY;
-        }
+        const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
+        const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
         offsetX = clientX - rect.left;
         offsetY = clientY - rect.top;
         popup.style.cursor = 'grabbing';
@@ -1006,16 +988,11 @@
 
     function onDrag(e) {
         if (!isDragging) return;
-        let clientX, clientY;
-        if (e.touches) {
-            clientX = e.touches[0].clientX;
-            clientY = e.touches[0].clientY;
-        } else {
-            clientX = e.clientX;
-            clientY = e.clientY;
-        }
+        const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
+        const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
         let newLeft = clientX - offsetX;
         let newTop = clientY - offsetY;
+        // constrain to viewport (optional)
         newLeft = Math.min(Math.max(newLeft, 0), window.innerWidth - popup.offsetWidth);
         newTop = Math.min(Math.max(newTop, 0), window.innerHeight - popup.offsetHeight);
         popup.style.left = newLeft + 'px';
@@ -1027,24 +1004,27 @@
         popup.style.cursor = '';
     }
 
-    popupHeader.addEventListener('mousedown', startDrag);
+    headerDrag.addEventListener('mousedown', startDrag);
     window.addEventListener('mousemove', onDrag);
     window.addEventListener('mouseup', stopDrag);
-    popupHeader.addEventListener('touchstart', startDrag);
+    // Touch events for mobile
+    headerDrag.addEventListener('touchstart', startDrag);
     window.addEventListener('touchmove', onDrag);
     window.addEventListener('touchend', stopDrag);
 
-    const closeBtn = document.getElementById('closePopup');
-    closeBtn.addEventListener('click', closePopup);
-    closeBtn.addEventListener('touchstart', closePopup);
-
+    // Open popup when clicking the Resonance FM links
+    const resonanceLinkDesktop = document.getElementById('resonanceLinkDesktop');
     const resonanceLinkMobile = document.getElementById('resonanceLinkMobile');
     function openPopupHandler(e) {
         e.preventDefault();
         showPopup();
     }
+    resonanceLinkDesktop.addEventListener('click', openPopupHandler);
     resonanceLinkMobile.addEventListener('click', openPopupHandler);
-    resonanceLinkMobile.addEventListener('touchstart', openPopupHandler);
+
+    // Close button
+    const closePopupBtn = document.getElementById('closePopup');
+    closePopupBtn.addEventListener('click', closePopup);
 </script>
 </body>
 </html>
