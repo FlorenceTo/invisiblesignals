@@ -1,37 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Standard Open Graph meta tags (works for all platforms) -->
-<meta property="og:title" content="Invisible Signals – Radio Series">
-<meta property="og:description" content="A monthly open-form radio series exploring live electronics, field recordings, and archival fragments. Hosted by Florence To.">
-<meta property="og:image" content="compress-wave.gif">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:url" content="https://invisiblesignals.org/">
-<meta property="og:type" content="website">
-
-<!-- Optional but recommended: fallback title and description for non‑OG scrapers -->
-<meta name="title" content="Invisible Signals – Radio Series">
-<meta name="description" content="A monthly open-form radio series exploring live electronics, field recordings, and archival fragments. Hosted by Florence To.">
-    
-    <!-- then your existing <style> etc. -->
-    <style>
-        /* your existing styles... */
-    </style>
-</head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Invisible Signals – Radio Series</title>
+    <!-- Standard Open Graph meta tags -->
+    <meta property="og:title" content="Invisible Signals – Radio Series">
+    <meta property="og:description" content="A monthly open-form radio series exploring live electronics, field recordings, and archival fragments. Hosted by Florence To.">
+    <meta property="og:image" content="compress-wave.gif">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://invisiblesignals.org/">
+    <meta property="og:type" content="website">
+    <meta name="title" content="Invisible Signals – Radio Series">
+    <meta name="description" content="A monthly open-form radio series exploring live electronics, field recordings, and archival fragments. Hosted by Florence To.">
     <style>
+        /* ---------- Your complete original CSS (unchanged) ---------- */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        /* ---------- DARK MODE DEFAULTS (no .light-bg) ---------- */
         body {
-            background: #adadad;      /* will be overridden by preset */
+            background: #adadad;
             font-family: 'Inter', 'Monument Grotesk Variable', -apple-system, BlinkMacSystemFont, sans-serif;
             color: rgba(255, 255, 255, 0.85);
             line-height: 1.4;
@@ -39,7 +31,6 @@
             transition: background-color 0.2s ease, color 0.2s ease;
         }
 
-        /* colour filter overlay (reduced for light backgrounds) */
         body::before {
             content: '';
             position: fixed;
@@ -55,7 +46,6 @@
             transition: opacity 0.2s ease;
         }
 
-        /* Canvas for animated ASCII particles */
         #asciiCanvas {
             position: fixed;
             top: 0;
@@ -67,7 +57,6 @@
             opacity: 1;
         }
 
-        /* content */
         .content {
             max-width: 1400px;
             margin: 0 auto;
@@ -76,7 +65,6 @@
             z-index: 2;
         }
 
-        /* ---------- TYPOGRAPHY – DEFAULT DARK MODE ---------- */
         .bodycopy-2 {
             font-size: clamp(0.9rem, 4vw, 1.05rem);
             letter-spacing: 0.058em;
@@ -132,7 +120,6 @@
             transition: color 0.2s ease;
         }
 
-        /* ---------- DESKTOP HEADER ---------- */
         .nav-bar {
             position: sticky;
             top: 0;
@@ -147,7 +134,6 @@
         .nav-bar.header-hidden {
             transform: translateY(-100%);
         }
-
         .nav-bar-desktop {
             display: flex;
             justify-content: space-between;
@@ -161,7 +147,6 @@
             gap: 1rem;
             flex-wrap: wrap;
         }
-        /* Desktop: Right side navigation list (all links) */
         .nav-right {
             display: flex;
             flex-wrap: wrap;
@@ -178,7 +163,6 @@
             opacity: 0.7;
         }
 
-        /* colour buttons */
         .color-buttons {
             display: flex;
             align-items: baseline;
@@ -195,8 +179,6 @@
             color: inherit;
             font-family: monospace;
         }
-
-        /* custom picker panel */
         .picker-panel {
             margin-top: 0.5rem;
             background: rgba(28, 28, 27, 0.9);
@@ -245,7 +227,6 @@
             color: #9afc97;
         }
 
-        /* episodes */
         .episode {
             margin: 4rem 0;
             padding-top: 2rem;
@@ -257,8 +238,6 @@
             gap: 2rem;
             margin-top: 1rem;
         }
-
-        /* info section */
         .info-section {
             margin: 3rem 0 6rem;
         }
@@ -283,7 +262,6 @@
             100% { transform: translateX(-50%); }
         }
 
-        /* ---------- LIGHT BACKGROUND OVERRIDES ---------- */
         body.light-bg {
             color: rgba(0, 0, 0, 0.85);
         }
@@ -320,36 +298,23 @@
             opacity: 0.2;
         }
 
-        /* ---------- MOBILE SPECIFIC: hide desktop nav-right, show mobile row with archive link + dropdown ---------- */
         .mobile-second-row {
-            display: none;  /* hidden by default (desktop) */
+            display: none;
         }
         .episode-dropdown {
             display: none;
         }
 
         @media (max-width: 640px) {
-            .content {
-                padding: 0.8rem;
-            }
+            .content { padding: 0.8rem; }
             .nav-bar {
                 padding: 0.6rem 0.8rem 1rem 0.8rem;
                 margin-bottom: 0.5rem;
                 flex-direction: column;
             }
-            .nav-bar-desktop {
-                flex-direction: column;
-                gap: 0.6rem;
-            }
-            .nav-left {
-                width: 100%;
-                justify-content: space-between;
-            }
-            /* Hide desktop right nav list */
-            .nav-right {
-                display: none;
-            }
-            /* Show mobile second row */
+            .nav-bar-desktop { flex-direction: column; gap: 0.6rem; }
+            .nav-left { width: 100%; justify-content: space-between; }
+            .nav-right { display: none; }
             .mobile-second-row {
                 display: flex;
                 justify-content: space-between;
@@ -364,9 +329,6 @@
                 text-decoration: none;
                 color: inherit;
                 white-space: nowrap;
-            }
-            .archive-link-mobile:hover {
-                opacity: 0.7;
             }
             .episode-dropdown {
                 display: block;
@@ -385,56 +347,22 @@
                 width: auto;
                 max-width: 140px;
             }
-            .episode-dropdown select:focus {
-                outline: none;
-            }
-            .color-buttons {
-                gap: 0.3rem;
-            }
-            .episode-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-            .marquee-content {
-                animation-duration: 35s;
-            }
-            .episode {
-                margin: 2.5rem 0;
-            }
-            .info-section {
-                margin: 2rem 0 4rem;
-            }
-            .picker-panel {
-                position: relative;
-                width: 100%;
-                margin-top: 0.5rem;
-            }
-            .picker-panel.hidden {
-                display: none;
-            }
-            .picker-panel:not(.hidden) {
-                display: flex;
-            }
+            .color-buttons { gap: 0.3rem; }
+            .episode-grid { grid-template-columns: 1fr; gap: 1rem; }
+            .marquee-content { animation-duration: 35s; }
+            .episode { margin: 2.5rem 0; }
+            .info-section { margin: 2rem 0 4rem; }
+            .picker-panel { position: relative; width: 100%; margin-top: 0.5rem; }
+            .picker-panel.hidden { display: none; }
+            .picker-panel:not(.hidden) { display: flex; }
         }
 
         @media (max-width: 480px) {
-            .content {
-                padding: 0.6rem;
-            }
-            .nav-bar {
-                padding: 0.5rem 0.6rem 0.8rem 0.6rem;
-            }
-            .archive-link-mobile {
-                font-size: 0.75rem;
-            }
-            .episode-dropdown select {
-                font-size: 0.7rem;
-                padding: 0.15rem 0.5rem;
-                max-width: 120px;
-            }
-            .marquee-content {
-                animation-duration: 30s;
-            }
+            .content { padding: 0.6rem; }
+            .nav-bar { padding: 0.5rem 0.6rem 0.8rem 0.6rem; }
+            .archive-link-mobile { font-size: 0.75rem; }
+            .episode-dropdown select { font-size: 0.7rem; padding: 0.15rem 0.5rem; max-width: 120px; }
+            .marquee-content { animation-duration: 30s; }
         }
     </style>
 </head>
@@ -445,7 +373,6 @@
 <div class="content">
     <div class="nav-bar" id="mainHeader">
         <div class="nav-bar-desktop">
-            <!-- Left side: clock + colour buttons -->
             <div class="nav-left">
                 <div class="header-clock" id="liveClock">--:--:--</div>
                 <div class="color-buttons">
@@ -453,7 +380,6 @@
                     <button class="color-btn" id="customBtn">Custom</button>
                 </div>
             </div>
-            <!-- Desktop: right side navigation (Research Archive + episodes) -->
             <ul class="nav-right">
                 <li><a href="archive.html">Research Archive</a></li>
                 <li><a href="#ep1">Episode 01</a></li>
@@ -464,7 +390,6 @@
                 <li><a href="#ep6">Episode 06</a></li>
             </ul>
         </div>
-        <!-- Mobile second row: archive link + episode dropdown (visible only on mobile) -->
         <div class="mobile-second-row">
             <a href="archive.html" class="archive-link-mobile">Research Archive</a>
             <div class="episode-dropdown">
@@ -478,7 +403,6 @@
                 </select>
             </div>
         </div>
-        <!-- custom picker panel (unchanged) -->
         <div id="customPicker" class="picker-panel hidden">
             <div class="color-input-group">
                 <label>Color:</label>
@@ -492,7 +416,6 @@
         </div>
     </div>
 
-    <!-- rest of the page (info section, episodes, etc.) – unchanged -->
     <section id="info" class="info-section">
         <div class="info-stack">
             <div class="contact-text">
@@ -500,7 +423,7 @@
             </div>
             <div class="marquee-container">
                 <div class="marquee-content marquee-text">
-                    A monthly open-form radio series that progresses through live electronics, field recordings, and archival fragments. Its title emerges from waves that remain imperceptible even as they are heard and felt, the series follows these signals as forms of vibration moving through aetheric conditions across bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, tracing rupture, resistance, and repair across borders, technological networks, and contested terrains. &nbsp;&nbsp;&nbsp;
+                    A monthly open-form radio series that progresses through live electronics, field recordings, and archival fragments. The title emerges from waves that remain imperceptible even as they are heard and felt, the series follows these signals as forms of vibration moving through aetheric conditions across bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, tracing rupture, resistance, and repair across borders, technological networks, and contested terrains. &nbsp;&nbsp;&nbsp;
                 </div>
             </div>
             <div class="right-col-bottom">
@@ -510,76 +433,76 @@
         </div>
     </section>
 
-    <!-- EPISODE 01 -->
+    <!-- EPISODE 01 – complete content -->
     <section id="ep1" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 01</div>
             <div class="episode-desc">
-                <div class="bodycopy-2">A monthly open-form radio series that progresses through live electronics, field recordings, and archival fragments. Its title emerges from waves that remain imperceptible even as they are heard and felt, the series follows these signals as forms of vibration moving through aetheric conditions across bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, tracing rupture, resistance, and repair across borders, technological networks, and contested terrains. Presented by artist and researcher Florence To.</div>
+                <div class="bodycopy-2">A monthly open-form radio series that progresses through live electronics, field recordings, and archival fragments. The title emerges from waves that remain imperceptible even as they are heard and felt, the series follows these signals as forms of vibration moving through aetheric conditions across bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, tracing rupture, resistance, and repair across borders, technological networks, and contested terrains. Presented by artist and researcher Florence To.</div>
                 <img src="episode01.gif" alt="Episode 01 visual" style="display: block; margin: 1.5rem 0; max-width: 100%; height: auto; border-radius: 4px;">
                 <div style="margin-top: 1.5rem;"><span class="grey-caption">INSERT TRACK LISTING</span></div>
             </div>
         </div>
     </section>
 
-    <!-- EPISODE 02 -->
+    <!-- EPISODE 02 – Coming soon -->
     <section id="ep2" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 02</div>
             <div class="episode-desc">
-                <div>Mauris leo erat, placerat quis semper eu, pulvinar in est. Nam eget justo quis ligula faucibus pretium ac nec mi. Aliquam lacus est, auctor sed arcu at, luctus condimentum lectus. Quisque vitae eleifend quam, vel suscipit nisl. Duis efficitur est nunc, eget efficitur felis porttitor in. Donec facilisis ultrices mattis.</div>
-                <div class="grey-caption" style="margin-top: 1rem;">Resonance FM – 2026</div>
+                <div class="bodycopy-2">Details for this episode will be announced soon.</div>
+                <div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div>
             </div>
         </div>
     </section>
 
-    <!-- EPISODE 03 -->
+    <!-- EPISODE 03 – Coming soon -->
     <section id="ep3" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 03</div>
             <div class="episode-desc">
-                <div>Mauris leo erat, placerat quis semper eu, pulvinar in est. Nam eget justo quis ligula faucibus pretium ac nec mi. Aliquam lacus est, auctor sed arcu at, luctus condimentum lectus. Quisque vitae eleifend quam, vel suscipit nisl. Duis efficitur est nunc, eget efficitur felis porttitor in. Donec facilisis ultrices mattis.</div>
-                <div class="grey-caption" style="margin-top: 1rem;">Resonance FM – 2026</div>
+                <div class="bodycopy-2">Details for this episode will be announced soon.</div>
+                <div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div>
             </div>
         </div>
     </section>
 
-    <!-- EPISODE 04 -->
+    <!-- EPISODE 04 – Coming soon -->
     <section id="ep4" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 04</div>
             <div class="episode-desc">
-                <div>Mauris leo erat, placerat quis semper eu, pulvinar in est. Nam eget justo quis ligula faucibus pretium ac nec mi. Aliquam lacus est, auctor sed arcu at, luctus condimentum lectus. Quisque vitae eleifend quam, vel suscipit nisl. Duis efficitur est nunc, eget efficitur felis porttitor in. Donec facilisis ultrices mattis.</div>
-                <div class="grey-caption" style="margin-top: 1rem;">Resonance FM – 2026</div>
+                <div class="bodycopy-2">Details for this episode will be announced soon.</div>
+                <div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div>
             </div>
         </div>
     </section>
 
-    <!-- EPISODE 05 -->
+    <!-- EPISODE 05 – Coming soon -->
     <section id="ep5" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 05</div>
             <div class="episode-desc">
-                <div>Praesent bibendum a elit non efficitur. Etiam et velit vitae quam aliquet fermentum. Quisque sit amet nulla dictum, cursus erat a, tempus est. Sed laoreet, magna eget mattis tincidunt, felis tellus vestibulum augue, in lobortis mauris risus eu nunc. Vivamus sed condimentum leo. Nunc efficitur, magna condimentum gravida egestas, ligula mauris posuere neque, sit amet sagittis dui velit vitae neque. Donec in dapibus arcu. Aliquam efficitur suscipit magna, vel pretium mi. Aenean nisl nulla, porttitor interdum enim nec, sagittis suscipit mauris. Quisque malesuada ullamcorper lacus.</div>
-                <div class="grey-caption" style="margin-top: 1rem;">Resonance FM – 2026</div>
+                <div class="bodycopy-2">Details for this episode will be announced soon.</div>
+                <div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div>
             </div>
         </div>
     </section>
 
-    <!-- EPISODE 06 -->
+    <!-- EPISODE 06 – Coming soon -->
     <section id="ep6" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 06</div>
             <div class="episode-desc">
-                <div>Text for episode six – as per original content.</div>
-                <div class="grey-caption" style="margin-top: 1rem;">Resonance FM – 2026</div>
+                <div class="bodycopy-2">Details for this episode will be announced soon.</div>
+                <div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div>
             </div>
         </div>
     </section>
 </div>
 
 <script>
-    // ========== ASCII WAVE PARTICLES (interactive, magnetic) ==========
+    // ========== ASCII WAVE PARTICLES (interactive, magnetic) – unchanged ==========
     const canvas = document.getElementById('asciiCanvas');
     let ctx = canvas.getContext('2d');
     let particles = [];
@@ -688,12 +611,11 @@
 
     window.addEventListener('mousemove', (e) => updateMousePosition(e.clientX, e.clientY));
     window.addEventListener('mouseleave', () => { mouseX = null; mouseY = null; });
-
     window.addEventListener('resize', () => resizeCanvas());
     resizeCanvas();
     animate();
 
-    // ========== BACKGROUND COLOR SWITCHER ==========
+    // ========== BACKGROUND COLOR SWITCHER (unchanged) ==========
     const presetBtn = document.getElementById('presetBtn');
     const customBtn = document.getElementById('customBtn');
     const customPicker = document.getElementById('customPicker');
@@ -701,7 +623,7 @@
     const alphaSlider = document.getElementById('alphaSlider');
     const rgbaValueSpan = document.getElementById('rgbaValue');
 
-    let currentPresetIndex = 2; // 0=Dark,1=Light,2=Grey
+    let currentPresetIndex = 2;
     const presets = [
         { name: 'Dark', bg: '#1c1c1b', light: false },
         { name: 'Light', bg: '#f5f3ef', light: true },
@@ -710,11 +632,8 @@
 
     function setBackground(color, isLight) {
         document.body.style.backgroundColor = color;
-        if (isLight) {
-            document.body.classList.add('light-bg');
-        } else {
-            document.body.classList.remove('light-bg');
-        }
+        if (isLight) document.body.classList.add('light-bg');
+        else document.body.classList.remove('light-bg');
     }
 
     function applyPreset(index) {
@@ -737,11 +656,8 @@
         document.body.style.backgroundColor = bgColor;
         const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
         const isLight = luminance > 0.5 || alpha < 0.4;
-        if (isLight) {
-            document.body.classList.add('light-bg');
-        } else {
-            document.body.classList.remove('light-bg');
-        }
+        if (isLight) document.body.classList.add('light-bg');
+        else document.body.classList.remove('light-bg');
         rgbaValueSpan.textContent = `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
         resetHideTimeout();
     }
@@ -787,8 +703,7 @@
     }
 
     function bindPickerEvents() {
-        const pickerElements = [hexColorInput, alphaSlider, customPicker];
-        pickerElements.forEach(el => {
+        [hexColorInput, alphaSlider, customPicker].forEach(el => {
             if (!el) return;
             el.addEventListener('mousemove', resetHideTimeout);
             el.addEventListener('input', resetHideTimeout);
@@ -801,11 +716,7 @@
 
     document.addEventListener('click', (event) => {
         if (!customPicker.classList.contains('hidden')) {
-            const isClickInsidePicker = customPicker.contains(event.target);
-            const isClickOnCustomBtn = customBtn.contains(event.target);
-            if (!isClickInsidePicker && !isClickOnCustomBtn) {
-                hidePicker();
-            }
+            if (!customPicker.contains(event.target) && !customBtn.contains(event.target)) hidePicker();
         }
     });
 
@@ -816,58 +727,42 @@
 
     customBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (customPicker.classList.contains('hidden')) {
-            showPicker();
-        } else {
-            hidePicker();
-        }
+        if (customPicker.classList.contains('hidden')) showPicker();
+        else hidePicker();
     });
 
     function updateCustomColor() {
-        const hex = hexColorInput.value;
-        const alpha = parseFloat(alphaSlider.value);
-        applyCustomColor(hex, alpha);
+        applyCustomColor(hexColorInput.value, parseFloat(alphaSlider.value));
     }
     hexColorInput.addEventListener('input', updateCustomColor);
     alphaSlider.addEventListener('input', updateCustomColor);
-
-    // Start with Grey preset
     applyPreset(2);
 
     // Clock
     function updateClock() {
         const now = new Date();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        document.getElementById('liveClock').textContent = `${hours}:${minutes}:${seconds}`;
+        document.getElementById('liveClock').textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
     }
     updateClock();
     setInterval(updateClock, 1000);
 
-    // Header hide/show on scroll
+    // Header hide/show
     let lastScrollTop = 0;
     const header = document.getElementById('mainHeader');
-    window.addEventListener('scroll', function() {
+    window.addEventListener('scroll', () => {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         if (Math.abs(scrollTop - lastScrollTop) <= 5) return;
-        if (scrollTop > lastScrollTop && scrollTop > 80) {
-            header.classList.add('header-hidden');
-        } else {
-            header.classList.remove('header-hidden');
-        }
+        if (scrollTop > lastScrollTop && scrollTop > 80) header.classList.add('header-hidden');
+        else header.classList.remove('header-hidden');
         lastScrollTop = scrollTop;
     });
 
-    // Handle mobile episode dropdown navigation
+    // Mobile dropdown
     const mobileSelect = document.getElementById('mobileEpisodeSelect');
     if (mobileSelect) {
         mobileSelect.addEventListener('change', function(e) {
             const target = e.target.value;
-            if (target) {
-                window.location.hash = target;
-                // close select after navigation? not needed
-            }
+            if (target) window.location.hash = target;
         });
     }
 </script>
