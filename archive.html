@@ -193,6 +193,7 @@
             border-radius: 8px;
             overflow: hidden;
             transition: transform 0.2s;
+            cursor: pointer;
         }
         .archive-item:hover {
             transform: translateY(-4px);
@@ -201,6 +202,7 @@
             width: 100%;
             height: auto;
             display: block;
+            pointer-events: none; /* allow click on item div, not on image */
         }
         .archive-item .caption {
             padding: 0.8rem;
@@ -215,6 +217,48 @@
             color: inherit;
             text-decoration: none;
             border-bottom: 1px dotted #9afc97;
+        }
+
+        /* Lightbox overlay */
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .lightbox.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 40px;
+            color: white;
+            cursor: pointer;
+            font-family: monospace;
+            transition: opacity 0.2s;
+        }
+        .lightbox-close:hover {
+            opacity: 0.7;
         }
 
         /* Light background overrides */
@@ -316,7 +360,7 @@
                 </div>
             </div>
             <ul class="nav-right">
-                <li><a href="/">← Back to main</a></li>  <!-- changed from index.html to root -->
+                <li><a href="/">← Back to main</a></li>
             </ul>
         </div>
         <div id="customPicker" class="picker-panel hidden">
@@ -335,7 +379,7 @@
     <div class="archive-title">Research Archive</div>
     <div class="grey-caption" style="margin-bottom: 1rem;"></div>
 
-    <!-- Example archive grid – replace with your own images and text -->
+    <!-- Archive grid – each image is clickable -->
     <div class="archive-grid">
         <div class="archive-item">
             <img src="recorder.jpg" alt="Research image 1">
@@ -372,12 +416,18 @@
     </div>
 
     <div class="back-link">
-        <a href="/">← back to Invisible Signals</a>   <!-- changed from index.html to root -->
+        <a href="/">← back to Invisible Signals</a>
     </div>
 </div>
 
+<!-- Lightbox overlay -->
+<div id="lightbox" class="lightbox">
+    <span class="lightbox-close">&times;</span>
+    <img id="lightbox-img" src="" alt="">
+</div>
+
 <script>
-    // ========== COLOUR SWITCHER (same as main site, but without ASCII particles) ==========
+    // ========== COLOUR SWITCHER ==========
     const presetBtn = document.getElementById('presetBtn');
     const customBtn = document.getElementById('customBtn');
     const customPicker = document.getElementById('customPicker');
@@ -489,7 +539,7 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // Header hide/show (same as main site)
+    // Header hide/show on scroll (same as index.html)
     let lastScrollTop = 0;
     const header = document.getElementById('mainHeader');
     window.addEventListener('scroll', () => {
@@ -498,6 +548,43 @@
         if (scrollTop > lastScrollTop && scrollTop > 80) header.classList.add('header-hidden');
         else header.classList.remove('header-hidden');
         lastScrollTop = scrollTop;
+    });
+
+    // ========== LIGHTBOX FUNCTIONALITY ==========
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const closeLightbox = document.querySelector('.lightbox-close');
+
+    // Add click event to all archive items
+    const archiveItems = document.querySelectorAll('.archive-item');
+    archiveItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const img = item.querySelector('img');
+            if (img && img.src) {
+                lightboxImg.src = img.src;
+                lightbox.classList.add('active');
+            }
+        });
+    });
+
+    // Close lightbox when clicking close button or outside the image
+    function closeLightboxFn() {
+        lightbox.classList.remove('active');
+        // optionally clear src after fade out
+        setTimeout(() => {
+            if (!lightbox.classList.contains('active')) lightboxImg.src = '';
+        }, 300);
+    }
+    closeLightbox.addEventListener('click', closeLightboxFn);
+    lightbox.addEventListener('click', (e) => {
+        if (e.target === lightbox) closeLightboxFn();
+    });
+
+    // Close with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+            closeLightboxFn();
+        }
     });
 </script>
 </body>
