@@ -314,6 +314,28 @@
             letter-spacing: 0.5px;
         }
 
+        /* Resonance mobile link – pill style, only visible on mobile */
+        .resonance-mobile-link {
+            display: inline-block;
+            margin-top: 0.8rem;
+            background: transparent;
+            border: 1px solid #9afc97;
+            border-radius: 20px;
+            padding: 0.2rem 0.6rem;
+            font-size: 0.7rem;
+            font-family: monospace;
+            color: inherit;
+            text-decoration: none;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .resonance-mobile-link:hover {
+            opacity: 0.7;
+        }
+        body.light-bg .resonance-mobile-link {
+            border-color: #2c2c2c;
+        }
+
         /* Popup player – works on both desktop and mobile */
         .popup-player {
             position: fixed;
@@ -392,7 +414,7 @@
             }
         }
 
-        /* Mobile header – new row layout */
+        /* Mobile header – simplified (no Resonance button in header) */
         .mobile-second-row {
             display: none;
         }
@@ -412,29 +434,15 @@
             .nav-right { display: none; }
             .mobile-second-row {
                 display: flex;
-                flex-wrap: wrap;
                 justify-content: space-between;
                 align-items: center;
-                gap: 0.6rem;
                 width: 100%;
                 margin-top: 0.2rem;
             }
             .archive-link-mobile {
-                font-family: inherit;
                 font-size: 0.85rem;
                 text-decoration: none;
                 color: inherit;
-                white-space: nowrap;
-            }
-            .resonance-btn-mobile {
-                background: transparent;
-                border: 1px solid #9afc97;
-                border-radius: 20px;
-                padding: 0.2rem 0.6rem;
-                font-size: 0.75rem;
-                font-family: monospace;
-                color: inherit;
-                cursor: pointer;
                 white-space: nowrap;
             }
             .episode-dropdown {
@@ -468,7 +476,6 @@
             .content { padding: 0.6rem; }
             .nav-bar { padding: 0.5rem 0.6rem 0.8rem 0.6rem; }
             .archive-link-mobile { font-size: 0.75rem; }
-            .resonance-btn-mobile { font-size: 0.7rem; padding: 0.15rem 0.5rem; }
             .episode-dropdown select { font-size: 0.7rem; padding: 0.15rem 0.5rem; max-width: 120px; }
             .marquee-content { animation-duration: 30s; }
         }
@@ -499,10 +506,9 @@
                 <li><a href="#ep6">Episode 06</a></li>
             </ul>
         </div>
-        <!-- Mobile row: Research Archive (left), Resonance FM button (center-right), episode dropdown (right) -->
+        <!-- Mobile row: Research Archive (left) + episode dropdown (right) – no Resonance button -->
         <div class="mobile-second-row">
             <a href="archive.html" class="archive-link-mobile">Research Archive</a>
-            <button id="resonanceBtnMobile" class="resonance-btn-mobile">Resonance FM</button>
             <div class="episode-dropdown">
                 <select id="mobileEpisodeSelect">
                     <option value="#ep1">Episode 01</option>
@@ -544,6 +550,8 @@
                     <div>Next broadcast: 28.05.2026 at 16:30 (London time)</div>
                     <div class="countdown" id="countdownTimer">--d --h --m --s</div>
                 </div>
+                <!-- Mobile Resonance FM link placed here -->
+                <a href="#" id="resonanceLinkMobile" class="resonance-mobile-link">Listen to Resonance FM</a>
             </div>
         </div>
     </section>
@@ -981,17 +989,16 @@
     closeBtn.addEventListener('click', closePopup);
     closeBtn.addEventListener('touchstart', closePopup);
 
-    // Open popup from desktop link and mobile button
+    // Open popup from desktop link and mobile link (now an anchor)
     const resonanceLinkDesktop = document.getElementById('resonanceLinkDesktop');
-    const resonanceBtnMobile = document.getElementById('resonanceBtnMobile');
+    const resonanceLinkMobile = document.getElementById('resonanceLinkMobile');
     function openPopupHandler(e) {
         e.preventDefault();
         showPopup();
     }
     resonanceLinkDesktop.addEventListener('click', openPopupHandler);
-    resonanceBtnMobile.addEventListener('click', openPopupHandler);
-    // Also handle touch on mobile button (already covered by click, but ensure)
-    resonanceBtnMobile.addEventListener('touchstart', openPopupHandler);
+    resonanceLinkMobile.addEventListener('click', openPopupHandler);
+    resonanceLinkMobile.addEventListener('touchstart', openPopupHandler);
 </script>
 </body>
 </html>
