@@ -15,7 +15,6 @@
     <meta name="title" content="Invisible Signals – Radio Series">
     <meta name="description" content="A monthly open-form radio series exploring live electronics, field recordings, and archival fragments. Hosted by Florence To.">
     <style>
-        /* ---------- RESET & BASE (unchanged) ---------- */
         * {
             margin: 0;
             padding: 0;
@@ -65,7 +64,6 @@
             z-index: 2;
         }
 
-        /* ---------- TYPOGRAPHY (unchanged) ---------- */
         .bodycopy-2 {
             font-size: clamp(0.9rem, 4vw, 1.05rem);
             letter-spacing: 0.058em;
@@ -121,7 +119,6 @@
             transition: color 0.2s ease;
         }
 
-        /* ---------- HEADER & NAVIGATION ---------- */
         .nav-bar {
             position: sticky;
             top: 0;
@@ -314,7 +311,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Popup player – works on both desktop and mobile */
         .popup-player {
             position: fixed;
             z-index: 1000;
@@ -392,7 +388,6 @@
             }
         }
 
-        /* Mobile header – new row layout */
         .mobile-second-row {
             display: none;
         }
@@ -419,6 +414,12 @@
                 width: 100%;
                 margin-top: 0.2rem;
             }
+            .mobile-right-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                align-items: center;
+            }
             .archive-link-mobile {
                 font-family: inherit;
                 font-size: 0.85rem;
@@ -439,8 +440,6 @@
             }
             .episode-dropdown {
                 display: block;
-                flex-shrink: 1;
-                min-width: 0;
             }
             .episode-dropdown select {
                 background: transparent;
@@ -499,19 +498,20 @@
                 <li><a href="#ep6">Episode 06</a></li>
             </ul>
         </div>
-        <!-- Mobile row: Research Archive (left), Resonance FM button (center-right), episode dropdown (right) -->
         <div class="mobile-second-row">
             <a href="archive.html" class="archive-link-mobile">Research Archive</a>
-            <button id="resonanceBtnMobile" class="resonance-btn-mobile">Resonance FM</button>
-            <div class="episode-dropdown">
-                <select id="mobileEpisodeSelect">
-                    <option value="#ep1">Episode 01</option>
-                    <option value="#ep2">Episode 02</option>
-                    <option value="#ep3">Episode 03</option>
-                    <option value="#ep4">Episode 04</option>
-                    <option value="#ep5">Episode 05</option>
-                    <option value="#ep6">Episode 06</option>
-                </select>
+            <div class="mobile-right-group">
+                <button id="resonanceBtnMobile" class="resonance-btn-mobile">Resonance FM</button>
+                <div class="episode-dropdown">
+                    <select id="mobileEpisodeSelect">
+                        <option value="#ep1">Episode 01</option>
+                        <option value="#ep2">Episode 02</option>
+                        <option value="#ep3">Episode 03</option>
+                        <option value="#ep4">Episode 04</option>
+                        <option value="#ep5">Episode 05</option>
+                        <option value="#ep6">Episode 06</option>
+                    </select>
+                </div>
             </div>
         </div>
         <div id="customPicker" class="picker-panel hidden">
@@ -541,14 +541,14 @@
                 <strong>Invisible Signals</strong>
                 <a href="mailto:seirynx@mailfence.com">seirynx@mailfence.com</a>
                 <div class="schedule-note">
-                    <div>Next broadcast: 28.05.2026 at 16:30 (London Time)</div>
+                    <div>Next broadcast: <strong>28.05.2026 at 16:30</strong> (London time)</div>
                     <div class="countdown" id="countdownTimer">--d --h --m --s</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- EPISODES (unchanged) -->
+    <!-- EPISODES -->
     <section id="ep1" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 01</div>
@@ -623,7 +623,7 @@
 </div>
 
 <script>
-    // ========== ASCII WAVE PARTICLES (unchanged) ==========
+    // ========== ASCII WAVE PARTICLES ==========
     const canvas = document.getElementById('asciiCanvas');
     let ctx = canvas.getContext('2d');
     let particles = [];
@@ -736,7 +736,7 @@
     resizeCanvas();
     animate();
 
-    // ========== BACKGROUND COLOR SWITCHER ==========
+    // ========== COLOR SWITCHER ==========
     const presetBtn = document.getElementById('presetBtn');
     const customBtn = document.getElementById('customBtn');
     const customPicker = document.getElementById('customPicker');
@@ -907,7 +907,7 @@
     updateCountdown();
     setInterval(updateCountdown, 1000);
 
-    // Movable popup player – with robust close on mobile
+    // Movable popup player
     const popup = document.getElementById('resonancePopup');
     const popupHeader = document.getElementById('popupHeader');
     let isDragging = false;
@@ -976,12 +976,10 @@
     window.addEventListener('touchmove', onDrag);
     window.addEventListener('touchend', stopDrag);
 
-    // Close button: ensure it works on both click and touch
     const closeBtn = document.getElementById('closePopup');
     closeBtn.addEventListener('click', closePopup);
     closeBtn.addEventListener('touchstart', closePopup);
 
-    // Open popup from desktop link and mobile button
     const resonanceLinkDesktop = document.getElementById('resonanceLinkDesktop');
     const resonanceBtnMobile = document.getElementById('resonanceBtnMobile');
     function openPopupHandler(e) {
@@ -990,7 +988,6 @@
     }
     resonanceLinkDesktop.addEventListener('click', openPopupHandler);
     resonanceBtnMobile.addEventListener('click', openPopupHandler);
-    // Also handle touch on mobile button (already covered by click, but ensure)
     resonanceBtnMobile.addEventListener('touchstart', openPopupHandler);
 </script>
 </body>
