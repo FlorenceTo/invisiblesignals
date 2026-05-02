@@ -130,7 +130,7 @@
             pointer-events: none;
             z-index: 25;
         }
-        /* mobile number buttons – clearly visible */
+        /* Circular number buttons (touch targets) */
         .number-panel {
             position: fixed;
             bottom: 80px;
@@ -146,13 +146,14 @@
         }
         .num-btn {
             pointer-events: auto;
-            background: rgba(20,20,30,0.9);
+            background: rgba(30,30,40,0.9);
             backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.5);
-            border-radius: 60px;
-            width: 58px;
-            padding: 12px 0;
+            border: 1px solid rgba(255,255,255,0.6);
+            border-radius: 50%;
+            width: 56px;
+            height: 56px;
             text-align: center;
+            line-height: 56px;
             font-size: 26px;
             font-weight: 500;
             font-family: 'Inter', monospace;
@@ -162,19 +163,41 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
         .num-btn:active {
-            transform: scale(0.94);
+            transform: scale(0.92);
             background: #9afc9733;
             border-color: #9afc97;
         }
+        /* startup message fade */
+        .startup-message {
+            position: fixed;
+            bottom: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px);
+            padding: 16px 24px;
+            border-radius: 40px;
+            color: #9afc97;
+            font-family: monospace;
+            font-size: 14px;
+            text-align: center;
+            z-index: 100;
+            pointer-events: none;
+            border: 1px solid #9afc97;
+            max-width: 85%;
+            transition: opacity 1s ease;
+            white-space: nowrap;
+        }
         @media (max-width: 640px) {
-            .num-btn { width: 52px; font-size: 24px; padding: 10px 0; }
+            .num-btn { width: 48px; height: 48px; line-height: 48px; font-size: 22px; }
             .number-panel { gap: 10px; bottom: 70px; }
             .band-btn { font-size: 9px; padding: 4px 8px; }
             .volume-control input { width: 70px; }
             .fail-counter { font-size: 9px; padding: 4px 8px; }
+            .startup-message { font-size: 11px; white-space: normal; width: 90%; padding: 12px 16px; }
         }
         @media (max-width: 480px) {
-            .num-btn { width: 46px; font-size: 22px; padding: 8px 0; }
+            .num-btn { width: 42px; height: 42px; line-height: 42px; font-size: 20px; }
             .number-panel { gap: 8px; }
         }
         canvas {
@@ -193,41 +216,37 @@
         <button class="band-btn" data-band="xband">X‑band</button>
     </div>
     <div class="volume-control">
-        <span>📡 vol</span>
+        <span>vol</span>
         <input type="range" id="radioVolume" min="0" max="1" step="0.01" value="0.28">
     </div>
     <div class="fail-counter" id="failCounter">failures 0/18</div>
 </div>
 <a href="index.html" class="back-link">← radio</a>
-<div class="instruction">tap numbers → match dots</div>
+<div class="instruction">tap circles → match dots</div>
 <div class="number-panel" id="numberPanel"></div>
+<div id="startupMsg" class="startup-message">🎧 for best experience use Firefox browser<br>tap any number to start</div>
 
 <script>
     // ================================================================
-    // RADIO SIGNAL GAME – mobile friendly, just intonation feedback tones,
-    // inline band buttons, green accents, failures in header.
+    // RADIO SIGNAL GAME – fully mobile, circular number buttons,
+    // audible frequency bands (200-8000 Hz), startup message fades.
     // ================================================================
 
     let shapes = [];            // floating white outline circles (no trails)
     let reverb, melodicFilter;
     
-    // --- Just intonation / microtonal scale for feedback (low, within minor third) ---
-    // Base frequency: 110 Hz (A2, warm). Intervals: 9/8 (major second), 6/5 (minor third)
-    // We'll map numbers 1-7 to increasing pitches but staying below 200 Hz and avoiding harsh high frequencies.
-    // Frequencies: 110, 123.75 (9/8), 132 (6/5), 146.67 (4/3?), actually keep within second/third:
-    // 110 * 1.125 = 123.75, 110 * 1.2 = 132, 110 * 1.25 = 137.5, 110 * 1.333 = 146.67, 110 * 1.406 = 154.66,
-    // 110 * 1.5 = 165, 110 * 1.6 = 176. Very mellow, no sharp highs.
+    // Just intonation feedback tones (mellow, within minor third)
     const feedbackFreqs = [
         110.00,    // 1
-        123.75,    // 2  (9/8)
-        132.00,    // 3  (6/5 minor third)
-        137.50,    // 4  (5/4 just major third? but still low)
-        146.67,    // 5  (4/3)
+        123.75,    // 2
+        132.00,    // 3
+        137.50,    // 4
+        146.67,    // 5
         154.66,    // 6
-        165.00     // 7  (3/2 fifth, still mellow)
+        165.00     // 7
     ];
     
-    // Background radio noise band-pass filter
+    // Background radio noise
     let radioNoise;
     let radioBandFilter;
     let radioGain;
@@ -247,6 +266,7 @@
     let currentDelay = 1500;
 
     let failCounterDiv;
+    let startupMsgDiv;
 
     function setup() {
         createCanvas(windowWidth, windowHeight);
@@ -259,7 +279,7 @@
         melodicFilter = new p5.LowPass();
         melodicFilter.freq(1800);
         
-        // Background radio (brown noise + bandpass)
+        // Background radio (brown noise + bandpass) – audible frequencies
         radioNoise = new p5.Noise('brown');
         radioBandFilter = new p5.BandPass();
         radioBandFilter.res(6);
@@ -273,7 +293,6 @@
         radioNoise.amp(0.6);
         radioGain.amp(0.28);
         
-        // Volume slider
         radioVolumeSlider = select('#radioVolume');
         radioVolumeSlider.input(() => {
             if (radioGain) radioGain.amp(parseFloat(radioVolumeSlider.value()));
@@ -285,7 +304,6 @@
             btn.mousePressed(() => {
                 let band = btn.attribute('data-band');
                 setBand(band);
-                // visual active state
                 for (let b of bandBtns) b.removeClass('active');
                 btn.addClass('active');
             });
@@ -297,13 +315,12 @@
                 return false;
             });
         }
-        // set C-band as active initially
         select('.band-btn[data-band="cband"]').addClass('active');
         
         failCounterDiv = select('#failCounter');
         updateFailDisplay();
         
-        // Create on-screen number buttons (1-7)
+        // Create circular number buttons (1-7)
         let panel = select('#numberPanel');
         for (let i = 1; i <= 7; i++) {
             let btn = createButton(str(i));
@@ -313,19 +330,23 @@
             btn.touchStarted(() => { handleNumberPress(i); return false; });
         }
         
+        // Startup message
+        startupMsgDiv = select('#startupMsg');
+        
         background(0);
     }
     
+    // Set band to audible frequencies (200-8000 Hz) – all bands now produce sound
     function setBand(band) {
         currentBand = band;
         let freqHz;
         switch(band) {
-            case "cband": freqHz = 6000; break;
-            case "kuband": freqHz = 15000; break;
-            case "lband": freqHz = 1500; break;
-            case "kaband": freqHz = 33000; break;
-            case "xband": freqHz = 10000; break;
-            default: freqHz = 6000;
+            case "cband":  freqHz = 600; break;   // C-band: 600 Hz (warm)
+            case "kuband": freqHz = 1800; break;  // Ku-band: 1.8 kHz
+            case "lband":  freqHz = 350; break;   // L-band: 350 Hz
+            case "kaband": freqHz = 5000; break;  // Ka-band: 5 kHz (clearly audible)
+            case "xband":  freqHz = 1000; break;  // X-band: 1 kHz
+            default: freqHz = 600;
         }
         if (radioBandFilter) radioBandFilter.freq(freqHz);
     }
@@ -335,6 +356,16 @@
         radioStarted = true;
         radioNoise.start();
         radioGain.amp(parseFloat(radioVolumeSlider.value()));
+    }
+    
+    // fade and remove startup message on first interaction
+    function dismissStartupMessage() {
+        if (startupMsgDiv && startupMsgDiv.elt) {
+            startupMsgDiv.style('opacity', '0');
+            setTimeout(() => {
+                if (startupMsgDiv && startupMsgDiv.elt) startupMsgDiv.remove();
+            }, 1000);
+        }
     }
     
     // ----- visual: floating white outline circles (no trails) -----
@@ -404,15 +435,13 @@
         text("speed: " + (speedLevel + 1), width/2, height/2 - 48);
     }
     
-    // ----- melodic feedback using just intonation (warm, low) -----
     function playFeedbackTone(num) {
         let freq = feedbackFreqs[num-1];
         if (!freq) return;
-        let osc = new p5.Oscillator('sine');   // sine = softer
+        let osc = new p5.Oscillator('sine');
         osc.freq(freq);
         osc.start();
         osc.amp(0.28, 0.03);
-        // slight instability for organic feel
         osc.freq(freq * (1 + random(-0.003, 0.003)));
         osc.disconnect();
         osc.connect(melodicFilter);
@@ -432,7 +461,7 @@
         });
     }
     
-    // ----- game logic -----
+    // game logic
     function updateSpeed() {
         currentDelay = max(320, baseDelay - (speedLevel * 55));
     }
@@ -501,6 +530,9 @@
     
     // handle both button and keyboard
     function handleNumberPress(num) {
+        // dismiss startup message on first user action
+        dismissStartupMessage();
+        
         userStartAudio().then(() => {
             if (!radioStarted) startRadioBackground();
         }).catch(() => {
