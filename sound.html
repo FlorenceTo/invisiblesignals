@@ -2,57 +2,195 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Band Test – Independent Toggle</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Radio Signal Game | Invisible Signals</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/addons/p5.sound.min.js"></script>
     <style>
-        body { background: black; font-family: monospace; margin: 20px; color: #9afc97; }
-        button { background: #222; border: 1px solid #ff4444; border-radius: 40px; padding: 8px 16px; margin: 5px; color: #ff8888; cursor: pointer; }
-        button.active { background: #9afc9722; border-color: #9afc97; color: #9afc97; }
-        .status { position: fixed; bottom: 20px; left: 20px; font-size: 12px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background: black;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            touch-action: pan-x pan-y;
+        }
+        .top-bar {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            z-index: 30;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(12px);
+            padding: 8px 16px;
+            border-radius: 60px;
+            pointer-events: auto;
+            font-family: monospace;
+        }
+        .band-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .band-btn {
+            background: rgba(30,30,40,0.8);
+            border: 1px solid #ff4444;
+            border-radius: 40px;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-family: monospace;
+            color: #ff8888;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .band-btn.active {
+            background: #9afc9722;
+            border-color: #9afc97;
+            color: #9afc97;
+        }
+        .fail-counter {
+            background: rgba(30,30,40,0.8);
+            border-radius: 40px;
+            padding: 4px 12px;
+            font-size: 11px;
+            font-family: monospace;
+            color: #ff0000;
+            border: 1px solid #ff0000;
+            white-space: nowrap;
+        }
+        .back-link {
+            position: fixed;
+            bottom: 16px;
+            left: 16px;
+            background: transparent;
+            padding: 6px 0;
+            font-size: 12px;
+            text-decoration: none;
+            color: #9afc97;
+            font-family: monospace;
+            z-index: 30;
+            transition: opacity 0.2s;
+        }
+        .instruction {
+            position: fixed;
+            bottom: 16px;
+            right: 16px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 10px;
+            font-family: monospace;
+            color: #ccc;
+            pointer-events: none;
+            z-index: 25;
+        }
+        .startup-message {
+            position: fixed;
+            top: 25%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px);
+            padding: 16px 24px;
+            border-radius: 40px;
+            color: #ffffff;
+            font-family: monospace;
+            font-size: 14px;
+            text-align: center;
+            z-index: 100;
+            pointer-events: none;
+            border: 1px solid #ffffff;
+            max-width: 85%;
+            transition: opacity 1s ease;
+            white-space: nowrap;
+        }
+        @media (max-width: 640px) {
+            .band-btn { font-size: 9px; padding: 4px 8px; }
+            .fail-counter { font-size: 9px; padding: 4px 8px; }
+            .startup-message { font-size: 11px; white-space: normal; width: 90%; padding: 12px 16px; top: 20%; }
+        }
+        @media (max-width: 480px) {
+            .startup-message { font-size: 10px; top: 18%; }
+        }
+        canvas {
+            display: block;
+            touch-action: none;
+        }
     </style>
 </head>
 <body>
-    <div id="bandButtons"></div>
-    <div class="status" id="status">Click any band button to start audio. Then toggle.</div>
+<div class="top-bar">
+    <div class="band-buttons" id="bandButtons">
+        <button class="band-btn active" data-band="cband">C‑band (600 Hz)</button>
+        <button class="band-btn" data-band="kuband">Ku‑band (1800 Hz)</button>
+        <button class="band-btn" data-band="lband">L‑band (350 Hz)</button>
+        <button class="band-btn" data-band="kaband">Ka‑band (5000 Hz)</button>
+        <button class="band-btn" data-band="xband">X‑band (1000 Hz)</button>
+    </div>
+    <div class="fail-counter" id="failCounter">failures 0/18</div>
+</div>
+<a href="index.html" class="back-link">← radio</a>
+<div class="instruction">press 1‑7 to match dots → interference</div>
+<div id="startupMsg" class="startup-message">For best performance use Firefox web browser press 1 to start</div>
 
 <script>
-    // ============================================
-    // MINIMAL TEST: Each band has its own noise,
-    // filter and gain. Toggle on/off.
-    // ============================================
+    // ================================================================
+    // FINAL WORKING VERSION: Independent band toggles,
+    // low volume, match dots to trigger interference pulses.
+    // ================================================================
 
-    let bandIds = ['cband', 'kuband', 'lband', 'kaband', 'xband'];
-    let bandFreqs = {
-        cband: 600,
-        kuband: 1800,
-        lband: 350,
-        kaband: 5000,
-        xband: 1000
-    };
-    let bandActive = {
-        cband: true,
-        kuband: false,
-        lband: false,
-        kaband: false,
-        xband: false
-    };
+    let ripples = [];
+
+    // Band audio setup
+    const bandIds = ['cband', 'kuband', 'lband', 'kaband', 'xband'];
+    const bandFreqs = { cband:600, kuband:1800, lband:350, kaband:5000, xband:1000 };
+    let bandActive = { cband:true, kuband:false, lband:false, kaband:false, xband:false };
+    
     let bandNoises = {};
+    let bandFilters = {};
     let bandGains = {};
     let masterGain;
-    let radioStarted = false;
+    let audioStarted = false;
+
+    // Waveform visualization points
+    let wavePoints = {};
+
+    // Game state
+    let gameActive = false;
+    let currentTarget = 1;
+    let waitingForInput = true;
+    let roundTimer = null;
+    let correctFlash = 0;
+    let failCount = 0;
+    let speedLevel = 0;
+    let baseDelay = 1500;
+    let currentDelay = 1500;
+
+    let failCounterDiv, startupMsgDiv;
 
     function setup() {
-        createCanvas(100, 100); // minimal canvas to satisfy p5
-        noCanvas(); // we don't need drawing
+        createCanvas(windowWidth, windowHeight);
+        noStroke();
+        frameRate(60);
 
-        // Master gain – quiet
+        // Master gain – quiet (0.15)
         masterGain = new p5.Gain();
         masterGain.amp(0.15);
         masterGain.connect();
 
-        // Create each band
+        // Create each band: independent noise → bandpass → gain → master
         for (let band of bandIds) {
             let noise = new p5.Noise('brown');
             noise.amp(0.3);
@@ -65,48 +203,287 @@
             gain.connect(masterGain);
             gain.amp(bandActive[band] ? 1.0 : 0.0);
             bandNoises[band] = noise;
+            bandFilters[band] = bp;
             bandGains[band] = gain;
-        }
 
-        // Create UI buttons
-        let container = select('#bandButtons');
-        for (let band of bandIds) {
-            let btn = createButton(`${band.toUpperCase()} (${bandFreqs[band]} Hz)`);
-            btn.parent(container);
-            btn.addClass('band-btn');
-            if (bandActive[band]) btn.addClass('active');
-            btn.mousePressed(() => toggleBand(band));
-            btn.touchStarted(() => { toggleBand(band); return false; });
-        }
-    }
-
-    function toggleBand(band) {
-        // Ensure audio context started on first user gesture
-        if (!radioStarted) {
-            userStartAudio().then(() => {
-                radioStarted = true;
-                for (let b of bandIds) bandNoises[b].start();
-                doToggle(band);
-            }).catch(() => {});
-        } else {
-            doToggle(band);
-        }
-    }
-
-    function doToggle(band) {
-        bandActive[band] = !bandActive[band];
-        bandGains[band].amp(bandActive[band] ? 1.0 : 0.0);
-        let btns = selectAll('.band-btn');
-        for (let i = 0; i < btns.length; i++) {
-            let btn = btns[i];
-            let btnBand = btn.html().split(' ')[0].toLowerCase();
-            if (btnBand === band) {
-                if (bandActive[band]) btn.addClass('active');
-                else btn.removeClass('active');
+            // Waveform points for each band
+            wavePoints[band] = [];
+            for (let i = 0; i <= width; i += 8) {
+                wavePoints[band].push({x: i, y: height/2});
             }
         }
-        let activeCount = Object.values(bandActive).filter(v => v).length;
-        select('#status').html(`Active bands: ${activeCount}. Audio started? ${radioStarted}`);
+
+        // UI buttons
+        let btns = selectAll('.band-btn');
+        for (let btn of btns) {
+            btn.mousePressed(() => toggleBand(btn.attribute('data-band')));
+            btn.touchStarted(() => { toggleBand(btn.attribute('data-band')); return false; });
+        }
+
+        failCounterDiv = select('#failCounter');
+        startupMsgDiv = select('#startupMsg');
+        updateFailDisplay();
+        background(0);
+    }
+
+    // ---------- Band toggling ----------
+    function toggleBand(band) {
+        if (!audioStarted) {
+            // First click: start audio context and all noises
+            userStartAudio().then(() => {
+                audioStarted = true;
+                for (let b of bandIds) bandNoises[b].start();
+                doToggleBand(band);
+            }).catch(e => console.log(e));
+        } else {
+            doToggleBand(band);
+        }
+    }
+
+    function doToggleBand(band) {
+        bandActive[band] = !bandActive[band];
+        bandGains[band].amp(bandActive[band] ? 1.0 : 0.0);
+        let btn = select(`.band-btn[data-band="${band}"]`);
+        if (bandActive[band]) {
+            btn.addClass('active');
+            btn.removeClass('muted');
+        } else {
+            btn.removeClass('active');
+            btn.addClass('muted');
+        }
+    }
+
+    function startAudio() {
+        if (audioStarted) return;
+        userStartAudio().then(() => {
+            audioStarted = true;
+            for (let b of bandIds) bandNoises[b].start();
+        }).catch(e => console.log(e));
+    }
+
+    function dismissStartupMessage() {
+        if (startupMsgDiv && startupMsgDiv.elt) {
+            startupMsgDiv.style('opacity', '0');
+            setTimeout(() => startupMsgDiv.remove(), 1000);
+        }
+    }
+
+    // ---------- Interference effect (gain dips) ----------
+    function applyInterference(pulses) {
+        let activeBands = bandIds.filter(b => bandActive[b]);
+        if (activeBands.length === 0) return;
+        let originalGains = {};
+        for (let b of activeBands) originalGains[b] = bandGains[b].amp();
+        let dropLevel = 0.08;   // very quiet during dip
+        let interval = 120;      // ms between pulses
+        let pulseCount = 0;
+        let timer = setInterval(() => {
+            if (pulseCount >= pulses) {
+                for (let b of activeBands) bandGains[b].amp(originalGains[b]);
+                clearInterval(timer);
+                return;
+            }
+            for (let b of activeBands) bandGains[b].amp(dropLevel);
+            setTimeout(() => {
+                for (let b of activeBands) bandGains[b].amp(originalGains[b]);
+            }, 45);
+            pulseCount++;
+        }, interval);
+        // visual ripples
+        for (let i = 0; i < pulses; i++) {
+            setTimeout(() => {
+                ripples.push({
+                    x: width/2, y: height/2, radius: 20,
+                    maxRadius: min(width,height)*0.5, life: 150,
+                    freq: pulses * 80
+                });
+            }, i * interval);
+        }
+    }
+
+    // ---------- Game logic ----------
+    function newRound() {
+        if (!gameActive) return;
+        currentTarget = floor(random(1, 8));
+        waitingForInput = true;
+    }
+
+    function correct() {
+        applyInterference(currentTarget);
+        correctFlash = 110;
+        waitingForInput = false;
+        if (speedLevel < 18) speedLevel++;
+        currentDelay = max(320, baseDelay - speedLevel * 55);
+        if (roundTimer) clearTimeout(roundTimer);
+        roundTimer = setTimeout(() => {
+            if (gameActive) newRound();
+        }, currentDelay);
+    }
+
+    function wrong() {
+        failCount++;
+        updateFailDisplay();
+        correctFlash = 70;
+        if (failCount >= 18) {
+            gameActive = false;
+            if (roundTimer) clearTimeout(roundTimer);
+            failCounterDiv.html("failures 18/18 · lost");
+        } else {
+            waitingForInput = true;
+        }
+    }
+
+    function startGame() {
+        gameActive = true;
+        failCount = 0;
+        speedLevel = 0;
+        currentDelay = baseDelay;
+        updateFailDisplay();
+        currentTarget = floor(random(1, 8));
+        waitingForInput = true;
+        if (roundTimer) clearTimeout(roundTimer);
+    }
+
+    function updateFailDisplay() {
+        failCounterDiv.html("failures " + failCount + "/18");
+    }
+
+    function handleNumber(num) {
+        dismissStartupMessage();
+        startAudio();  // ensures audio context if not yet started
+        if (!gameActive) {
+            startGame();
+            // small delay to allow game to initialize
+            setTimeout(() => {
+                if (gameActive && waitingForInput) {
+                    if (num === currentTarget) correct();
+                    else wrong();
+                }
+            }, 30);
+            return;
+        }
+        if (!waitingForInput) return;
+        if (num === currentTarget) correct();
+        else wrong();
+    }
+
+    // ---------- Visualization ----------
+    function drawWaveforms() {
+        let t = frameCount;
+        for (let band of bandIds) {
+            if (!bandActive[band]) continue;
+            let freq = bandFreqs[band];
+            let amp = 40 + 10 * sin(t * 0.015);
+            let phase = t * (freq / 1800.0);
+            let points = wavePoints[band];
+            for (let i = 0; i < points.length; i++) {
+                let x = points[i].x;
+                let y = height/2 + sin(x * freq / 7000.0 + phase) * amp + cos(x * freq / 11000.0) * (amp * 0.5);
+                points[i].y = y;
+            }
+            stroke(154, 252, 151, 100);
+            strokeWeight(1.0);
+            noFill();
+            beginShape();
+            for (let p of points) vertex(p.x, p.y);
+            endShape();
+        }
+        // particles
+        stroke(255, 180);
+        strokeWeight(1);
+        for (let i = 0; i < 40; i++) {
+            let x = (t * 0.8 + i * 70) % width;
+            let y = height/2 + sin(x * 0.01 + t * 0.05) * 30;
+            point(x, y);
+        }
+        let activeCount = bandIds.filter(b => bandActive[b]).length;
+        fill(200,200,200,150);
+        noStroke();
+        textAlign(LEFT, TOP);
+        textSize(10);
+        textFont('monospace');
+        text(`active bands: ${activeCount}`, 15, 65);
+    }
+
+    function drawRipples() {
+        for (let i=ripples.length-1; i>=0; i--) {
+            let r = ripples[i];
+            r.radius += 4;
+            r.life -= 8;
+            if (r.radius > r.maxRadius || r.life <= 0) {
+                ripples.splice(i,1);
+                continue;
+            }
+            noFill();
+            stroke(154,252,151, r.life);
+            strokeWeight(1.2);
+            circle(r.x, r.y, r.radius*2);
+            let inner = r.radius * (r.freq/400);
+            stroke(255,200,100, r.life*0.6);
+            circle(r.x, r.y, inner*2);
+        }
+    }
+
+    function drawTargetDots() {
+        if (!gameActive) return;
+        let dia = 28, spc = 50, total = currentTarget;
+        let startX = width/2 - (total-1)*spc/2;
+        for (let i=0; i<total; i++) {
+            fill(255,220);
+            noStroke();
+            circle(startX + i*spc, height/2, dia);
+            fill(255,80);
+            circle(startX + i*spc, height/2, dia*0.3);
+        }
+        fill(160,160,160,200);
+        textSize(10);
+        textAlign(CENTER,BOTTOM);
+        textFont('monospace');
+        text("speed: " + (speedLevel+1), width/2, height/2-48);
+    }
+
+    function draw() {
+        background(0);
+        drawWaveforms();
+        drawRipples();
+        drawTargetDots();
+        if (correctFlash > 0) {
+            fill(255,255,255, correctFlash*0.25);
+            rect(0,0,width,height);
+            correctFlash -= 6;
+        }
+        if (!gameActive && audioStarted) {
+            fill(255,255,255);
+            textAlign(CENTER,CENTER);
+            textSize(20);
+            textFont('monospace');
+            text("signal lost", width/2, height/2);
+        }
+    }
+
+    // Keyboard / touch event handlers
+    function keyPressed() {
+        let k = key;
+        if (k >= '1' && k <= '7') {
+            handleNumber(parseInt(k,10));
+            return false;
+        }
+        return false;
+    }
+
+    function touchStarted() {
+        startAudio();
+        return false;
+    }
+
+    function windowResized() {
+        resizeCanvas(windowWidth, windowHeight);
+        background(0);
+        for (let band of bandIds) {
+            let newPoints = [];
+            for (let i=0; i<=width; i+=8) newPoints.push({x:i, y:height/2});
+            wavePoints[band] = newPoints;
+        }
     }
 </script>
 </body>
