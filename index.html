@@ -491,6 +491,15 @@
             .schedule-note {
                 font-size: 0.9rem;  /* or any size you prefer */
             }
+        /* Mobile header: keep "Research Archive" link original colour (not green) */
+        @media (max-width: 640px) {
+            .archive-link-mobile {
+                color: inherit !important;     /* uses the default body/text colour */
+            }
+            .archive-link-mobile:hover {
+                opacity: 0.7;
+            }
+        }
             .nav-bar-desktop { flex-direction: column; gap: 0.6rem; }
             .nav-left { width: 100%; justify-content: space-between; }
             .nav-right { display: none; }
