@@ -73,17 +73,17 @@
             position: fixed;
             bottom: 16px;
             left: 16px;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            padding: 6px 14px;
-            border-radius: 30px;
+            background: transparent;
+            padding: 6px 0;
             font-size: 12px;
             text-decoration: none;
             color: #9afc97;
             font-family: monospace;
             z-index: 30;
-            border: 1px solid #9afc97;
-            transition: 0.2s;
+            transition: opacity 0.2s;
+        }
+        .back-link:hover {
+            opacity: 0.7;
         }
         .instruction {
             position: fixed;
@@ -150,35 +150,34 @@
 
 <script>
     // ================================================================
-    // FINAL RADIO GAME – band toggles work, no volume slider,
-    // background radio at fixed low volume, number tones loud.
+    // CLEAN REIMPLEMENTATION – each band toggle independently controls
+    // its own filtered noise. Number‑press tones are separate, loud.
     // ================================================================
 
     let shapes = [];
     let ripples = [];
     let reverb, melodicFilter;
     
-    // Feedback frequencies (raised 5 semitones) – full volume
+    // Number‑press frequencies (raised 5 semitones, full volume)
     const baseFeedbackFreqs = [110.00, 123.75, 132.00, 137.50, 146.67, 154.66, 165.00];
     const feedbackFreqs = baseFeedbackFreqs.map(f => f * 1.33483985417);
     
-    // Background radio – quiet, fixed volume
+    // Radio background – individual bands with their own filter + gain
     let radioNoise;
-    let bandFilters = {};     // BandPass per band
-    let bandGains = {};       // Gain per band (on/off)
-    let radioMasterGain;      // overall radio volume (fixed low)
+    let bandNodes = {};      // each band: { filter, gain, active }
+    let radioMasterGain;
     let radioStarted = false;
     
-    // Band state and frequencies
-    const bands = {
-        cband: { freq: 600, active: true, color: [154,252,151] },
-        kuband: { freq: 1800, active: false, color: [154,252,151] },
-        lband: { freq: 350, active: false, color: [154,252,151] },
-        kaband: { freq: 5000, active: false, color: [154,252,151] },
-        xband: { freq: 1000, active: false, color: [154,252,151] }
+    // Band definitions
+    const bandDefs = {
+        cband: { freq: 600, active: true,  name: "C‑band" },
+        kuband: { freq: 1800, active: false, name: "Ku‑band" },
+        lband: { freq: 350, active: false,  name: "L‑band" },
+        kaband: { freq: 5000, active: false, name: "Ka‑band" },
+        xband: { freq: 1000, active: false,  name: "X‑band" }
     };
     
-    // Waveform storage for each band (multiple layers)
+    // For waveform visualization
     let wavePointsMap = {};
     
     // Game state
@@ -192,60 +191,51 @@
     let baseDelay = 1500;
     let currentDelay = 1500;
     
-    let failCounterDiv;
-    let startupMsgDiv;
+    let failCounterDiv, startupMsgDiv;
     
     function setup() {
         createCanvas(windowWidth, windowHeight);
         noStroke();
         frameRate(60);
         
-        // Reverb for number tones (full volume)
+        // ---------- Number‑press effects (loud, reverb, chorus) ----------
         reverb = new p5.Reverb();
         reverb.set(5, 3);
         melodicFilter = new p5.LowPass();
         melodicFilter.freq(2200);
         
-        // Radio noise source – low base level
+        // ---------- Radio background: one noise source split into bands ----------
         radioNoise = new p5.Noise('brown');
-        radioNoise.amp(0.3);   // quiet background
+        radioNoise.amp(0.3);            // quiet source
         
-        // Master gain for radio background (fixed low volume)
         radioMasterGain = new p5.Gain();
-        radioMasterGain.amp(0.25);
+        radioMasterGain.amp(0.25);      // fixed low volume
         
-        // Create per‑band filter and gain
-        for (let [band, info] of Object.entries(bands)) {
+        // Create each band: bandpass filter + gain, then connect to master
+        for (let [id, def] of Object.entries(bandDefs)) {
             let bp = new p5.BandPass();
-            bp.freq(info.freq);
+            bp.freq(def.freq);
             bp.res(6);
             let gain = new p5.Gain();
             radioNoise.connect(bp);
             bp.connect(gain);
             gain.connect(radioMasterGain);
-            bandFilters[band] = bp;
-            bandGains[band] = gain;
-            gain.amp(info.active ? 1.0 : 0.0);  // on/off
+            gain.amp(def.active ? 1.0 : 0.0);
+            bandNodes[id] = { filter: bp, gain: gain, active: def.active };
+            
             // prepare waveform points for this band
-            wavePointsMap[band] = [];
+            wavePointsMap[id] = [];
             for (let i = 0; i <= width; i += 8) {
-                wavePointsMap[band].push({x: i, y: height/2});
+                wavePointsMap[id].push({x: i, y: height/2});
             }
         }
         radioMasterGain.connect();
         
-        // Band buttons: simple on/off toggle
+        // ---------- UI: band buttons ----------
         let bandBtns = selectAll('.band-btn');
         for (let btn of bandBtns) {
-            btn.mousePressed(() => {
-                let band = btn.attribute('data-band');
-                toggleBand(band);
-            });
-            btn.touchStarted(() => {
-                let band = btn.attribute('data-band');
-                toggleBand(band);
-                return false;
-            });
+            btn.mousePressed(() => toggleBand(btn.attribute('data-band')));
+            btn.touchStarted(() => { toggleBand(btn.attribute('data-band')); return false; });
         }
         
         failCounterDiv = select('#failCounter');
@@ -255,15 +245,16 @@
         background(0);
     }
     
-    function toggleBand(band) {
-        bands[band].active = !bands[band].active;
-        let btn = select(`.band-btn[data-band="${band}"]`);
-        if (bands[band].active) {
-            bandGains[band].amp(1.0);
+    function toggleBand(bandId) {
+        let node = bandNodes[bandId];
+        if (!node) return;
+        node.active = !node.active;
+        node.gain.amp(node.active ? 1.0 : 0.0);
+        let btn = select(`.band-btn[data-band="${bandId}"]`);
+        if (node.active) {
             btn.addClass('active');
             btn.removeClass('muted');
         } else {
-            bandGains[band].amp(0);
             btn.removeClass('active');
             btn.addClass('muted');
         }
@@ -273,7 +264,6 @@
         if (radioStarted) return;
         radioStarted = true;
         radioNoise.start();
-        // initial gains already set
     }
     
     function dismissStartupMessage() {
@@ -285,22 +275,20 @@
         }
     }
     
-    // ---------- Multiple waveform drawing (all active bands) ----------
+    // ---------- Visualization: draw waveforms for each active band ----------
     function drawAllWaveforms() {
         let time = frameCount;
-        for (let [band, info] of Object.entries(bands)) {
-            if (!info.active) continue;
-            let freq = info.freq;
+        for (let [id, def] of Object.entries(bandDefs)) {
+            if (!bandNodes[id].active) continue;
+            let freq = def.freq;
             let amplitude = 40 + 10 * sin(time * 0.015);
             let phase = time * (freq / 1800.0);
-            let points = wavePointsMap[band];
+            let points = wavePointsMap[id];
             for (let i = 0; i < points.length; i++) {
                 let x = points[i].x;
                 let y = height/2 + sin(x * freq / 7000.0 + phase) * amplitude + cos(x * freq / 11000.0) * (amplitude * 0.5);
                 points[i].y = y;
             }
-            
-            // Draw waveform for this band (semi‑transparent green)
             stroke(154, 252, 151, 100);
             strokeWeight(1.0);
             noFill();
@@ -309,7 +297,7 @@
             endShape();
         }
         
-        // White floating particles
+        // extra floating white particles
         stroke(255, 180);
         strokeWeight(1);
         for (let i = 0; i < 40; i++) {
@@ -318,8 +306,7 @@
             point(x, y);
         }
         
-        // Display active bands count
-        let activeCount = Object.values(bands).filter(b => b.active).length;
+        let activeCount = Object.values(bandNodes).filter(n => n.active).length;
         fill(200, 200, 200, 150);
         noStroke();
         textAlign(LEFT, TOP);
@@ -328,18 +315,16 @@
         text(`active bands: ${activeCount}`, 15, 65);
     }
     
-    // ---------- Musical feedback (full volume, reduced chorus) ----------
+    // ---------- Number‑press tone (loud, full volume) ----------
     function playFeedbackTone(num) {
         let baseFreq = feedbackFreqs[num-1];
         if (!baseFreq) return;
         addFrequencyRipple(baseFreq);
         
-        let volumeBoost = 1.35;   // full volume
         let env = new p5.Envelope();
         env.setADSR(0.02, 0.15, 0.6, 1.2);
-        env.setRange(0.28 * volumeBoost, 0);
+        env.setRange(0.28 * 1.35, 0);   // full volume
         
-        // Reduced chorus intensity (cents 0, ±5)
         let detunes = [0, 5, -5];
         let voices = [];
         for (let i = 0; i < detunes.length; i++) {
@@ -353,25 +338,18 @@
             osc.connect(melodicFilter);
             voices.push(osc);
         }
-        
         melodicFilter.disconnect();
         melodicFilter.connect(reverb);
         reverb.process(melodicFilter, 3.5, 2.5);
         
         let ampObj = new p5.Amplitude();
         ampObj.setInput(voices[0]);
-        
         shapes.push({
-            x: random(width),
-            y: random(height),
-            vx: random(-1.8, 1.8),
-            vy: random(-2.2, -0.5),
-            osc: voices[0],
-            amp: ampObj,
-            opacity: 200,
+            x: random(width), y: random(height),
+            vx: random(-1.8, 1.8), vy: random(-2.2, -0.5),
+            osc: voices[0], amp: ampObj, opacity: 200,
             extraOscs: voices.slice(1)
         });
-        
         setTimeout(() => {
             for (let v of voices) v.stop();
             let idx = shapes.findIndex(s => s.osc === voices[0]);
@@ -380,15 +358,10 @@
     }
     
     function addFrequencyRipple(noteFreq) {
-        let ripple = {
-            x: width/2,
-            y: height/2,
-            radius: 20,
-            maxRadius: min(width,height) * 0.7,
-            life: 255,
-            freq: noteFreq
-        };
-        ripples.push(ripple);
+        ripples.push({
+            x: width/2, y: height/2, radius: 20,
+            maxRadius: min(width,height) * 0.7, life: 255, freq: noteFreq
+        });
     }
     
     function drawRipples() {
@@ -405,22 +378,14 @@
             strokeWeight(1.2);
             circle(r.x, r.y, r.radius * 2);
             let innerRadius = r.radius * (r.freq / 350);
-            stroke(255, 200, 100, r.life * 0.6);
+            stroke(255,200,100, r.life * 0.6);
             circle(r.x, r.y, innerRadius * 2);
         }
     }
     
-    // Game logic
-    function updateSpeed() {
-        currentDelay = max(320, baseDelay - (speedLevel * 55));
-    }
-    
-    function nextRound() {
-        if (!gameActive) return;
-        currentTarget = floor(random(1, 8));
-        waitingForInput = true;
-    }
-    
+    // ---------- Game logic ----------
+    function updateSpeed() { currentDelay = max(320, baseDelay - (speedLevel * 55)); }
+    function nextRound() { if (gameActive) { currentTarget = floor(random(1, 8)); waitingForInput = true; } }
     function onCorrect() {
         playFeedbackTone(currentTarget);
         correctFlash = 110;
@@ -428,23 +393,15 @@
         if (speedLevel < 18) speedLevel++;
         updateSpeed();
         if (feedbackTimer) clearTimeout(feedbackTimer);
-        feedbackTimer = setTimeout(() => {
-            if (gameActive) nextRound();
-            feedbackTimer = null;
-        }, currentDelay);
+        feedbackTimer = setTimeout(() => { if (gameActive) nextRound(); feedbackTimer = null; }, currentDelay);
     }
-    
     function onWrong() {
         failCount++;
         updateFailDisplay();
         correctFlash = 70;
-        if (failCount >= 18) {
-            gameOver();
-            return;
-        }
-        waitingForInput = true;
+        if (failCount >= 18) gameOver();
+        else waitingForInput = true;
     }
-    
     function gameOver() {
         gameActive = false;
         waitingForInput = false;
@@ -457,7 +414,6 @@
         ripples = [];
         failCounterDiv.html("failures 18/18 · lost");
     }
-    
     function startGame() {
         gameActive = true;
         failCount = 0;
@@ -473,18 +429,15 @@
         waitingForInput = true;
         if (feedbackTimer) clearTimeout(feedbackTimer);
     }
-    
-    function updateFailDisplay() {
-        failCounterDiv.html("failures " + failCount + "/18");
-    }
+    function updateFailDisplay() { failCounterDiv.html("failures " + failCount + "/18"); }
     
     function draw() {
         background(0);
         drawAllWaveforms();
         drawRipples();
         
-        // Draw floating circles from number presses
-        for (let i = shapes.length-1; i >= 0; i--) {
+        // floating circles from number presses
+        for (let i=shapes.length-1; i>=0; i--) {
             let s = shapes[i];
             s.x += s.vx;
             s.y += s.vy;
@@ -492,12 +445,12 @@
             let ampScale = map(level, 0, 0.3, 0.6, 1.6);
             stroke(255);
             strokeWeight(1.3);
-            fill(0, 0);
+            fill(0,0);
             circle(s.x, s.y, 24 * ampScale);
             noStroke();
             s.opacity -= 1.5;
             if (s.opacity <= 0) {
-                if (s.osc) s.osc.amp(0, 0.8);
+                if (s.osc) s.osc.amp(0,0.8);
                 shapes.splice(i,1);
             }
         }
@@ -505,14 +458,14 @@
         drawTargetDots();
         
         if (correctFlash > 0) {
-            fill(255, 255, 255, correctFlash * 0.25);
-            rect(0, 0, width, height);
+            fill(255,255,255, correctFlash*0.25);
+            rect(0,0,width,height);
             correctFlash -= 6;
         }
         
         if (!gameActive) {
-            fill(255, 255, 255);
-            textAlign(CENTER, CENTER);
+            fill(255,255,255);
+            textAlign(CENTER,CENTER);
             textSize(20);
             textFont('monospace');
             text("signal lost", width/2, height/2);
@@ -521,32 +474,27 @@
     
     function drawTargetDots() {
         if (!gameActive) return;
-        let dotDiameter = 28;
-        let spacing = 50;
-        let total = currentTarget;
-        let startX = width/2 - (total-1) * spacing / 2;
-        let yPos = height/2;
-        for (let i = 0; i < total; i++) {
-            fill(255, 220);
+        let dotDiameter = 28, spacing = 50, total = currentTarget;
+        let startX = width/2 - (total-1)*spacing/2;
+        for (let i=0; i<total; i++) {
+            fill(255,220);
             noStroke();
-            circle(startX + i * spacing, yPos, dotDiameter);
-            fill(255, 80);
-            circle(startX + i * spacing, yPos, dotDiameter * 0.3);
+            circle(startX + i*spacing, height/2, dotDiameter);
+            fill(255,80);
+            circle(startX + i*spacing, height/2, dotDiameter*0.3);
         }
-        fill(160, 160, 160, 200);
+        fill(160,160,160,200);
         textSize(10);
-        textAlign(CENTER, BOTTOM);
+        textAlign(CENTER,BOTTOM);
         textFont('monospace');
-        text("speed: " + (speedLevel + 1), width/2, height/2 - 48);
+        text("speed: " + (speedLevel+1), width/2, height/2-48);
     }
     
     function handleNumberPress(num) {
         dismissStartupMessage();
-        userStartAudio().then(() => {
-            if (!radioStarted) startRadioBackground();
-        }).catch(() => { if (!radioStarted) startRadioBackground(); });
+        userStartAudio().then(() => { if (!radioStarted) startRadioBackground(); })
+                       .catch(() => { if (!radioStarted) startRadioBackground(); });
         if (!radioStarted) startRadioBackground();
-        
         if (!gameActive) {
             startGame();
             setTimeout(() => {
@@ -583,13 +531,10 @@
     function windowResized() {
         resizeCanvas(windowWidth, windowHeight);
         background(0);
-        // re‑initialize waveform points for each band
-        for (let [band, points] of Object.entries(wavePointsMap)) {
+        for (let id of Object.keys(wavePointsMap)) {
             let newPoints = [];
-            for (let i = 0; i <= width; i += 8) {
-                newPoints.push({x: i, y: height/2});
-            }
-            wavePointsMap[band] = newPoints;
+            for (let i=0; i<=width; i+=8) newPoints.push({x:i, y:height/2});
+            wavePointsMap[id] = newPoints;
         }
     }
 </script>
