@@ -59,37 +59,6 @@
             border-color: #9afc97;
             color: #9afc97;
         }
-        .volume-control {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(30,30,40,0.8);
-            border-radius: 40px;
-            padding: 4px 12px;
-        }
-        .volume-control span {
-            font-size: 11px;
-            color: #ffffff;
-            font-family: monospace;
-        }
-        input[type="range"] {
-            width: 90px;
-            background: #ffffff;
-            height: 3px;
-            border-radius: 3px;
-            -webkit-appearance: none;
-        }
-        input[type="range"]:focus {
-            outline: none;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #ffffff;
-            cursor: pointer;
-        }
         .fail-counter {
             background: rgba(30,30,40,0.8);
             border-radius: 40px;
@@ -152,7 +121,6 @@
         }
         @media (max-width: 640px) {
             .band-btn { font-size: 9px; padding: 4px 8px; }
-            .volume-control input { width: 70px; }
             .fail-counter { font-size: 9px; padding: 4px 8px; }
             .startup-message { font-size: 11px; white-space: normal; width: 90%; padding: 12px 16px; top: 20%; }
         }
@@ -174,10 +142,6 @@
         <button class="band-btn" data-band="kaband">Ka‑band (5000 Hz)</button>
         <button class="band-btn" data-band="xband">X‑band (1000 Hz)</button>
     </div>
-    <div class="volume-control">
-        <span>radio vol</span>
-        <input type="range" id="radioVolume" min="0" max="1" step="0.01" value="1.0">
-    </div>
     <div class="fail-counter" id="failCounter">failures 0/18</div>
 </div>
 <a href="index.html" class="back-link">← radio</a>
@@ -186,25 +150,23 @@
 
 <script>
     // ================================================================
-    // CLEAN RADIO GAME – background bands low volume (25%),
-    // number tones full volume, independent toggles,
-    // stacked waveforms for all active bands.
+    // FINAL RADIO GAME – band toggles work, no volume slider,
+    // background radio at fixed low volume, number tones loud.
     // ================================================================
 
     let shapes = [];
     let ripples = [];
     let reverb, melodicFilter;
     
-    // Feedback frequencies (raised 5 semitones)
+    // Feedback frequencies (raised 5 semitones) – full volume
     const baseFeedbackFreqs = [110.00, 123.75, 132.00, 137.50, 146.67, 154.66, 165.00];
     const feedbackFreqs = baseFeedbackFreqs.map(f => f * 1.33483985417);
     
-    // Radio background – low volume (25% of user slider)
+    // Background radio – quiet, fixed volume
     let radioNoise;
     let bandFilters = {};     // BandPass per band
-    let bandGains = {};       // Gain per band
-    let radioMasterGain;      // overall radio gain (fixed 0.25)
-    let userRadioGain;        // slider gain (0-1)
+    let bandGains = {};       // Gain per band (on/off)
+    let radioMasterGain;      // overall radio volume (fixed low)
     let radioStarted = false;
     
     // Band state and frequencies
@@ -217,7 +179,7 @@
     };
     
     // Waveform storage for each band (multiple layers)
-    let wavePointsMap = {};   // each band stores its own array of points
+    let wavePointsMap = {};
     
     // Game state
     let gameActive = false;
@@ -232,7 +194,6 @@
     
     let failCounterDiv;
     let startupMsgDiv;
-    let radioSlider;
     
     function setup() {
         createCanvas(windowWidth, windowHeight);
@@ -245,15 +206,13 @@
         melodicFilter = new p5.LowPass();
         melodicFilter.freq(2200);
         
-        // Radio noise source
+        // Radio noise source – low base level
         radioNoise = new p5.Noise('brown');
-        radioNoise.amp(0.51);   // base noise level (15% quieter than before)
+        radioNoise.amp(0.3);   // quiet background
         
-        // Master gain for radio background (fixed 25%)
+        // Master gain for radio background (fixed low volume)
         radioMasterGain = new p5.Gain();
         radioMasterGain.amp(0.25);
-        userRadioGain = new p5.Gain();
-        userRadioGain.amp(1.0);   // slider will adjust this
         
         // Create per‑band filter and gain
         for (let [band, info] of Object.entries(bands)) {
@@ -263,25 +222,17 @@
             let gain = new p5.Gain();
             radioNoise.connect(bp);
             bp.connect(gain);
-            gain.connect(userRadioGain);
+            gain.connect(radioMasterGain);
             bandFilters[band] = bp;
             bandGains[band] = gain;
-            gain.amp(info.active ? 1.0 : 0.0);  // on/off (later multiplied by master)
+            gain.amp(info.active ? 1.0 : 0.0);  // on/off
             // prepare waveform points for this band
             wavePointsMap[band] = [];
             for (let i = 0; i <= width; i += 8) {
                 wavePointsMap[band].push({x: i, y: height/2});
             }
         }
-        userRadioGain.connect(radioMasterGain);
         radioMasterGain.connect();
-        
-        // Volume slider (controls only radio background)
-        radioSlider = select('#radioVolume');
-        radioSlider.input(() => {
-            let val = parseFloat(radioSlider.value());
-            userRadioGain.amp(val);
-        });
         
         // Band buttons: simple on/off toggle
         let bandBtns = selectAll('.band-btn');
@@ -316,7 +267,6 @@
             btn.removeClass('active');
             btn.addClass('muted');
         }
-        // No "all‑on" or solo mode – each band independent
     }
     
     function startRadioBackground() {
@@ -350,7 +300,7 @@
                 points[i].y = y;
             }
             
-            // Draw waveform for this band (semi‑transparent green, 0.6 opacity)
+            // Draw waveform for this band (semi‑transparent green)
             stroke(154, 252, 151, 100);
             strokeWeight(1.0);
             noFill();
@@ -359,7 +309,7 @@
             endShape();
         }
         
-        // Also draw floating white particles (non‑band specific)
+        // White floating particles
         stroke(255, 180);
         strokeWeight(1);
         for (let i = 0; i < 40; i++) {
@@ -368,7 +318,7 @@
             point(x, y);
         }
         
-        // Display current active bands count (optional)
+        // Display active bands count
         let activeCount = Object.values(bands).filter(b => b.active).length;
         fill(200, 200, 200, 150);
         noStroke();
@@ -389,7 +339,7 @@
         env.setADSR(0.02, 0.15, 0.6, 1.2);
         env.setRange(0.28 * volumeBoost, 0);
         
-        // Reduced chorus intensity (20% less: cents 0, ±5 instead of ±7)
+        // Reduced chorus intensity (cents 0, ±5)
         let detunes = [0, 5, -5];
         let voices = [];
         for (let i = 0; i < detunes.length; i++) {
