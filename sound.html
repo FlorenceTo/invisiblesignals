@@ -149,7 +149,7 @@
         <button class="band-btn" data-band="b">B (493 Hz)</button>
     </div>
     <div class="score-level" id="scoreLevel">0</div>
-    <div class="fail-counter" id="failCounter">failures 0/18</div>
+    <div class="fail-counter" id="failCounter">0/18</div>
 </div>
 <a href="index.html" class="back-link">← radio</a>
 <div class="instruction">press 1‑7 to match dots</div>
@@ -161,7 +161,8 @@
     // Band toggles control waveform visibility.
     // Correct number = sound + waveform pulse + screen flash.
     // All bands turn on at start. Level shows only win count.
-    // Line width reduced by 30% (normal: 0.5, pulse: 1.8)
+    // Failure counter shows only numbers (e.g., 0/18).
+    // Speed text moved higher (y = height/2 - 90).
     // ================================================================
 
     let audioStarted = false;
@@ -198,6 +199,7 @@
     let scoreLevelDiv, failCounterDiv, startupMsgDiv;
 
     function setup() {
+        pixelDensity(1);
         createCanvas(windowWidth, windowHeight);
         noStroke();
         frameRate(60);
@@ -276,7 +278,7 @@
 
     function updateUI() {
         scoreLevelDiv.html(`${correctCount}`);
-        failCounterDiv.html(`failures ${failCount}/18`);
+        failCounterDiv.html(`${failCount}/18`);
     }
 
     function pulseBand(bandId) {
@@ -320,8 +322,7 @@
             }
             let alphaBase = 100 + (pulseFactor > 0 ? 150 : 0);
             stroke(160, 252, 151, constrain(alphaBase, 0, 255));
-            // Thinner line width: normal 0.5, pulse 1.8 (approx 30% thinner than before)
-            strokeWeight(pulseFactor > 0 ? 1.8 : 0.5);
+            strokeWeight(pulseFactor > 0 ? 1.2 : 0.4);
             noFill();
             beginShape();
             for (let p of points) vertex(p.x, p.y);
@@ -363,9 +364,9 @@
         }
         fill(160,160,160,200);
         textSize(10);
-        textAlign(CENTER,BOTTOM);
+        textAlign(CENTER,CENTER);
         textFont('monospace');
-        text(`speed: ${speedLevel+1} | ${pingPongMode ? 'ping pong' : 'static'}`, width/2, height/2-48);
+        text(`speed: ${speedLevel+1} | ${pingPongMode ? 'ping pong' : 'static'}`, width/2, height/2 - 90);
     }
 
     function newRound() {
@@ -400,7 +401,7 @@
             gameActive = false;
             if (roundTimer) clearTimeout(roundTimer);
             resetAllBandsOff();
-            failCounterDiv.html("failures 18/18 · lost");
+            failCounterDiv.html("18/18 · lost");
         } else {
             waitingForInput = true;
         }
