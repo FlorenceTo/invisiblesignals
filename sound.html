@@ -365,12 +365,12 @@
             endShape();
             if (bandPulse[band] > 0) bandPulse[band] *= 0.92;
         }
-        // white particles
-        stroke(255, 180);
+        // singular dotted waveform – one dot per column
+        stroke(255, 200);
         strokeWeight(2);
-        for (let i = 0; i < 40; i++) {
-            let x = (t * 0.8 + i * 70) % width;
-            let y = height/2 + sin(x * 0.01 + t * 0.05) * 30;
+        let step = 12; // smaller step
+        for (let x = 0; x <= width; x += step) {
+            let y = height/2 + sin(x * 0.012 + frameCount * 0.03) * 35;
             point(x, y);
         }
         let activeCount = bandNames.filter(b => bandActive[b]).length;
