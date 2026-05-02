@@ -2,1074 +2,514 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>Invisible Signals – Radio Series</title>
-    <!-- Open Graph meta tags -->
-    <meta property="og:title" content="Invisible Signals – Radio Series">
-    <meta property="og:description" content="A monthly open-form radio series exploring live electronics, field recordings, and archival fragments. Hosted by Florence To.">
-    <meta property="og:image" content="images/compress-wave.gif">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:url" content="https://invisiblesignals.org/">
-    <meta property="og:type" content="website">
-    <meta name="title" content="Invisible Signals – Radio Series">
-    <meta name="description" content="A monthly open-form radio series exploring live electronics, field recordings, and archival fragments. Hosted by Florence To.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Invisible Signals | Wave Game</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/addons/p5.sound.min.js"></script>
     <style>
-        /* ---------- RESET & BASE ---------- */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        }
-        /* Links - use the green accent color */
-        a {
-            color: #9afc97;
-            text-decoration: none;
-            transition: opacity 0.2s ease, color 0.2s ease;
-        }
-        a:hover {
-            opacity: 0.7;
-        }
-        
-        /* Override for specific elements that already have link styling */
-        .nav-right a,
-        .right-col-bottom a,
-        .episode-desc a,
-        .contact-text a,
-        .marquee-text a,
-        .schedule-note a,
-        .resonance-mobile-link {
-            color: #9afc97;
-        }
-        /* Keep the dotted border for .right-col-bottom a (if desired) */
-        .right-col-bottom a {
-            border-bottom: 1px dotted #9afc97;
-        }
-        .right-col-bottom a:hover {
-            border-bottom-color: #9afc97;
-            opacity: 0.7;
-        }
-        
-        /* Make "Florence To" link match the schedule text colour */
-        .bodycopy-2 a {
-            color: rgba(175, 218, 139, 1);
-        }
-        .bodycopy-2 a:hover {
-            opacity: 0.7;
-        }
-        
-        /* Light mode overrides */
-        body.light-bg a,
-        body.light-bg .nav-right a,
-        body.light-bg .right-col-bottom a,
-        body.light-bg .episode-desc a,
-        body.light-bg .contact-text a,
-        body.light-bg .marquee-text a,
-        body.light-bg .schedule-note a,
-        body.light-bg .resonance-mobile-link {
-            color: #2c6e2c; /* darker green for readability on light backgrounds */
-        }
-        body.light-bg .right-col-bottom a {
-            border-bottom-color: #2c6e2c;
-        }
-        body.light-bg .bodycopy-2 a {
-            color: rgba(175, 218, 139, 1); /* keep same soft green in light mode */
-        }
-        
-        /* Text selection highlight */
-        ::selection {
-            background: #2a2a2a;  /* dark grey */
-            color: #f0f0f0;       /* light text */
-        }
-        ::-moz-selection {
-            background: #2a2a2a;
-            color: #f0f0f0;
-        }
-        
-        body.light-bg ::selection {
-            background: #d0d0d0;   /* light grey on light background */
-            color: #1a1a1a;        /* dark text */
-        }
-        body.light-bg ::-moz-selection {
-            background: #d0d0d0;
-            color: #1a1a1a;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
         body {
-            background: #adadad;
-            font-family: 'Inter', 'Monument Grotesk Variable', -apple-system, BlinkMacSystemFont, sans-serif;
-            color: rgba(255, 255, 255, 0.85);
-            line-height: 1.4;
-            -webkit-font-smoothing: antialiased;
-            transition: background-color 0.2s ease, color 0.2s ease;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #30342f;
-            mix-blend-mode: overlay;
-            opacity: 0.8;
-            pointer-events: none;
-            z-index: 1;
-            transition: opacity 0.2s ease;
-        }
-
-        #asciiCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-            opacity: 1;
-        }
-
-        .content {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 1.3rem;
-            position: relative;
-            z-index: 2;
-        }
-
-        .bodycopy-2 {
-            font-size: clamp(0.9rem, 4vw, 1.05rem);
-            letter-spacing: 0.058em;
-            line-height: 1.5;
-            color: rgba(255, 255, 255, 0.85);
-        }
-        .grey-caption {
-            font-size: clamp(0.75rem, 3.5vw, 0.9rem);
-            color: rgba(255, 255, 255, 0.6);
-            font-family: 'Monument Grotesk Variable', monospace;
-            letter-spacing: 0.037em;
-            transition: color 0.2s ease;
-        }
-        .episode-title-left {
-            font-size: clamp(1rem, 5vw, 1.2rem);
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.85);
-        }
-        .header-clock {
-            font-family: monospace;
-            font-size: clamp(0.7rem, 3.5vw, 0.85rem);
-            letter-spacing: 0.5px;
-            color: rgba(255, 255, 255, 0.7);
-            transition: color 0.2s ease;
-        }
-        .contact-text {
-            font-size: clamp(0.85rem, 4vw, 1rem);
-            color: rgba(255, 255, 255, 0.72);
-            transition: color 0.2s ease;
-        }
-        .marquee-text {
-            font-weight: bold;
-            white-space: nowrap;
-            font-size: clamp(0.85rem, 4vw, 1rem);
-            color: rgba(255, 255, 255, 0.85);
-        }
-        .right-col-bottom {
-            font-size: clamp(0.85rem, 4vw, 1rem);
-        }
-        .right-col-bottom a {
-            color: rgba(255, 255, 255, 0.64);
-            text-decoration: none;
-            border-bottom: 1px dotted;
-            transition: color 0.2s ease, border-color 0.2s ease;
-        }
-        .right-col-bottom strong {
-            display: block;
-        }
-        .episode-desc {
-            font-size: 0.95rem;
-            line-height: 1.5;
-            color: rgba(255, 255, 255, 0.85);
-            transition: color 0.2s ease;
-        }
-
-        .nav-bar {
-            position: sticky;
-            top: 0;
-            background: transparent;
-            backdrop-filter: none;
-            padding: 0.8rem 1.3rem 3rem 1.3rem;
-            margin-bottom: 2rem;
-            z-index: 10;
-            border: 1px solid #9afc97;
-            transition: transform 0.3s ease-in-out, border-color 0.2s ease;
-        }
-        .nav-bar.header-hidden {
-            transform: translateY(-100%);
-        }
-        .nav-bar-desktop {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-        .nav-left {
-            display: flex;
-            align-items: baseline;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-        .nav-right {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1.5rem;
-            list-style: none;
-        }
-        .nav-right a {
-            font-size: clamp(0.75rem, 4vw, 0.9rem);
-            text-decoration: none;
-            color: rgba(255, 255, 255, 0.85);
-            transition: opacity 0.2s;
-        }
-        .nav-right a:hover {
-            opacity: 0.7;
-        }
-
-        .color-buttons {
-            display: flex;
-            align-items: baseline;
-            gap: 0.5rem;
-        }
-        .color-btn {
-            background: transparent;
-            border: 1px solid #9afc97;
-            border-radius: 20px;
-            padding: 0.2rem 0.6rem;
-            font-size: 0.7rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: inherit;
-            font-family: monospace;
-        }
-        .picker-panel {
-            margin-top: 0.5rem;
-            background: rgba(28, 28, 27, 0.9);
-            backdrop-filter: blur(4px);
-            border: 1px solid #9afc97;
-            border-radius: 12px;
-            padding: 0.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            z-index: 20;
-            min-width: 200px;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        .picker-panel.hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-        .color-input-group {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-        }
-        .color-input-group label {
-            font-size: 0.7rem;
-        }
-        #hexColor {
-            width: 80px;
-            background: #1c1c1b;
-            border: 1px solid #9afc97;
-            color: inherit;
-            padding: 0.2rem;
-            font-family: monospace;
-        }
-        #alphaSlider {
-            flex: 1;
-        }
-        .rgba-value {
-            font-size: 0.6rem;
-            font-family: monospace;
-            text-align: center;
-            color: #9afc97;
-        }
-
-        .episode {
-            margin: 4rem 0;
-            padding-top: 2rem;
-            scroll-margin-top: 80px;
-        }
-        .episode-grid {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 2rem;
-            margin-top: 1rem;
-        }
-        .info-section {
-            margin: 3rem 0 6rem;
-        }
-        .info-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-        .marquee-container {
+            background: black;
             overflow: hidden;
-            white-space: nowrap;
-            width: 100%;
+            font-family: 'Courier New', monospace;
+            touch-action: pan-x pan-y;
         }
-        .marquee-content {
-            display: inline-block;
-            animation: scrollMarquee 40s linear infinite;
-            padding-right: 2rem;
-            opacity: 0.7;
-        }
-        @keyframes scrollMarquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-
-        body.light-bg {
-            color: rgba(0, 0, 0, 0.85);
-        }
-        body.light-bg .bodycopy-2,
-        body.light-bg .episode-title-left,
-        body.light-bg .episode-desc,
-        body.light-bg .nav-right a,
-        body.light-bg .contact-text,
-        body.light-bg .marquee-text,
-        body.light-bg .right-col-bottom a,
-        body.light-bg .header-clock {
-            color: rgba(0, 0, 0, 0.85);
-        }
-        body.light-bg .grey-caption {
-            color: rgba(0, 0, 0, 0.5);
-        }
-        body.light-bg .right-col-bottom a {
-            border-bottom-color: rgba(0, 0, 0, 0.3);
-        }
-        body.light-bg .nav-bar {
-            border-color: #2c2c2c;
-        }
-        body.light-bg .color-btn {
-            border-color: #2c2c2c;
-        }
-        body.light-bg .picker-panel {
-            background: rgba(245, 243, 239, 0.95);
-            border-color: #2c2c2c;
-        }
-        body.light-bg .rgba-value {
-            color: #2c2c2c;
-        }
-        body.light-bg::before {
-            opacity: 0.2;
-        }
-
-        .schedule-note {
-            margin-top: 1rem;
-            font-size: 0.8rem;
-            line-height: 1.4;
-            color: rgba(175, 218, 139, 1);
-        }
-        body.light-bg .schedule-note {
-            color: rgba(175, 218, 139, 1);
-        }
-        .countdown {
-            font-weight: bold;
-            letter-spacing: 0.5px;
-        }
-
-        /* Resonance mobile link – solid border forced */
-        .resonance-mobile-link {
-            display: inline-block;
-            margin-top: 0.8rem;
-            background: transparent;
-            border: 1px solid #9afc97 !important;
-            border-radius: 20px;
-            padding: 0.2rem 0.6rem;
-            font-size: 0.7rem;
+        /* existing styles unchanged ... */
+        .top-bar {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            z-index: 30;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(12px);
+            padding: 8px 16px;
+            border-radius: 60px;
+            pointer-events: auto;
             font-family: monospace;
-            color: inherit;
-            text-decoration: none;
+        }
+        .band-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .band-btn {
+            background: rgba(30,30,40,0.8);
+            border: 1px solid #ff4444;
+            border-radius: 40px;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-family: monospace;
+            color: #ff8888;
             cursor: pointer;
+            transition: 0.1s;
+        }
+        .band-btn.active {
+            background: #9afc9722;
+            border-color: #9afc97;
+            color: #9afc97;
+        }
+        .score-level {
+            background: rgba(30,30,40,0.8);
+            border-radius: 40px;
+            padding: 4px 12px;
+            font-size: 11px;
+            font-family: monospace;
+            color: #9afc97;
+            border: 1px solid #9afc97;
+            white-space: nowrap;
+        }
+        .fail-counter {
+            background: rgba(30,30,40,0.8);
+            border-radius: 40px;
+            padding: 4px 12px;
+            font-size: 11px;
+            font-family: monospace;
+            color: #ff0000;
+            border: 1px solid #ff0000;
+            white-space: nowrap;
+        }
+        .back-link {
+            position: fixed;
+            bottom: 16px;
+            left: 16px;
+            background: transparent;
+            padding: 6px 0;
+            font-size: 12px;
+            text-decoration: none;
+            color: #9afc97;
+            font-family: monospace;
+            z-index: 30;
             transition: opacity 0.2s;
         }
-        .resonance-mobile-link:hover {
-            opacity: 0.7;
-        }
-        body.light-bg .resonance-mobile-link {
-            border-color: #2c2c2c !important;
-        }
-
-        /* Popup player – works on both desktop and mobile */
-        .popup-player {
+        .instruction {
             position: fixed;
-            z-index: 1000;
-            background-color: #1c1c1b;
-            border: 1px solid #9afc97;
-            border-radius: 12px;
-            width: 320px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            cursor: grab;
-        }
-        .popup-player:active {
-            cursor: grabbing;
-        }
-        .popup-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem 0.8rem;
-            background: rgba(0,0,0,0.5);
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
-            cursor: grab;
-            user-select: none;
-        }
-        .popup-header:active {
-            cursor: grabbing;
-        }
-        .popup-title {
-            font-size: 0.8rem;
+            bottom: 16px;
+            right: 16px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 10px;
             font-family: monospace;
-            color: #9afc97;
+            color: #ccc;
+            pointer-events: none;
+            z-index: 25;
         }
-        .popup-close {
-            background: none;
+        .startup-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: transparent;
+            padding: 16px 24px;
+            color: #ffffff;
+            font-family: monospace;
+            font-size: 16px;
+            text-align: center;
+            z-index: 100;
+            pointer-events: none;
+            white-space: nowrap;
             border: none;
-            color: #9afc97;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 0 0.2rem;
-            line-height: 1;
+            text-shadow: none;
         }
-        .popup-close:hover {
-            opacity: 0.7;
-        }
-        .popup-content {
-            padding: 0.8rem;
-        }
-        .popup-content iframe {
-            width: 100%;
-            height: 180px;
-            border: none;
-            border-radius: 8px;
-        }
-        body.light-bg .popup-player {
-            background-color: #f5f3ef;
-            border-color: #2c2c2c;
-        }
-        body.light-bg .popup-title {
-            color: #2c2c2c;
-        }
-        body.light-bg .popup-close {
-            color: #2c2c2c;
-        }
-        body.light-bg .popup-header {
-            background: rgba(0,0,0,0.05);
+        .mobile-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(16px);
+            padding: 20px 30px;
+            border-radius: 24px;
+            color: #ffffff;
+            font-family: monospace;
+            font-size: 16px;
+            text-align: center;
+            z-index: 200;
+            border: 1px solid #9afc97;
+            white-space: normal;
+            max-width: 85%;
+            pointer-events: none;
         }
         @media (max-width: 640px) {
-            .popup-player {
-                width: 260px;
-            }
+            .band-btn { font-size: 9px; padding: 4px 8px; }
+            .score-level, .fail-counter { font-size: 9px; padding: 4px 8px; }
+            .startup-message { font-size: 14px; white-space: normal; width: 90%; }
+            .mobile-message { font-size: 14px; padding: 16px 24px; }
         }
         @media (max-width: 480px) {
-            .popup-player {
-                width: 240px;
-            }
+            .startup-message { font-size: 12px; }
         }
-
-        /* Mobile header – simplified (no Resonance button) */
-        .mobile-second-row {
-            display: none;
-        }
-        .episode-dropdown {
-            display: none;
-        }
-
-        @media (max-width: 640px) {
-            .content { padding: 0.8rem; }
-            .nav-bar {
-                padding: 0.6rem 0.8rem 0.6rem 0.8rem;
-                margin-bottom: 0.5rem;
-                flex-direction: column;
-            }
-            .schedule-note { font-size: 0.9rem; }
-            .archive-link-mobile {
-                color: inherit !important;
-            }
-            .archive-link-mobile:hover {
-                opacity: 0.7;
-            }
-            .nav-bar-desktop { flex-direction: column; gap: 0.6rem; }
-            .nav-left { width: 100%; justify-content: space-between; }
-            .nav-right { display: none; }
-            .mobile-second-row {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                width: 100%;
-                margin-top: 0.2rem;
-            }
-            .archive-link-mobile {
-                font-size: 0.85rem;
-                text-decoration: none;
-                color: inherit;
-                white-space: nowrap;
-            }
-            .episode-dropdown {
-                display: block;
-                flex-shrink: 1;
-                min-width: 0;
-            }
-            .episode-dropdown select {
-                background: transparent;
-                border: 1px solid #9afc97;
-                border-radius: 20px;
-                padding: 0.2rem 0.6rem;
-                font-size: 0.75rem;
-                font-family: monospace;
-                color: inherit;
-                cursor: pointer;
-                width: auto;
-                max-width: 140px;
-            }
-            .color-buttons { gap: 0.3rem; }
-            .episode-grid { grid-template-columns: 1fr; gap: 1rem; }
-            .marquee-content { animation-duration: 35s; }
-            .episode { margin: 2.5rem 0; }
-            .info-section { margin: 2rem 0 4rem; }
-            .picker-panel { position: relative; width: 100%; margin-top: 0.5rem; }
-            .picker-panel.hidden { display: none; }
-            .picker-panel:not(.hidden) { display: flex; }
-        }
-
-        @media (max-width: 480px) {
-            .content { padding: 0.6rem; }
-            .nav-bar { padding: 0.5rem 0.6rem 0.5rem 0.6rem; }
-            .archive-link-mobile { font-size: 0.75rem; }
-            .episode-dropdown select { font-size: 0.7rem; padding: 0.15rem 0.5rem; max-width: 120px; }
-            .marquee-content { animation-duration: 30s; }
+        canvas {
+            display: block;
+            touch-action: none;
         }
     </style>
 </head>
 <body>
-
-<canvas id="asciiCanvas"></canvas>
-
-<div class="content">
-    <div class="nav-bar" id="mainHeader">
-        <div class="nav-bar-desktop">
-            <div class="nav-left">
-                <div class="header-clock" id="liveClock">--:--:--</div>
-                <div class="color-buttons">
-                    <button class="color-btn" id="presetBtn">Grey</button>
-                    <button class="color-btn" id="customBtn">Custom</button>
-                </div>
-            </div>
-            <ul class="nav-right">
-                <li><a href="/archive">Research Archive</a></li>
-                <li><a href="#ep1">Episode 01</a></li>
-                <li><a href="#ep2">Episode 02</a></li>
-                <li><a href="#ep3">Episode 03</a></li>
-                <li><a href="#ep4">Episode 04</a></li>
-                <li><a href="#ep5">Episode 05</a></li>
-                <li><a href="#ep6">Episode 06</a></li>
-            </ul>
-        </div>
-        <div class="mobile-second-row">
-            <a href="/archive" class="archive-link-mobile">Research Archive</a>
-            <div class="episode-dropdown">
-                <select id="mobileEpisodeSelect">
-                    <option value="#ep1">Episode 01</option>
-                    <option value="#ep2">Episode 02</option>
-                    <option value="#ep3">Episode 03</option>
-                    <option value="#ep4">Episode 04</option>
-                    <option value="#ep5">Episode 05</option>
-                    <option value="#ep6">Episode 06</option>
-                </select>
-            </div>
-        </div>
-        <div id="customPicker" class="picker-panel hidden">
-            <div class="color-input-group">
-                <label>Color:</label>
-                <input type="color" id="hexColor" value="#adadad">
-            </div>
-            <div class="color-input-group">
-                <label>Opacity:</label>
-                <input type="range" id="alphaSlider" min="0" max="1" step="0.01" value="1">
-            </div>
-            <div class="rgba-value" id="rgbaValue">rgba(173,173,173,1)</div>
-        </div>
+<div class="top-bar">
+    <div class="band-buttons" id="bandButtons">
+        <button class="band-btn" data-band="c">C (261 Hz)</button>
+        <button class="band-btn" data-band="db">D♭ (277 Hz)</button>
+        <button class="band-btn" data-band="e">E (329 Hz)</button>
+        <button class="band-btn" data-band="f">F♯ (369 Hz)</button>
+        <button class="band-btn" data-band="g">G♯ (415 Hz)</button>
+        <button class="band-btn" data-band="a">A♯ (466 Hz)</button>
+        <button class="band-btn" data-band="b">B (493 Hz)</button>
     </div>
-
-    <section id="info" class="info-section">
-        <div class="info-stack">
-            <div class="contact-text">
-                If you’d like to submit audio, field recordings, archival material, or have an idea for a collaboration, please get in touch!
-            </div>
-            <div class="marquee-container">
-                <div class="marquee-content marquee-text">
-                    A monthly open-form radio series that progresses through live electronics, field recordings, and archival fragments. The title emerges from waves that remain imperceptible even as they are heard and felt. The series follows these signals as forms of vibration moving through aetheric conditions in bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, tracing rupture, resistance, and repair within border zones, technological networks, and contested terrains.&nbsp;&nbsp;&nbsp;
-                </div>
-            </div>
-            <div class="right-col-bottom">
-                <strong>Invisible Signals</strong>
-                <a href="mailto:seirynx@mailfence.com">contact</a>
-                <div class="schedule-note">
-                    <div>Next broadcast: 28.05.2026 at 16:30 (London)</div>
-                    <div class="countdown" id="countdownTimer">--d --h --m --s</div>
-                </div>
-                <a href="/sound" class="resonance-mobile-link">Waiting Room</a>
-                <a href="#" id="resonanceLinkMobile" class="resonance-mobile-link">Listen to Resonance FM</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- EPISODES (unchanged) -->
-    <section id="ep1" class="episode">
-        <div class="episode-grid">
-            <div class="episode-title-left">Episode 01</div>
-            <div class="episode-desc">
-                <div class="bodycopy-2">A monthly open-form radio series that progresses through live electronics, field recordings, and archival fragments. The title emerges from waves that remain imperceptible even as they are heard and felt. The series follows these signals as forms of vibration moving through aetheric conditions in bodies, environments, and infrastructural systems. Each episode moves between sonic essay, radio play, and live composition, tracing rupture, resistance, and repair within border zones, technological networks, and contested terrains. Presented by artist and researcher <a href="https://florence-to.com/" target="_blank" rel="noopener noreferrer">Florence To</a>.</div>
-                <img src="images/episode_01.gif" alt="Episode 01 visual" style="display: block; margin: 1.5rem 0; max-width: 100%; height: auto; border-radius: 4px;">
-                <div style="margin-top: 1.5rem;"><span class="grey-caption">INSERT TRACK LISTING</span></div>
-            </div>
-        </div>
-    </section>
-
-    <section id="ep2" class="episode">
-        <div class="episode-grid">
-            <div class="episode-title-left">Episode 02</div>
-            <div class="episode-desc">
-                <div class="bodycopy-2">Details for this episode will be announced soon.</div>
-                <div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div>
-            </div>
-        </div>
-    </section>
-
-    <section id="ep3" class="episode">
-        <div class="episode-grid">
-            <div class="episode-title-left">Episode 03</div>
-            <div class="episode-desc">
-                <div class="bodycopy-2">Details for this episode will be announced soon.</div>
-                <div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div>
-            </div>
-        </div>
-    </section>
-
-    <section id="ep4" class="episode">
-        <div class="episode-grid">
-            <div class="episode-title-left">Episode 04</div>
-            <div class="episode-desc">
-                <div class="bodycopy-2">Details for this episode will be announced soon.</div>
-                <div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div>
-            </div>
-        </div>
-    </section>
-
-    <section id="ep5" class="episode">
-        <div class="episode-grid">
-            <div class="episode-title-left">Episode 05</div>
-            <div class="episode-desc">
-                <div class="bodycopy-2">Details for this episode will be announced soon.</div>
-                <div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div>
-            </div>
-        </div>
-    </section>
-
-    <section id="ep6" class="episode">
-        <div class="episode-grid">
-            <div class="episode-title-left">Episode 06</div>
-            <div class="episode-desc">
-                <div class="bodycopy-2">Details for this episode will be announced soon.</div>
-                <div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div>
-            </div>
-        </div>
-    </section>
+    <div class="score-level" id="scoreLevel">0</div>
+    <div class="fail-counter" id="failCounter">0/18</div>
 </div>
-
-<!-- Popup player -->
-<div id="resonancePopup" class="popup-player" style="display: none; top: 20px; left: 20px;">
-    <div class="popup-header" id="popupHeader">
-        <span class="popup-title">Resonance FM</span>
-        <button class="popup-close" id="closePopup">&times;</button>
-    </div>
-    <div class="popup-content">
-        <iframe src="http://player.resonancefm.com/" title="Resonance FM player"></iframe>
-    </div>
-</div>
+<a href="/" class="back-link">← radio</a>
+<div class="instruction">press 1‑7 to match dots</div>
+<div id="startupMsg" class="startup-message">press 1 to begin</div>
 
 <script>
-    // ========== ASCII WAVE PARTICLES (unchanged) ==========
-    const canvas = document.getElementById('asciiCanvas');
-    let ctx = canvas.getContext('2d');
-    let particles = [];
-    let width = window.innerWidth;
-    let height = window.innerHeight;
-    const chars = ['/', '\\', '|', '-', '_', '+', '.', '·'];
-
-    let mouseX = null, mouseY = null;
-    const MAGNET_RADIUS = 150;
-    const MAGNET_STRENGTH = 0.15;
-    const MAX_SPEED = 1.5;
-
-    function resizeCanvas() {
-        width = window.innerWidth;
-        height = window.innerHeight;
-        canvas.width = width;
-        canvas.height = height;
-        initParticles();
+    // ================================================================
+    // MOBILE DETECTION – show message and disable game on mobile
+    // ================================================================
+    function isMobileDevice() {
+        return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
 
-    function initParticles() {
-        let particleCount = Math.floor(width * height / 8000);
-        particleCount = Math.min(500, Math.max(150, particleCount));
-        particles = [];
-        const isMobile = width < 640;
-        const minSize = isMobile ? 10 : 12;
-        const maxSize = isMobile ? 20 : 24;
-        for (let i = 0; i < particleCount; i++) {
-            particles.push({
-                x: Math.random() * width,
-                y: Math.random() * height,
-                char: chars[Math.floor(Math.random() * chars.length)],
-                vx: (Math.random() - 0.5) * 0.3,
-                vy: (Math.random() - 0.5) * 0.2 + 0.1,
-                size: minSize + Math.random() * (maxSize - minSize),
-                opacity: 0.3 + Math.random() * 0.5
-            });
+    if (isMobileDevice()) {
+        // Remove any interactive elements and show a message
+        document.body.innerHTML = `
+            <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:black; display:flex; align-items:center; justify-content:center; z-index:1000; font-family:monospace; padding:20px;">
+                <div style="background:rgba(0,0,0,0.9); border:1px solid #9afc97; border-radius:24px; padding:24px; max-width:90%; text-align:center; color:#9afc97;">
+                    This game is designed for desktop browsers such as Firefox.<br><br>Please visit on a computer.
+                    <br><br><a href="/" style="color:#9afc97; text-decoration:underline;">← back to radio</a>
+                </div>
+            </div>
+        `;
+        // Stop execution – no p5 game will load
+        throw new Error("Game blocked on mobile");
+    }
+
+    // ================================================================
+    // GAME CODE (only runs on desktop)
+    // ================================================================
+    let audioStarted = false;
+    let reverb;
+
+    const noteFreqs = {
+        1: 261.63, 2: 277.18, 3: 329.63, 4: 369.99, 5: 415.30, 6: 466.16, 7: 493.88
+    };
+    const numberToBand = { 1:'c', 2:'db', 3:'e', 4:'f', 5:'g', 6:'a', 7:'b' };
+    const bandFreqs = {
+        c: 261.63, db: 277.18, e: 329.63, f: 369.99, g: 415.30, a: 466.16, b: 493.88
+    };
+    let bandActive = {
+        c: false, db: false, e: false, f: false, g: false, a: false, b: false
+    };
+    let bandPulse = { c:0, db:0, e:0, f:0, g:0, a:0, b:0 };
+    let bandNames = ['c', 'db', 'e', 'f', 'g', 'a', 'b'];
+    let wavePoints = {};
+
+    // Game state
+    let gameActive = false;
+    let currentTarget = 1;
+    let waitingForInput = true;
+    let roundTimer = null;
+    let correctFlash = 0;
+    let failCount = 0;
+    let correctCount = 0;
+    let pingPongMode = false;
+    let dotOffset = 0;
+    let dotSpeed = 2;
+    let baseDelay = 1500;
+    let currentDelay = 1500;
+
+    let scoreLevelDiv, failCounterDiv, startupMsgDiv;
+
+    function setup() {
+        pixelDensity(1);
+        createCanvas(windowWidth, windowHeight);
+        noStroke();
+        frameRate(60);
+
+        reverb = new p5.Reverb();
+        reverb.set(3, 2);
+
+        for (let band of bandNames) {
+            wavePoints[band] = [];
+            for (let i = 0; i <= width; i += 8) {
+                wavePoints[band].push({x: i, y: height/2});
+            }
+        }
+
+        let btns = selectAll('.band-btn');
+        for (let btn of btns) {
+            let band = btn.attribute('data-band');
+            btn.mousePressed(() => toggleBand(band));
+            btn.touchStarted(() => { toggleBand(band); return false; });
+            btn.addClass('muted');
+        }
+
+        scoreLevelDiv = select('#scoreLevel');
+        failCounterDiv = select('#failCounter');
+        startupMsgDiv = select('#startupMsg');
+        updateUI();
+        background(0);
+    }
+
+    function toggleBand(band) {
+        if (!gameActive && audioStarted) return;
+        bandActive[band] = !bandActive[band];
+        let btn = select(`.band-btn[data-band="${band}"]`);
+        if (bandActive[band]) {
+            btn.addClass('active');
+            btn.removeClass('muted');
+        } else {
+            btn.removeClass('active');
+            btn.addClass('muted');
         }
     }
 
-    function updateParticles() {
-        if (mouseX !== null && mouseY !== null) {
-            for (let p of particles) {
-                let dx = mouseX - p.x;
-                let dy = mouseY - p.y;
-                let dist = Math.hypot(dx, dy);
-                if (dist < MAGNET_RADIUS && dist > 0.01) {
-                    let force = (1 - dist / MAGNET_RADIUS) * MAGNET_STRENGTH;
-                    force = Math.min(force, 0.5);
-                    let angle = Math.atan2(dy, dx);
-                    let ax = Math.cos(angle) * force;
-                    let ay = Math.sin(angle) * force;
-                    p.vx += ax;
-                    p.vy += ay;
-                    let spd = Math.hypot(p.vx, p.vy);
-                    if (spd > MAX_SPEED) {
-                        p.vx = (p.vx / spd) * MAX_SPEED;
-                        p.vy = (p.vy / spd) * MAX_SPEED;
-                    }
+    function activateAllBands() {
+        for (let band of bandNames) {
+            if (!bandActive[band]) {
+                bandActive[band] = true;
+                let btn = select(`.band-btn[data-band="${band}"]`);
+                btn.addClass('active');
+                btn.removeClass('muted');
+            }
+        }
+    }
+
+    function resetAllBandsOff() {
+        for (let band of bandNames) {
+            bandActive[band] = false;
+            let btn = select(`.band-btn[data-band="${band}"]`);
+            btn.removeClass('active');
+            btn.addClass('muted');
+        }
+    }
+
+    function startAudio() {
+        if (audioStarted) return;
+        userStartAudio().then(() => {
+            audioStarted = true;
+        }).catch(e => console.log(e));
+    }
+
+    function dismissStartupMessage() {
+        if (startupMsgDiv && startupMsgDiv.elt) {
+            startupMsgDiv.style('opacity', '0');
+            setTimeout(() => startupMsgDiv.remove(), 500);
+        }
+    }
+
+    function updateUI() {
+        scoreLevelDiv.html(`${correctCount}`);
+        failCounterDiv.html(`${failCount}/18`);
+    }
+
+    function pulseBand(bandId) {
+        bandPulse[bandId] = 1.0;
+    }
+
+    function playNote(num, isCorrect) {
+        let freq = noteFreqs[num];
+        if (!freq) return;
+        let env = new p5.Envelope();
+        if (isCorrect) {
+            env.setADSR(0.01, 0.1, 0.4, 0.3);
+            env.setRange(0.2, 0);
+        } else {
+            env.setADSR(0.01, 0.1, 0.3, 0.2);
+            env.setRange(0.15, 0);
+        }
+        let osc = new p5.Oscillator(isCorrect ? 'sine' : 'triangle');
+        osc.freq(freq);
+        osc.start();
+        env.play(osc);
+        osc.disconnect();
+        osc.connect(reverb);
+        setTimeout(() => { osc.stop(); }, 500);
+    }
+
+    function drawWaveforms() {
+        let t = frameCount;
+        for (let band of bandNames) {
+            if (!bandActive[band]) continue;
+            let freq = bandFreqs[band];
+            let amplitude = 35 + 8 * sin(t * 0.015);
+            let pulseFactor = bandPulse[band];
+            let phase = t * (freq / 1800.0);
+            let points = wavePoints[band];
+            for (let i = 0; i < points.length; i++) {
+                let x = points[i].x;
+                let y = height/2 + sin(x * freq / 7000.0 + phase) * (amplitude + 20 * pulseFactor)
+                                + cos(x * freq / 11000.0) * ((amplitude + 20 * pulseFactor) * 0.5);
+                points[i].y = y;
+            }
+            let alphaBase = 100 + (pulseFactor > 0 ? 150 : 0);
+            stroke(160, 252, 151, constrain(alphaBase, 0, 255));
+            strokeWeight(pulseFactor > 0 ? 1.2 : 0.4);
+            noFill();
+            beginShape();
+            for (let p of points) vertex(p.x, p.y);
+            endShape();
+            if (bandPulse[band] > 0) bandPulse[band] *= 0.92;
+        }
+        // white particles
+        stroke(255, 180);
+        strokeWeight(2);
+        for (let i = 0; i < 40; i++) {
+            let x = (t * 0.8 + i * 70) % width;
+            let y = height/2 + sin(x * 0.01 + t * 0.05) * 30;
+            point(x, y);
+        }
+        let activeCount = bandNames.filter(b => bandActive[b]).length;
+        fill(200,200,200,150);
+        noStroke();
+        textAlign(LEFT, TOP);
+        textSize(10);
+        textFont('monospace');
+        text(`active waves: ${activeCount}`, 15, 65);
+    }
+
+    function drawTargetDots() {
+        if (!gameActive) return;
+        let dia = 28, baseSpacing = 50, total = currentTarget;
+        let maxOffset = 60;
+        if (pingPongMode) {
+            dotOffset += dotSpeed;
+            if (dotOffset > maxOffset || dotOffset < -maxOffset) dotSpeed *= -1;
+        }
+        let startX = width/2 - (total-1)*baseSpacing/2 + dotOffset;
+        for (let i=0; i<total; i++) {
+            fill(255,220);
+            noStroke();
+            circle(startX + i*baseSpacing, height/2, dia);
+            fill(255,80);
+            circle(startX + i*baseSpacing, height/2, dia*0.3);
+        }
+        fill(160,160,160,200);
+        textSize(10);
+        textAlign(CENTER,CENTER);
+        textFont('monospace');
+        text(`speed: ${speedLevel+1} | ${pingPongMode ? 'ping pong' : 'static'}`, width/2, height/2 - 90);
+    }
+
+    function newRound() {
+        if (!gameActive) return;
+        currentTarget = floor(random(1, 8));
+        waitingForInput = true;
+    }
+
+    function correct(num) {
+        playNote(num, true);
+        let band = numberToBand[num];
+        if (band) pulseBand(band);
+        correctFlash = 110;
+        waitingForInput = false;
+        correctCount++;
+        if (correctCount >= 5 && !pingPongMode) pingPongMode = true;
+        if (speedLevel < 18) speedLevel++;
+        currentDelay = max(320, baseDelay - speedLevel * 55);
+        updateUI();
+        if (roundTimer) clearTimeout(roundTimer);
+        roundTimer = setTimeout(() => {
+            if (gameActive) newRound();
+        }, currentDelay);
+    }
+
+    function wrong(num) {
+        playNote(num, false);
+        failCount++;
+        updateUI();
+        correctFlash = 70;
+        if (failCount >= 18) {
+            gameActive = false;
+            if (roundTimer) clearTimeout(roundTimer);
+            resetAllBandsOff();
+            failCounterDiv.html("18/18 · lost");
+        } else {
+            waitingForInput = true;
+        }
+    }
+
+    function startGame() {
+        gameActive = true;
+        failCount = 0;
+        correctCount = 0;
+        speedLevel = 0;
+        pingPongMode = false;
+        dotOffset = 0;
+        currentDelay = baseDelay;
+        updateUI();
+        currentTarget = floor(random(1, 8));
+        waitingForInput = true;
+        if (roundTimer) clearTimeout(roundTimer);
+        activateAllBands();
+    }
+
+    function handleNumber(num) {
+        dismissStartupMessage();
+        startAudio();
+        if (!gameActive) {
+            startGame();
+            setTimeout(() => {
+                if (gameActive && waitingForInput) {
+                    if (num === currentTarget) correct(num);
+                    else wrong(num);
                 }
-            }
-        }
-        for (let p of particles) {
-            p.x += p.vx;
-            p.y += p.vy;
-            if (p.x < -50) p.x = width + 50;
-            if (p.x > width + 50) p.x = -50;
-            if (p.y < -50) p.y = height + 50;
-            if (p.y > height + 50) p.y = -50;
-        }
-    }
-
-    function drawParticles() {
-        if (!ctx) return;
-        ctx.clearRect(0, 0, width, height);
-        ctx.font = '14px "Courier New", monospace';
-        ctx.fillStyle = '#e3ffa9';
-        ctx.textBaseline = 'middle';
-        ctx.textAlign = 'center';
-        for (let p of particles) {
-            ctx.font = `${p.size}px "Courier New", monospace`;
-            ctx.globalAlpha = p.opacity * 0.9;
-            ctx.fillText(p.char, p.x, p.y);
-        }
-        ctx.globalAlpha = 1;
-    }
-
-    function animate() {
-        updateParticles();
-        drawParticles();
-        requestAnimationFrame(animate);
-    }
-
-    function updateMousePosition(clientX, clientY) {
-        const rect = canvas.getBoundingClientRect();
-        if (rect.width === 0 || rect.height === 0) return;
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        let canvasX = (clientX - rect.left) * scaleX;
-        let canvasY = (clientY - rect.top) * scaleY;
-        canvasX = Math.min(Math.max(canvasX, 0), width);
-        canvasY = Math.min(Math.max(canvasY, 0), height);
-        mouseX = canvasX;
-        mouseY = canvasY;
-    }
-
-    window.addEventListener('mousemove', (e) => updateMousePosition(e.clientX, e.clientY));
-    window.addEventListener('mouseleave', () => { mouseX = null; mouseY = null; });
-    window.addEventListener('resize', () => resizeCanvas());
-    resizeCanvas();
-    animate();
-
-    // ========== BACKGROUND COLOR SWITCHER ==========
-    const presetBtn = document.getElementById('presetBtn');
-    const customBtn = document.getElementById('customBtn');
-    const customPicker = document.getElementById('customPicker');
-    const hexColorInput = document.getElementById('hexColor');
-    const alphaSlider = document.getElementById('alphaSlider');
-    const rgbaValueSpan = document.getElementById('rgbaValue');
-
-    let currentPresetIndex = 2;
-    const presets = [
-        { name: 'Dark', bg: '#1c1c1b', light: false },
-        { name: 'Light', bg: '#f5f3ef', light: true },
-        { name: 'Grey', bg: '#adadad', light: true }
-    ];
-
-    function setBackground(color, isLight) {
-        document.body.style.backgroundColor = color;
-        if (isLight) document.body.classList.add('light-bg');
-        else document.body.classList.remove('light-bg');
-    }
-
-    function applyPreset(index) {
-        const p = presets[index % presets.length];
-        setBackground(p.bg, p.light);
-        presetBtn.textContent = p.name;
-        hidePicker();
-    }
-
-    function applyCustomColor(hex, alpha) {
-        let r, g, b;
-        if (hex.startsWith('#')) {
-            r = parseInt(hex.slice(1,3), 16);
-            g = parseInt(hex.slice(3,5), 16);
-            b = parseInt(hex.slice(5,7), 16);
-        } else {
-            r = 173; g = 173; b = 173;
-        }
-        const bgColor = `rgba(${r}, ${g}, ${b}, ${alpha})`;
-        document.body.style.backgroundColor = bgColor;
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        const isLight = luminance > 0.5 || alpha < 0.4;
-        if (isLight) document.body.classList.add('light-bg');
-        else document.body.classList.remove('light-bg');
-        rgbaValueSpan.textContent = `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
-        resetHideTimeout();
-    }
-
-    let hideTimeout = null;
-    function showPicker() {
-        clearTimeout(hideTimeout);
-        customPicker.classList.remove('hidden');
-        const bg = document.body.style.backgroundColor;
-        if (bg && bg.startsWith('rgba')) {
-            const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
-            if (match) {
-                hexColorInput.value = `#${((1 << 24) + (parseInt(match[1]) << 16) + (parseInt(match[2]) << 8) + parseInt(match[3])).toString(16).slice(1)}`;
-                alphaSlider.value = match[4] ? parseFloat(match[4]) : 1;
-            }
-        } else if (bg && bg.startsWith('rgb')) {
-            const match = bg.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-            if (match) {
-                hexColorInput.value = `#${((1 << 24) + (parseInt(match[1]) << 16) + (parseInt(match[2]) << 8) + parseInt(match[3])).toString(16).slice(1)}`;
-                alphaSlider.value = 1;
-            }
-        } else {
-            hexColorInput.value = '#adadad';
-            alphaSlider.value = 1;
-        }
-        const r = parseInt(hexColorInput.value.slice(1,3),16);
-        const g = parseInt(hexColorInput.value.slice(3,5),16);
-        const b = parseInt(hexColorInput.value.slice(5,7),16);
-        const a = parseFloat(alphaSlider.value);
-        rgbaValueSpan.textContent = `rgba(${r},${g},${b},${a.toFixed(2)})`;
-        resetHideTimeout();
-    }
-
-    function hidePicker() {
-        clearTimeout(hideTimeout);
-        customPicker.classList.add('hidden');
-    }
-
-    function resetHideTimeout() {
-        clearTimeout(hideTimeout);
-        hideTimeout = setTimeout(() => hidePicker(), 5000);
-    }
-
-    function bindPickerEvents() {
-        [hexColorInput, alphaSlider, customPicker].forEach(el => {
-            if (!el) return;
-            el.addEventListener('mousemove', resetHideTimeout);
-            el.addEventListener('input', resetHideTimeout);
-            el.addEventListener('click', resetHideTimeout);
-        });
-        customPicker.addEventListener('mouseenter', resetHideTimeout);
-        customPicker.addEventListener('mouseleave', resetHideTimeout);
-    }
-    bindPickerEvents();
-
-    document.addEventListener('click', (event) => {
-        if (!customPicker.classList.contains('hidden')) {
-            if (!customPicker.contains(event.target) && !customBtn.contains(event.target)) hidePicker();
-        }
-    });
-
-    presetBtn.addEventListener('click', () => {
-        currentPresetIndex = (currentPresetIndex + 1) % presets.length;
-        applyPreset(currentPresetIndex);
-    });
-
-    customBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (customPicker.classList.contains('hidden')) showPicker();
-        else hidePicker();
-    });
-
-    function updateCustomColor() {
-        applyCustomColor(hexColorInput.value, parseFloat(alphaSlider.value));
-    }
-    hexColorInput.addEventListener('input', updateCustomColor);
-    alphaSlider.addEventListener('input', updateCustomColor);
-    applyPreset(2);
-
-    // Clock
-    function updateClock() {
-        const now = new Date();
-        document.getElementById('liveClock').textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-    }
-    updateClock();
-    setInterval(updateClock, 1000);
-
-    // Header hide/show
-    let lastScrollTop = 0;
-    const header = document.getElementById('mainHeader');
-    window.addEventListener('scroll', () => {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        if (Math.abs(scrollTop - lastScrollTop) <= 5) return;
-        if (scrollTop > lastScrollTop && scrollTop > 80) header.classList.add('header-hidden');
-        else header.classList.remove('header-hidden');
-        lastScrollTop = scrollTop;
-    });
-
-    // Mobile dropdown
-    const mobileSelect = document.getElementById('mobileEpisodeSelect');
-    if (mobileSelect) {
-        mobileSelect.addEventListener('change', function(e) {
-            const target = e.target.value;
-            if (target) window.location.hash = target;
-        });
-    }
-
-    // Countdown timer
-    function updateCountdown() {
-        const targetDateUTC = Date.UTC(2026, 4, 28, 15, 30, 0);
-        const now = new Date();
-        const nowUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds());
-        const diff = targetDateUTC - nowUTC;
-        const countdownElement = document.getElementById('countdownTimer');
-        if (!countdownElement) return;
-        if (diff <= 0) {
-            countdownElement.textContent = "On air now!";
+            }, 30);
             return;
         }
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (86400000)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (3600000)) / (1000 * 60));
-        const seconds = Math.floor((diff % (60000)) / 1000);
-        countdownElement.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+        if (!waitingForInput) return;
+        if (num === currentTarget) correct(num);
+        else wrong(num);
     }
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
 
-    // Movable popup player – only for mobile link
-    const popup = document.getElementById('resonancePopup');
-    const popupHeader = document.getElementById('popupHeader');
-    let isDragging = false;
-    let offsetX, offsetY;
-
-    function showPopup() {
-        popup.style.display = 'block';
-        if (!popup.style.top || popup.style.top === 'auto') {
-            popup.style.top = '20px';
-            popup.style.left = '20px';
+    function draw() {
+        background(0);
+        drawWaveforms();
+        drawTargetDots();
+        if (correctFlash > 0) {
+            fill(255,255,255, correctFlash*0.25);
+            rect(0,0,width,height);
+            correctFlash -= 6;
         }
     }
 
-    function closePopup(e) {
-        if (e) {
-            e.stopPropagation();
-            e.preventDefault();
+    function keyPressed() {
+        let k = key;
+        if (k >= '1' && k <= '7') {
+            handleNumber(parseInt(k,10));
+            return false;
         }
-        popup.style.display = 'none';
+        return false;
     }
 
-    function startDrag(e) {
-        isDragging = true;
-        const rect = popup.getBoundingClientRect();
-        let clientX, clientY;
-        if (e.touches) {
-            clientX = e.touches[0].clientX;
-            clientY = e.touches[0].clientY;
-        } else {
-            clientX = e.clientX;
-            clientY = e.clientY;
+    function touchStarted() {
+        startAudio();
+        return false;
+    }
+
+    function windowResized() {
+        resizeCanvas(windowWidth, windowHeight);
+        background(0);
+        for (let band of bandNames) {
+            let newPoints = [];
+            for (let i=0; i<=width; i+=8) newPoints.push({x:i, y:height/2});
+            wavePoints[band] = newPoints;
         }
-        offsetX = clientX - rect.left;
-        offsetY = clientY - rect.top;
-        popup.style.cursor = 'grabbing';
-        e.preventDefault();
     }
-
-    function onDrag(e) {
-        if (!isDragging) return;
-        let clientX, clientY;
-        if (e.touches) {
-            clientX = e.touches[0].clientX;
-            clientY = e.touches[0].clientY;
-        } else {
-            clientX = e.clientX;
-            clientY = e.clientY;
-        }
-        let newLeft = clientX - offsetX;
-        let newTop = clientY - offsetY;
-        newLeft = Math.min(Math.max(newLeft, 0), window.innerWidth - popup.offsetWidth);
-        newTop = Math.min(Math.max(newTop, 0), window.innerHeight - popup.offsetHeight);
-        popup.style.left = newLeft + 'px';
-        popup.style.top = newTop + 'px';
-    }
-
-    function stopDrag() {
-        isDragging = false;
-        popup.style.cursor = '';
-    }
-
-    popupHeader.addEventListener('mousedown', startDrag);
-    window.addEventListener('mousemove', onDrag);
-    window.addEventListener('mouseup', stopDrag);
-    popupHeader.addEventListener('touchstart', startDrag);
-    window.addEventListener('touchmove', onDrag);
-    window.addEventListener('touchend', stopDrag);
-
-    const closeBtn = document.getElementById('closePopup');
-    closeBtn.addEventListener('click', closePopup);
-    closeBtn.addEventListener('touchstart', closePopup);
-
-    const resonanceLinkMobile = document.getElementById('resonanceLinkMobile');
-    function openPopupHandler(e) {
-        e.preventDefault();
-        showPopup();
-    }
-    resonanceLinkMobile.addEventListener('click', openPopupHandler);
-    resonanceLinkMobile.addEventListener('touchstart', openPopupHandler);
 </script>
 </body>
 </html>
