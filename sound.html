@@ -65,6 +65,17 @@
             color: #ff8888;
             text-decoration: line-through;
         }
+        .all-on-btn {
+            background: rgba(30,30,40,0.8);
+            border: 1px solid #9afc97;
+            border-radius: 40px;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-family: monospace;
+            color: #9afc97;
+            cursor: pointer;
+            transition: 0.1s;
+        }
         .volume-control {
             display: flex;
             align-items: center;
@@ -157,7 +168,7 @@
             white-space: nowrap;
         }
         @media (max-width: 640px) {
-            .band-btn { font-size: 9px; padding: 4px 8px; }
+            .band-btn, .all-on-btn { font-size: 9px; padding: 4px 8px; }
             .volume-control input { width: 70px; }
             .fail-counter { font-size: 9px; padding: 4px 8px; }
             .startup-message { font-size: 11px; white-space: normal; width: 90%; padding: 12px 16px; top: 20%; }
@@ -179,6 +190,7 @@
         <button class="band-btn muted" data-band="lband" data-freq="350">L‑band (350 Hz)</button>
         <button class="band-btn muted" data-band="kaband" data-freq="5000">Ka‑band (5000 Hz)</button>
         <button class="band-btn muted" data-band="xband" data-freq="1000">X‑band (1000 Hz)</button>
+        <button id="allOnBtn" class="all-on-btn">All On</button>
     </div>
     <div class="volume-control">
         <span>vol</span>
@@ -192,8 +204,9 @@
 
 <script>
     // ================================================================
-    // FINAL RADIO GAME – signal lost text moved lower, no second line,
-    // plain white, monospace, same style as band buttons.
+    // RADIO GAME – All Bands On (parallel filters mix),
+    // visualization 40% brighter, white particles,
+    // chorus intensity reduced 20% for louder notes.
     // ================================================================
 
     let shapes = [];
@@ -204,26 +217,29 @@
     const baseFeedbackFreqs = [110.00, 123.75, 132.00, 137.50, 146.67, 154.66, 165.00];
     const feedbackFreqs = baseFeedbackFreqs.map(f => f * 1.33483985417);
     
-    // Background radio noise (15% quieter)
+    // Multi‑band radio mixer
     let radioNoise;
-    let radioBandFilter;
-    let radioGain;
-    let radioVolumeSlider;
-    let currentBand = "cband";
+    let bandFilters = {};        // one BandPass per band
+    let bandGains = {};          // Gain nodes for each band
+    let masterGain;
     let radioStarted = false;
-    let bandMuted = {
-        cband: false,
-        kuband: true,
-        lband: true,
-        kaband: true,
-        xband: true
-    };
     let lastVolume = 0.28;
+    let allOnMode = false;       // when true, all bands are active simultaneously
+    
+    // Band frequencies and state
+    const bands = {
+        cband: { freq: 600, active: true, color: [154,252,151] },
+        kuband: { freq: 1800, active: false, color: [154,252,151] },
+        lband: { freq: 350, active: false, color: [154,252,151] },
+        kaband: { freq: 5000, active: false, color: [154,252,151] },
+        xband: { freq: 1000, active: false, color: [154,252,151] }
+    };
+    let currentBand = "cband";   // for visualization and solo mode, but all‑on overrides
     
     // Visualization
     let wavePoints = [];
     let bandFreqDisplay = 600;
-    let waveformAlpha = 255;
+    let waveformBrightness = 1.0; // 40% brighter = multiplier 1.4
     
     // Game state
     let gameActive = false;
@@ -249,43 +265,65 @@
         melodicFilter = new p5.LowPass();
         melodicFilter.freq(2200);
         
+        // Background noise source
         radioNoise = new p5.Noise('brown');
-        radioBandFilter = new p5.BandPass();
-        radioBandFilter.res(6);
-        radioGain = new p5.Gain();
-        radioNoise.disconnect();
-        radioNoise.connect(radioBandFilter);
-        radioBandFilter.connect(radioGain);
-        radioGain.connect();
+        radioNoise.amp(0.51);   // 15% quieter base
+        masterGain = new p5.Gain();
         
-        setBand("cband");
-        radioNoise.amp(0.51);
-        radioGain.amp(lastVolume);
+        // Create band‑pass filters and gains for each band
+        for (let [band, info] of Object.entries(bands)) {
+            let bpFilter = new p5.BandPass();
+            bpFilter.freq(info.freq);
+            bpFilter.res(6);
+            let gainNode = new p5.Gain();
+            radioNoise.connect(bpFilter);
+            bpFilter.connect(gainNode);
+            gainNode.connect(masterGain);
+            bandFilters[band] = bpFilter;
+            bandGains[band] = gainNode;
+            // set initial gain: active if that band is current and not all‑on
+            gainNode.amp(info.active ? lastVolume : 0);
+        }
+        masterGain.connect();
+        
+        // Set initial solo mode (only C‑band active)
+        setBandSolo("cband");
         
         radioVolumeSlider = select('#radioVolume');
         radioVolumeSlider.input(() => {
-            let vol = parseFloat(radioVolumeSlider.value());
-            lastVolume = vol;
-            if (!bandMuted[currentBand]) radioGain.amp(vol);
+            lastVolume = parseFloat(radioVolumeSlider.value());
+            updateAllGains();
         });
         
+        // Band buttons – toggle individual bands on/off
         let bandBtns = selectAll('.band-btn');
         for (let btn of bandBtns) {
             btn.mousePressed(() => {
                 let band = btn.attribute('data-band');
-                toggleBandWithFade(band);
+                toggleBand(band);
             });
             btn.touchStarted(() => {
                 let band = btn.attribute('data-band');
-                toggleBandWithFade(band);
+                toggleBand(band);
                 return false;
             });
         }
+        
+        // "All On" button – activate all bands simultaneously
+        let allOnBtn = select('#allOnBtn');
+        allOnBtn.mousePressed(() => {
+            enableAllBands();
+        });
+        allOnBtn.touchStarted(() => {
+            enableAllBands();
+            return false;
+        });
         
         failCounterDiv = select('#failCounter');
         updateFailDisplay();
         startupMsgDiv = select('#startupMsg');
         
+        // Initialize wave points for visualization
         for (let i = 0; i <= width; i += 8) {
             wavePoints.push({x: i, y: height/2});
         }
@@ -293,83 +331,123 @@
         background(0);
     }
     
-    function toggleBandWithFade(band) {
-        let targetMuted = !bandMuted[band];
-        bandMuted[band] = targetMuted;
-        let btn = select(`.band-btn[data-band="${band}"]`);
-        
-        if (currentBand === band) {
-            if (targetMuted) {
-                radioGain.amp(0, 0.5);
-                btn.addClass('muted');
-                btn.removeClass('active');
-                waveformAlpha = 80;
-            } else {
-                radioGain.amp(lastVolume, 0.3);
+    function setBandSolo(band) {
+        // Turn off all bands, then turn on only the selected one
+        for (let b of Object.keys(bands)) {
+            bands[b].active = false;
+            bandGains[b].amp(0);
+        }
+        bands[band].active = true;
+        bandGains[band].amp(lastVolume);
+        currentBand = band;
+        bandFreqDisplay = bands[band].freq;
+        allOnMode = false;
+        // Update button visuals
+        for (let b of Object.keys(bands)) {
+            let btn = select(`.band-btn[data-band="${b}"]`);
+            if (b === band) {
                 btn.removeClass('muted');
                 btn.addClass('active');
-                waveformAlpha = 255;
-            }
-        } else {
-            if (targetMuted) {
+            } else {
                 btn.addClass('muted');
                 btn.removeClass('active');
-            } else {
-                btn.removeClass('muted');
-                btn.removeClass('active');
             }
-        }
-        
-        if (!targetMuted && currentBand !== band) {
-            setBand(band);
-            radioGain.amp(lastVolume, 0.3);
-            waveformAlpha = 255;
-        }
-        
-        if (targetMuted && currentBand === band) {
-            btn.removeClass('active');
-        } else if (!targetMuted && currentBand === band) {
-            waveformAlpha = 255;
         }
     }
     
-    function setBand(band) {
-        currentBand = band;
-        let freqHz;
-        switch(band) {
-            case "cband":  freqHz = 600; break;
-            case "kuband": freqHz = 1800; break;
-            case "lband":  freqHz = 350; break;
-            case "kaband": freqHz = 5000; break;
-            case "xband":  freqHz = 1000; break;
-            default: freqHz = 600;
+    function enableAllBands() {
+        allOnMode = true;
+        for (let b of Object.keys(bands)) {
+            bands[b].active = true;
+            bandGains[b].amp(lastVolume);
+            let btn = select(`.band-btn[data-band="${b}"]`);
+            btn.removeClass('muted');
+            btn.addClass('active');
         }
-        bandFreqDisplay = freqHz;
-        if (radioBandFilter) radioBandFilter.freq(freqHz);
-        if (!bandMuted[band] && radioStarted) radioGain.amp(lastVolume);
-        else if (bandMuted[band]) radioGain.amp(0);
-        
-        for (let b of selectAll('.band-btn')) {
-            let bband = b.attribute('data-band');
-            if (bband === band && !bandMuted[band]) {
-                b.addClass('active');
-                b.removeClass('muted');
-            } else if (bband === band && bandMuted[band]) {
-                b.addClass('muted');
-                b.removeClass('active');
+        // Visualization still shows the last selected band's frequency (or cycle)
+        // But we can choose one for display (e.g., first)
+        currentBand = "cband";
+        bandFreqDisplay = bands.cband.freq;
+    }
+    
+    function toggleBand(band) {
+        if (allOnMode) {
+            // If in all‑on mode, turning off one band exits all‑on mode and goes to solo mixed? Better: exit all‑on and set that band solo
+            allOnMode = false;
+            // Turn all gains to 0
+            for (let b of Object.keys(bands)) {
+                bandGains[b].amp(0);
+                let btn = select(`.band-btn[data-band="${b}"]`);
+                btn.addClass('muted');
+                btn.removeClass('active');
+            }
+            // Then activate the clicked band
+            bands[band].active = true;
+            bandGains[band].amp(lastVolume);
+            currentBand = band;
+            bandFreqDisplay = bands[band].freq;
+            let btn = select(`.band-btn[data-band="${band}"]`);
+            btn.removeClass('muted');
+            btn.addClass('active');
+        } else {
+            // Solo mode: toggle this band on/off
+            let isActive = bands[band].active;
+            if (isActive) {
+                // Turn it off
+                bands[band].active = false;
+                bandGains[band].amp(0);
+                let btn = select(`.band-btn[data-band="${band}"]`);
+                btn.addClass('muted');
+                btn.removeClass('active');
+                // If no band left active, default to C‑band
+                let anyActive = Object.values(bands).some(b => b.active);
+                if (!anyActive) {
+                    bands.cband.active = true;
+                    bandGains.cband.amp(lastVolume);
+                    currentBand = "cband";
+                    bandFreqDisplay = bands.cband.freq;
+                    let cbtn = select(`.band-btn[data-band="cband"]`);
+                    cbtn.removeClass('muted');
+                    cbtn.addClass('active');
+                } else {
+                    // Find the first active band for visualization
+                    for (let b of Object.keys(bands)) {
+                        if (bands[b].active) {
+                            currentBand = b;
+                            bandFreqDisplay = bands[b].freq;
+                            break;
+                        }
+                    }
+                }
             } else {
-                b.removeClass('active');
+                // Turn it on
+                bands[band].active = true;
+                bandGains[band].amp(lastVolume);
+                let btn = select(`.band-btn[data-band="${band}"]`);
+                btn.removeClass('muted');
+                btn.addClass('active');
+                currentBand = band;
+                bandFreqDisplay = bands[band].freq;
             }
         }
-        waveformAlpha = bandMuted[band] ? 80 : 255;
+        updateAllGains();
+    }
+    
+    function updateAllGains() {
+        for (let b of Object.keys(bands)) {
+            if (bands[b].active) {
+                bandGains[b].amp(lastVolume);
+            } else {
+                bandGains[b].amp(0);
+            }
+        }
     }
     
     function startRadioBackground() {
         if (radioStarted) return;
         radioStarted = true;
         radioNoise.start();
-        if (!bandMuted[currentBand]) radioGain.amp(lastVolume);
-        else radioGain.amp(0);
+        updateAllGains();
     }
     
     function dismissStartupMessage() {
@@ -381,10 +459,10 @@
         }
     }
     
+    // Visualization 40% brighter (increase alpha and stroke brightness)
     function drawVisualization() {
         let freq = bandFreqDisplay;
-        let amplitude = 45 + 15 * sin(frameCount * 0.015);
-        if (waveformAlpha < 200) amplitude *= 0.3;
+        let amplitude = 55 + 20 * sin(frameCount * 0.015); // increased amplitude for brightness
         let phase = frameCount * (freq / 1800.0);
         for (let i = 0; i < wavePoints.length; i++) {
             let x = wavePoints[i].x;
@@ -392,42 +470,33 @@
             wavePoints[i].y = y;
         }
         
-        let waveColor = bandMuted[currentBand] ? [100,100,100] : [154,252,151];
-        stroke(waveColor[0], waveColor[1], waveColor[2], waveformAlpha * 0.5);
-        strokeWeight(0.8);
+        let waveColor = bands[currentBand].active ? [154,252,151] : [100,100,100];
+        let alphaMult = 1.4; // 40% brighter
+        stroke(waveColor[0], waveColor[1], waveColor[2], constrain(255 * alphaMult, 0, 255));
+        strokeWeight(1.2);    // slightly thicker for visibility
         noFill();
         beginShape();
         for (let p of wavePoints) vertex(p.x, p.y);
         endShape();
         
-        fill(waveColor[0], waveColor[1], waveColor[2], 200);
+        fill(waveColor[0], waveColor[1], waveColor[2], 220);
         noStroke();
         textAlign(RIGHT, TOP);
         textSize(12);
         textFont('monospace');
         text(`${currentBand.toUpperCase()} ${bandFreqDisplay} Hz`, width - 20, 65);
         
-        stroke(waveColor[0], waveColor[1], waveColor[2], 150);
-        strokeWeight(0.8);
-        for (let i = 0; i < (waveformAlpha > 200 ? 35 : 10); i++) {
+        // Particles – now white (255)
+        stroke(255, 220);
+        strokeWeight(1.2);
+        for (let i = 0; i < 45; i++) {
             let x = (frameCount * (freq / 1800) + i * 55) % width;
-            let y = height/2 + sin(x * freq / 2800 + frameCount * 0.04) * 22 * (waveformAlpha/255);
+            let y = height/2 + sin(x * freq / 2800 + frameCount * 0.04) * 28;
             point(x, y);
         }
     }
     
-    function addFrequencyRipple(noteFreq) {
-        let ripple = {
-            x: width/2,
-            y: height/2,
-            radius: 20,
-            maxRadius: min(width,height) * 0.8,
-            life: 255,
-            freq: noteFreq
-        };
-        ripples.push(ripple);
-    }
-    
+    // Chorus intensity reduced by 20% (detune cents scaled)
     function playFeedbackTone(num) {
         let baseFreq = feedbackFreqs[num-1];
         if (!baseFreq) return;
@@ -438,7 +507,8 @@
         env.setADSR(0.02, 0.15, 0.6, 1.2);
         env.setRange(0.22 * volumeBoost, 0);
         
-        let detunes = [0, 7, -5];
+        // Reduced detune: original [0,7,-5] -> scale 0.8 => [0,5.6,-4] (use 0,6,-4)
+        let detunes = [0, 6, -4];  // approximately 20% less intensity
         let voices = [];
         for (let i = 0; i < detunes.length; i++) {
             let osc = new p5.Oscillator('sine');
@@ -477,6 +547,18 @@
         }, 1800);
     }
     
+    function addFrequencyRipple(noteFreq) {
+        let ripple = {
+            x: width/2,
+            y: height/2,
+            radius: 20,
+            maxRadius: min(width,height) * 0.8,
+            life: 255,
+            freq: noteFreq
+        };
+        ripples.push(ripple);
+    }
+    
     function drawRipples() {
         for (let i = ripples.length-1; i >= 0; i--) {
             let r = ripples[i];
@@ -488,7 +570,7 @@
             }
             noFill();
             stroke(154,252,151, r.life);
-            strokeWeight(1);
+            strokeWeight(1.2);
             circle(r.x, r.y, r.radius * 2);
             let innerRadius = r.radius * (r.freq / 300);
             stroke(255, 200, 100, r.life * 0.6);
@@ -496,6 +578,7 @@
         }
     }
     
+    // Game logic
     function updateSpeed() {
         currentDelay = max(320, baseDelay - (speedLevel * 55));
     }
@@ -594,14 +677,11 @@
             correctFlash -= 6;
         }
         
-        // Game over text: only "signal lost", centered lower, plain white, monospace, no bold
         if (!gameActive) {
-            fill(255, 255, 255);   // pure white
-            noStroke();
+            fill(255, 255, 255);
             textAlign(CENTER, CENTER);
             textSize(20);
             textFont('monospace');
-            // Position it at the vertical center of the waveform (height/2)
             text("signal lost", width/2, height/2);
         }
     }
