@@ -732,8 +732,8 @@
         particleCount = Math.min(500, Math.max(150, particleCount));
         particles = [];
         const isMobile = width < 640;
-        const minSize = isMobile ? 10 : 18;
-        const maxSize = isMobile ? 20 : 36;
+        const minSize = isMobile ? 10 : 12;
+        const maxSize = isMobile ? 20 : 24;
         for (let i = 0; i < particleCount; i++) {
             particles.push({
                 x: Math.random() * width,
