@@ -142,29 +142,30 @@
     <div class="fail-counter" id="failCounter">failures 0/18</div>
 </div>
 <a href="index.html" class="back-link">← radio</a>
-<div class="instruction">press keys 1 2 3 4 5 6 7 → match dots</div>
+<div class="instruction">press 1‑7 to match dots → creates interference</div>
 <div id="startupMsg" class="startup-message">For best performance use Firefox web browser press 1 to start</div>
 
 <script>
     // ================================================================
-    // DISRUPTION GAME – pressing a number creates interference pulses
-    // (amplitude dips) on all active bands. Number of pulses = target.
+    // FIXED VERSION: Independent band toggles, low volume,
+    // correct number = interference pulses on active bands.
     // ================================================================
 
-    let shapes = [];          // visual particles (optional)
     let ripples = [];
 
-    // Each band has its own noise, filter, gain
+    // --- Band setup ---
     const bandIds = ['cband', 'kuband', 'lband', 'kaband', 'xband'];
     const bandFreqs = { cband:600, kuband:1800, lband:350, kaband:5000, xband:1000 };
     let bandActive = { cband:true, kuband:false, lband:false, kaband:false, xband:false };
+    
+    // Audio nodes
     let bandNoises = {};
     let bandFilters = {};
     let bandGains = {};
     let masterGain;
     let radioStarted = false;
 
-    // Waveform storage for each band
+    // Waveform visualization
     let wavePoints = {};
 
     // Game state
@@ -185,12 +186,12 @@
         noStroke();
         frameRate(60);
 
-        // Master gain for all radio bands (fixed low volume)
+        // Master gain – QUIET (0.15)
         masterGain = new p5.Gain();
-        masterGain.amp(0.25);
+        masterGain.amp(0.15);
         masterGain.connect();
 
-        // Create independent band chains
+        // Create each band: independent noise + filter + gain
         for (let band of bandIds) {
             let noise = new p5.Noise('brown');
             noise.amp(0.3);
@@ -242,7 +243,9 @@
     function startRadioBackground() {
         if (radioStarted) return;
         radioStarted = true;
-        for (let band of bandIds) bandNoises[band].start();
+        for (let band of bandIds) {
+            bandNoises[band].start();
+        }
     }
 
     function dismissStartupMessage() {
@@ -252,59 +255,54 @@
         }
     }
 
-    // ------ Disruption effect: N amplitude drops on all active bands ------
+    // --- Interference effect: amplitude dips (volume drops) ---
     function applyDisruption(numPulses) {
         if (numPulses < 1) return;
         let activeBands = bandIds.filter(b => bandActive[b]);
         if (activeBands.length === 0) return;
 
-        let pulseInterval = 120; // milliseconds between pulses
-        let dropLevel = 0.15;     // how low the gain goes during pulse
+        let pulseInterval = 120; // ms
+        let dropLevel = 0.1;     // very quiet during dip
         let originalGains = {};
-
-        // Store original gains for all active bands
         for (let b of activeBands) originalGains[b] = bandGains[b].amp();
 
         let pulseCount = 0;
         let interval = setInterval(() => {
             if (pulseCount >= numPulses) {
-                // Restore all gains to original values
                 for (let b of activeBands) bandGains[b].amp(originalGains[b]);
                 clearInterval(interval);
                 return;
             }
-            // Drop gains
             for (let b of activeBands) bandGains[b].amp(dropLevel);
-            // Restore after 40ms
             setTimeout(() => {
                 for (let b of activeBands) bandGains[b].amp(originalGains[b]);
             }, 40);
             pulseCount++;
         }, pulseInterval);
 
-        // Also add a visual ripple at the center
+        // Visual ripples
         for (let i = 0; i < numPulses; i++) {
             setTimeout(() => {
                 ripples.push({
                     x: width/2, y: height/2, radius: 20,
-                    maxRadius: min(width,height)*0.5, life: 150, freq: numPulses * 100
+                    maxRadius: min(width,height)*0.5, life: 150, freq: numPulses * 80
                 });
             }, i * pulseInterval);
         }
     }
 
-    // ----- Draw stacked waveforms (unchanged) -----
+    // --- Waveform drawing (one per active band) ---
     function drawWaveforms() {
         let t = frameCount;
         for (let band of bandIds) {
             if (!bandActive[band]) continue;
             let freq = bandFreqs[band];
-            let amp = 40 + 10 * sin(t * 0.015);
+            let amplitude = 40 + 10 * sin(t * 0.015);
             let phase = t * (freq / 1800.0);
             let points = wavePoints[band];
             for (let i = 0; i < points.length; i++) {
                 let x = points[i].x;
-                let y = height/2 + sin(x * freq / 7000.0 + phase) * amp + cos(x * freq / 11000.0) * (amp * 0.5);
+                let y = height/2 + sin(x * freq / 7000.0 + phase) * amplitude + cos(x * freq / 11000.0) * (amplitude * 0.5);
                 points[i].y = y;
             }
             stroke(154, 252, 151, 100);
@@ -314,7 +312,8 @@
             for (let p of points) vertex(p.x, p.y);
             endShape();
         }
-        // white particles
+
+        // floating particles
         stroke(255, 180);
         strokeWeight(1);
         for (let i = 0; i < 40; i++) {
@@ -322,6 +321,7 @@
             let y = height/2 + sin(x * 0.01 + t * 0.05) * 30;
             point(x, y);
         }
+
         let activeCount = Object.values(bandActive).filter(v => v).length;
         fill(200,200,200,150);
         noStroke();
@@ -350,11 +350,11 @@
         }
     }
 
-    // ----- Game logic (no melodic tone, just disruption on correct) -----
+    // --- Game logic ---
     function updateSpeed() { currentDelay = max(320, baseDelay - (speedLevel * 55)); }
     function nextRound() { if (gameActive) { currentTarget = floor(random(1,8)); waitingForInput = true; } }
     function onCorrect() {
-        applyDisruption(currentTarget);   // disruption with N pulses
+        applyDisruption(currentTarget);
         correctFlash = 110;
         waitingForInput = false;
         if (speedLevel < 18) speedLevel++;
@@ -391,20 +391,7 @@
         background(0);
         drawWaveforms();
         drawRipples();
-
-        // Optional visual particles (from earlier key presses – not needed but harmless)
-        for (let i=shapes.length-1; i>=0; i--) {
-            let s = shapes[i];
-            s.x += s.vx;
-            s.y += s.vy;
-            s.life -= 5;
-            if (s.life <= 0) { shapes.splice(i,1); continue; }
-            stroke(255, s.life);
-            strokeWeight(1);
-            fill(0,0);
-            circle(s.x, s.y, 10);
-        }
-
+        
         drawTargetDots();
 
         if (correctFlash > 0) {
