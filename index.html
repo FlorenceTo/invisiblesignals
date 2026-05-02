@@ -1,3 +1,4 @@
+<!-- index.html (modified with "Misc" link) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -547,6 +548,13 @@
             .picker-panel { position: relative; width: 100%; margin-top: 0.5rem; }
             .picker-panel.hidden { display: none; }
             .picker-panel:not(.hidden) { display: flex; }
+            .misc-mobile-link {
+                display: inline-block;
+                font-size: 0.85rem;
+                text-decoration: none;
+                color: inherit;
+                margin-left: 0.8rem;
+            }
         }
 
         @media (max-width: 480px) {
@@ -580,6 +588,7 @@
                 <li><a href="#ep4">Episode 04</a></li>
                 <li><a href="#ep5">Episode 05</a></li>
                 <li><a href="#ep6">Episode 06</a></li>
+                <li><a href="sound.html">Misc</a></li> <!-- NEW MISC LINK -->
             </ul>
         </div>
         <div class="mobile-second-row">
@@ -594,6 +603,7 @@
                     <option value="#ep6">Episode 06</option>
                 </select>
             </div>
+            <a href="sound.html" class="misc-mobile-link" style="color:inherit; margin-left:0.5rem;">Misc</a> <!-- MOBILE MISC -->
         </div>
         <div id="customPicker" class="picker-panel hidden">
             <div class="color-input-group">
