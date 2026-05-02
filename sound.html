@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>✦ Crystal Melody ✦ | Musical Game | Invisible Signals</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/addons/p5.sound.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background: radial-gradient(circle at center, #0b1120 0%, #03050a 100%);
+            overflow: hidden;
+            font-family: 'Inter', 'Monument Grotesk Variable', monospace;
+            color: #e3ffa9;
+            touch-action: pan-x pan-y; /* allow scrolling but canvas will capture */
+        }
+        /* Game UI overlays - match main site green (#9afc97) */
+        .game-ui {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            pointer-events: none;
+            z-index: 20;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(12px);
+            width: auto;
+            padding: 0.7rem 1.8rem;
+            border-radius: 60px;
+            border: 1px solid rgba(154, 252, 151, 0.5);
+            font-weight: 500;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            color: #9afc97;
+            white-space: nowrap;
+            font-family: monospace;
+        }
+        .score-board {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(8px);
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            font-family: monospace;
+            font-size: 1.3rem;
+            border-left: 3px solid #9afc97;
+            pointer-events: none;
+            z-index: 20;
+            color: #9afc97;
+            font-weight: 600;
+        }
+        .status {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(8px);
+            padding: 0.4rem 1rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            letter-spacing: 1px;
+            pointer-events: none;
+            z-index: 20;
+            color: #afda8b;
+        }
+        .back-link {
+            position: fixed;
+            bottom: 24px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            text-decoration: none;
+            color: #9afc97;
+            font-family: monospace;
+            z-index: 30;
+            pointer-events: auto;
+            transition: 0.2s;
+            border: 1px solid #9afc97;
+            font-weight: 500;
+        }
+        .back-link:hover, .back-link:active {
+            background: #9afc9722;
+            border-color: #e3ffa9;
+        }
+        .instruction {
+            position: fixed;
+            bottom: 90px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #9afc97;
+            opacity: 0.7;
+            pointer-events: none;
+            background: none;
+            font-family: monospace;
+            letter-spacing: 0.5px;
+        }
+        /* mobile start button (visible until interaction) */
+        .mobile-start-btn {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(16px);
+            border: 2px solid #9afc97;
+            border-radius: 60px;
+            padding: 14px 28px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            font-family: monospace;
+            color: #9afc97;
+            z-index: 100;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: 0.2s;
+            box-shadow: 0 0 20px rgba(154,252,151,0.3);
+            letter-spacing: 2px;
+        }
+        .mobile-start-btn:active {
+            transform: translate(-50%, -50%) scale(0.96);
+            background: #9afc9711;
+        }
+        @media (max-width: 640px) {
+            .game-ui { font-size: 1rem; padding: 0.5rem 1.2rem; white-space: nowrap; bottom: 16px; }
+            .score-board { font-size: 1rem; top: 12px; right: 12px; padding: 0.3rem 1rem; }
+            .status { font-size: 0.7rem; top: 12px; left: 12px; }
+            .back-link { bottom: 16px; left: 12px; padding: 0.4rem 1rem; font-size: 0.75rem; }
+            .instruction { bottom: 70px; font-size: 0.6rem; }
+            .mobile-start-btn { padding: 12px 24px; font-size: 1.2rem; white-space: nowrap; }
+        }
+        @keyframes gentlePulse {
+            0% { text-shadow: 0 0 0px #9afc97; opacity: 0.8; }
+            100% { text-shadow: 0 0 8px #9afc97; opacity: 1; }
+        }
+        .waiting-glow {
+            animation: gentlePulse 1.2s infinite alternate;
+        }
+        canvas {
+            display: block;
+            touch-action: none; /* better for canvas drawing, but keys work */
+        }
+    </style>
+</head>
+<body>
+<div class="score-board">✦ SCORE: <span id="scoreValue">0</span></div>
+<div class="status" id="gameStatus">🎧 TAP TO START</div>
+<div class="game-ui">
+    <span id="displayNote">⚡ CRYSTAL MELODY ⚡</span>
+</div>
+<a href="index.html" class="back-link">← RADIO</a>
+<div class="instruction">🎹 KEYS: A  S  D  F  G  H  J  (crystalline notes)</div>
+
+<!-- Mobile start overlay (will hide after first interaction) -->
+<div id="startOverlay" class="mobile-start-btn">✨ START GAME ✨</div>
+
+<script>
+    // ============================================================
+    // CRYSTAL MELODY GAME - MATCHING MAIN SITE GREEN COLOR (#9afc97)
+    // All shapes: stars, diamonds, hexagons, triangles - no ellipses / no sperm-like
+    // Fully mobile: touch + key events, audio unlock, responsive canvas
+    // ============================================================
+    
+    let shapes = [];           // visual particles (angular gems)
+    let keyMap = {};
+    let reverb, filter;
+    
+    // Main site green accent + complementary warm glow
+    const ACCENT_GREEN = [154, 252, 151];    // #9afc97
+    const GLOW_GREEN = [200, 255, 170];
+    const GOLD_HIGHLIGHT = [255, 210, 120];
+    
+    // Musical scale (C major, dreamy)
+    const scaleFreqs = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88];
+    
+    // Game logic
+    let currentSequence = [];
+    let playerInput = [];
+    let score = 0;
+    let roundActive = false;
+    let waitingForInput = false;
+    let gameStarted = false;
+    let currentNoteIndex = 0;
+    let overlayVisible = true;
+    
+    const keyLetters = ['A', 'S', 'D', 'F', 'G', 'H', 'J'];
+    let keyToIndex = {};
+    
+    // UI elements
+    let scoreSpan, statusDiv, displaySpan, overlayBtn;
+    
+    function setup() {
+        createCanvas(windowWidth, windowHeight);
+        noStroke();
+        
+        // Audio processing: dreamy reverb & filter
+        reverb = new p5.Reverb();
+        reverb.set(3.8, 2.0);
+        filter = new p5.LowPass();
+        filter.freq(1500);
+        
+        // Map keys to frequencies (octave 3/4)
+        for (let i = 0; i < keyLetters.length; i++) {
+            let freq = scaleFreqs[i] * 1.0;
+            keyMap[keyLetters[i]] = freq;
+            keyToIndex[keyLetters[i]] = i;
+        }
+        
+        scoreSpan = select('#scoreValue');
+        statusDiv = select('#gameStatus');
+        displaySpan = select('#displayNote');
+        overlayBtn = select('#startOverlay');
+        
+        // Hide overlay when clicked / touched, start game
+        overlayBtn.mousePressed(startGameFromOverlay);
+        overlayBtn.touchStarted(startGameFromOverlay);
+        
+        // Initially, game not started, show overlay
+        gameStarted = false;
+        waitingForInput = false;
+        roundActive = false;
+        currentSequence = [];
+        playerInput = [];
+        score = 0;
+        updateScoreUI();
+        statusDiv.html("🎧 TAP TO START");
+        displaySpan.html("⚡ CRYSTAL MELODY ⚡");
+        
+        // subtle background
+        background(0);
+    }
+    
+    function startGameFromOverlay() {
+        if (overlayVisible) {
+            overlayVisible = false;
+            overlayBtn.style('display', 'none');
+            // unlock audio context on mobile (user gesture)
+            userStartAudio().then(() => {
+                console.log("audio unlocked");
+                initGame();
+            }).catch(e => {
+                console.log("audio unlock needed, but game will start");
+                initGame();
+            });
+        }
+    }
+    
+    function initGame() {
+        if (gameStarted) return;
+        gameStarted = true;
+        score = 0;
+        currentSequence = [];
+        playerInput = [];
+        updateScoreUI();
+        startNewRound();
+        statusDiv.html("🎵 LET'S PLAY");
+        setTimeout(() => {
+            if(gameStarted && waitingForInput) statusDiv.html("🎧 YOUR TURN");
+            else statusDiv.html("✨ FOLLOW THE NOTES");
+        }, 1500);
+    }
+    
+    function startNewRound() {
+        if (!gameStarted) return;
+        roundActive = true;
+        waitingForInput = false;
+        playerInput = [];
+        // add one random note (0..6)
+        let newNote = floor(random(0, keyLetters.length));
+        currentSequence.push(newNote);
+        playSequence();
+    }
+    
+    function playSequence() {
+        currentNoteIndex = 0;
+        roundActive = false;
+        waitingForInput = false;
+        let interval = setInterval(() => {
+            if (!gameStarted) {
+                clearInterval(interval);
+                return;
+            }
+            if (currentNoteIndex >= currentSequence.length) {
+                clearInterval(interval);
+                roundActive = false;
+                waitingForInput = true;
+                statusDiv.html("🎧 YOUR TURN!");
+                displaySpan.html("?");
+                // add gentle visual cue
+                return;
+            }
+            let noteIdx = currentSequence[currentNoteIndex];
+            let keyChar = keyLetters[noteIdx];
+            playTone(keyChar, true);
+            flashShapeForNote(noteIdx);
+            displaySpan.html(keyChar);
+            currentNoteIndex++;
+        }, 540);
+    }
+    
+    function playTone(keyChar, isSequence = false) {
+        let freq = keyMap[keyChar];
+        if (!freq) return;
+        let osc = new p5.Oscillator('triangle');
+        osc.freq(freq);
+        osc.start();
+        osc.amp(0.28, 0.02);
+        // subtle detune for warmth
+        osc.freq(freq * (1 + random(-0.0018, 0.0018)));
+        osc.disconnect();
+        osc.connect(filter);
+        reverb.process(filter, 1.9, 1.6);
+        let ampObj = new p5.Amplitude();
+        ampObj.setInput(osc);
+        
+        // Crystal shape: star, diamond, hexagon, triangle
+        let shapeTypes = ['star', 'diamond', 'hexagon', 'triangle'];
+        let chosenType = shapeTypes[floor(random(shapeTypes.length))];
+        // Use green accent palette + gold spark
+        let rCol, gCol, bCol;
+        if (random() > 0.3) {
+            rCol = ACCENT_GREEN[0] + random(-20, 10);
+            gCol = ACCENT_GREEN[1] + random(-15, 15);
+            bCol = ACCENT_GREEN[2] + random(-20, 10);
+        } else {
+            rCol = GOLD_HIGHLIGHT[0];
+            gCol = GOLD_HIGHLIGHT[1];
+            bCol = GOLD_HIGHLIGHT[2];
+        }
+        
+        let s = {
+            x: random(width * 0.2, width * 0.8),
+            y: random(height * 0.3, height * 0.7),
+            vx: random(-1.3, 1.3),
+            vy: random(-2.2, -0.6),
+            life: 190,
+            col: [constrain(rCol, 100, 255), constrain(gCol, 150, 255), constrain(bCol, 100, 220)],
+            type: chosenType,
+            rot: random(TWO_PI),
+            osc: osc,
+            amp: ampObj,
+            glow: 170
+        };
+        shapes.push(s);
+        
+        // auto fade out after 1.2s
+        setTimeout(() => {
+            if (osc) osc.amp(0, 0.6);
+        }, 1100);
+    }
+    
+    function flashShapeForNote(noteIdx) {
+        // add a bright star explosion without ellipses
+        let burstCol = [ACCENT_GREEN[0] + 40, ACCENT_GREEN[1], ACCENT_GREEN[2] + 30];
+        let burst = {
+            x: random(width * 0.25, width * 0.75),
+            y: random(height * 0.35, height * 0.65),
+            vx: random(-0.8, 0.8),
+            vy: random(-1.4, -0.2),
+            life: 130,
+            col: burstCol,
+            type: 'star',
+            rot: 0,
+            glow: 200,
+            amp: null
+        };
+        shapes.push(burst);
+    }
+    
+    function handlePlayerInput(keyChar) {
+        if (!gameStarted) {
+            // auto-start via overlay but also key start fallback
+            if (overlayVisible) {
+                overlayBtn.style('display', 'none');
+                overlayVisible = false;
+                userStartAudio();
+                initGame();
+                // then process same key as input after init? better delay
+                setTimeout(() => {
+                    if (gameStarted && waitingForInput) handlePlayerInput(keyChar);
+                }, 100);
+            } else {
+                initGame();
+                setTimeout(() => {
+                    if (gameStarted && waitingForInput) handlePlayerInput(keyChar);
+                }, 100);
+            }
+            return;
+        }
+        
+        if (!waitingForInput) return;
+        
+        let expectedIdx = currentSequence[playerInput.length];
+        let pressedIdx = keyToIndex[keyChar];
+        if (pressedIdx === undefined) return;
+        
+        // always play tone & spawn shape (crystal response)
+        playTone(keyChar, false);
+        
+        if (pressedIdx === expectedIdx) {
+            // correct hit
+            playerInput.push(pressedIdx);
+            statusDiv.html("✨ PERFECT!");
+            // celebratory green diamond
+            let cele = {
+                x: mouseX || width/2, y: mouseY || height/2,
+                vx: random(-1.2,1.2), vy: random(-1.8,-0.3),
+                life: 110, col: ACCENT_GREEN, type: 'diamond', rot: 0, glow: 140
+            };
+            shapes.push(cele);
+            
+            if (playerInput.length === currentSequence.length) {
+                score++;
+                updateScoreUI();
+                statusDiv.html(`✓ ROUND ${score} CLEAR!`);
+                waitingForInput = false;
+                displaySpan.html("🎉");
+                setTimeout(() => {
+                    if (gameStarted) startNewRound();
+                }, 800);
+            } else {
+                // reset status message after short time
+                setTimeout(() => {
+                    if (waitingForInput && gameStarted) statusDiv.html("🎧 YOUR TURN");
+                }, 700);
+            }
+        } else {
+            // wrong note: game over (reset state)
+            statusDiv.html("💔 MISMATCH... GAME OVER");
+            displaySpan.html("🌀");
+            gameStarted = false;
+            waitingForInput = false;
+            roundActive = false;
+            currentSequence = [];
+            playerInput = [];
+            score = 0;
+            updateScoreUI();
+            // stop all active oscillators gently
+            for (let s of shapes) {
+                if (s.osc) s.osc.amp(0, 0.4);
+            }
+            shapes = [];
+            // show restart overlay again? but we let any key restart
+            setTimeout(() => {
+                if (!gameStarted) {
+                    statusDiv.html("🎮 PRESS ANY KEY / TAP");
+                    displaySpan.html("⚡ NEW GAME ⚡");
+                }
+            }, 1200);
+        }
+    }
+    
+    function updateScoreUI() {
+        if (scoreSpan) scoreSpan.html(score);
+    }
+    
+    // ----- DRAW LOOP: all angular shapes, background fade, green hues -----
+    function draw() {
+        // fade effect - deep space
+        background(0, 0, 0, 28);
+        
+        // draw floating crystals
+        for (let i = shapes.length-1; i >= 0; i--) {
+            let s = shapes[i];
+            s.x += s.vx;
+            s.y += s.vy;
+            s.life -= 2.2;
+            
+            // dynamic scale based on amplitude if available
+            let ampScale = 1.0;
+            if (s.amp) {
+                let level = s.amp.getLevel();
+                ampScale = map(level, 0, 0.28, 0.7, 1.7);
+            }
+            
+            push();
+            translate(s.x, s.y);
+            rotate(s.rot + frameCount * 0.025);
+            let alphaVal = constrain(s.life, 0, 220);
+            fill(s.col[0], s.col[1], s.col[2], alphaVal);
+            noStroke();
+            
+            let sizeBase = 24 * ampScale;
+            if (s.type === 'star') {
+                drawStar(0, 0, sizeBase * 0.45, sizeBase, 5);
+            } else if (s.type === 'diamond') {
+                drawDiamond(0, 0, sizeBase);
+            } else if (s.type === 'hexagon') {
+                drawHexagon(0, 0, sizeBase * 0.7);
+            } else {
+                drawTriangle(0, 0, sizeBase);
+            }
+            pop();
+            
+            // subtle glow (greenish aura)
+            if (s.glow > 0) {
+                push();
+                translate(s.x, s.y);
+                fill(ACCENT_GREEN[0], ACCENT_GREEN[1], ACCENT_GREEN[2], s.glow * 0.3);
+                noStroke();
+                ellipse(0, 0, sizeBase * 1.5);
+                s.glow -= 7;
+                pop();
+            }
+            
+            if (s.life <= 0) {
+                if (s.osc) {
+                    s.osc.amp(0, 0.5);
+                    setTimeout(() => { if(s.osc) s.osc.stop(); }, 600);
+                }
+                shapes.splice(i,1);
+            }
+        }
+        
+        // draw resonant wave ribbon (greenish)
+        drawFrequencyRibbon();
+        
+        // if game not started, show gentle pulse on UI
+        if (!gameStarted && !overlayVisible) {
+            statusDiv.style('animation', 'gentlePulse 1.2s infinite alternate');
+        } else {
+            statusDiv.style('animation', 'none');
+        }
+    }
+    
+    // ----- helper drawing functions (geometric, no ellipses as main shapes) -----
+    function drawStar(x, y, radius1, radius2, npoints) {
+        let angle = TWO_PI / npoints;
+        let halfAngle = angle / 2.0;
+        beginShape();
+        for (let a = 0; a < TWO_PI; a += angle) {
+            let sx = x + cos(a) * radius2;
+            let sy = y + sin(a) * radius2;
+            vertex(sx, sy);
+            let sx2 = x + cos(a + halfAngle) * radius1;
+            let sy2 = y + sin(a + halfAngle) * radius1;
+            vertex(sx2, sy2);
+        }
+        endShape(CLOSE);
+    }
+    
+    function drawDiamond(x, y, size) {
+        let half = size/2;
+        beginShape();
+        vertex(x, y - half);
+        vertex(x + half*0.85, y);
+        vertex(x, y + half);
+        vertex(x - half*0.85, y);
+        endShape(CLOSE);
+    }
+    
+    function drawHexagon(x, y, radius) {
+        beginShape();
+        for (let i = 0; i < 6; i++) {
+            let angle = TWO_PI / 6 * i - PI/6;
+            let px = x + cos(angle) * radius;
+            let py = y + sin(angle) * radius;
+            vertex(px, py);
+        }
+        endShape(CLOSE);
+    }
+    
+    function drawTriangle(x, y, size) {
+        let h = size * 0.866;
+        beginShape();
+        vertex(x, y - size*0.65);
+        vertex(x + size*0.65, y + h*0.4);
+        vertex(x - size*0.65, y + h*0.4);
+        endShape(CLOSE);
+    }
+    
+    function drawFrequencyRibbon() {
+        strokeWeight(1.5);
+        stroke(ACCENT_GREEN[0], ACCENT_GREEN[1], ACCENT_GREEN[2], 70);
+        noFill();
+        beginShape();
+        for (let x = 0; x < width; x += 45) {
+            let y = height * 0.5 + sin(x * 0.007 + frameCount * 0.02) * 38 + cos(frameCount * 0.012) * 12;
+            vertex(x, y);
+        }
+        endShape();
+        
+        // tiny floating particles (green dots)
+        strokeWeight(2);
+        stroke(ACCENT_GREEN[0], ACCENT_GREEN[1], ACCENT_GREEN[2], 90);
+        for (let i = 0; i < 20; i++) {
+            let fx = (frameCount * 0.6 + i * 97) % width;
+            let fy = height/2 + sin(frameCount * 0.02 + i) * 30 + cos(i) * 18;
+            point(fx, fy);
+        }
+    }
+    
+    // ----- keyboard & touch interaction -----
+    function keyPressed() {
+        let k = key.toUpperCase();
+        if (keyLetters.includes(k)) {
+            userStartAudio();
+            // if overlay is visible, dismiss and start game then handle input
+            if (overlayVisible) {
+                overlayBtn.style('display', 'none');
+                overlayVisible = false;
+                initGame();
+                setTimeout(() => {
+                    if (gameStarted && waitingForInput) handlePlayerInput(k);
+                    else if (gameStarted && !waitingForInput) {
+                        // just play note anyway? But safe: ignore
+                    }
+                }, 80);
+            } else {
+                handlePlayerInput(k);
+            }
+            return false;
+        }
+        // any other key (space, etc) restarts game if game over + not started
+        if (!gameStarted && !overlayVisible) {
+            initGame();
+            return false;
+        }
+        return false;
+    }
+    
+    function touchStarted() {
+        // for mobile: any touch starts audio & dismiss overlay if needed
+        userStartAudio();
+        if (overlayVisible) {
+            overlayBtn.style('display', 'none');
+            overlayVisible = false;
+            initGame();
+        }
+        // don't prevent default completely, but allow canvas touches
+        return false;
+    }
+    
+    function windowResized() {
+        resizeCanvas(windowWidth, windowHeight);
+        background(0);
+    }
+    
+    // additional safety: if game is not started but overlay hidden, show restart hint
+    function mousePressed() {
+        if (!gameStarted && !overlayVisible) {
+            initGame();
+        }
+        return false;
+    }
+</script>
+</body>
+</html>
