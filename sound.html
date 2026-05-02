@@ -59,6 +59,22 @@
             border-color: #9afc97;
             color: #9afc97;
         }
+        .mute-btn {
+            background: rgba(30,30,40,0.8);
+            border: 1px solid #ff8888;
+            border-radius: 40px;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-family: monospace;
+            color: #ff8888;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .mute-btn.muted {
+            background: #ff888822;
+            border-color: #ff8888;
+            color: #ffaa88;
+        }
         .volume-control {
             display: flex;
             align-items: center;
@@ -96,8 +112,8 @@
             padding: 4px 12px;
             font-size: 11px;
             font-family: monospace;
-            color: #ffaa88;
-            border: 1px solid #ffaa88;
+            color: #ff0000;  /* pure red */
+            border: 1px solid #ff0000;
             white-space: nowrap;
         }
         .back-link {
@@ -130,75 +146,35 @@
             pointer-events: none;
             z-index: 25;
         }
-        /* Circular number buttons (touch targets) */
-        .number-panel {
-            position: fixed;
-            bottom: 80px;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: center;
-            gap: 14px;
-            flex-wrap: wrap;
-            padding: 12px 16px;
-            z-index: 40;
-            pointer-events: none;
-        }
-        .num-btn {
-            pointer-events: auto;
-            background: rgba(30,30,40,0.9);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.6);
-            border-radius: 50%;
-            width: 56px;
-            height: 56px;
-            text-align: center;
-            line-height: 56px;
-            font-size: 26px;
-            font-weight: 500;
-            font-family: 'Inter', monospace;
-            color: white;
-            cursor: pointer;
-            transition: 0.05s linear;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-        }
-        .num-btn:active {
-            transform: scale(0.92);
-            background: #9afc9733;
-            border-color: #9afc97;
-        }
-        /* startup message fade */
+        /* startup message – white text, higher position */
         .startup-message {
             position: fixed;
-            bottom: 50%;
+            top: 25%;
             left: 50%;
             transform: translate(-50%, -50%);
             background: rgba(0,0,0,0.85);
             backdrop-filter: blur(12px);
             padding: 16px 24px;
             border-radius: 40px;
-            color: #9afc97;
+            color: #ffffff;  /* white text */
             font-family: monospace;
             font-size: 14px;
             text-align: center;
             z-index: 100;
             pointer-events: none;
-            border: 1px solid #9afc97;
+            border: 1px solid #ffffff;
             max-width: 85%;
             transition: opacity 1s ease;
             white-space: nowrap;
         }
         @media (max-width: 640px) {
-            .num-btn { width: 48px; height: 48px; line-height: 48px; font-size: 22px; }
-            .number-panel { gap: 10px; bottom: 70px; }
-            .band-btn { font-size: 9px; padding: 4px 8px; }
+            .band-btn, .mute-btn { font-size: 9px; padding: 4px 8px; }
             .volume-control input { width: 70px; }
             .fail-counter { font-size: 9px; padding: 4px 8px; }
-            .startup-message { font-size: 11px; white-space: normal; width: 90%; padding: 12px 16px; }
+            .startup-message { font-size: 11px; white-space: normal; width: 90%; padding: 12px 16px; top: 20%; }
         }
         @media (max-width: 480px) {
-            .num-btn { width: 42px; height: 42px; line-height: 42px; font-size: 20px; }
-            .number-panel { gap: 8px; }
+            .startup-message { font-size: 10px; top: 18%; }
         }
         canvas {
             display: block;
@@ -214,6 +190,7 @@
         <button class="band-btn" data-band="lband">L‑band</button>
         <button class="band-btn" data-band="kaband">Ka‑band</button>
         <button class="band-btn" data-band="xband">X‑band</button>
+        <button id="muteBandBtn" class="mute-btn">Mute band</button>
     </div>
     <div class="volume-control">
         <span>vol</span>
@@ -222,14 +199,13 @@
     <div class="fail-counter" id="failCounter">failures 0/18</div>
 </div>
 <a href="index.html" class="back-link">← radio</a>
-<div class="instruction">tap circles → match dots</div>
-<div class="number-panel" id="numberPanel"></div>
-<div id="startupMsg" class="startup-message">🎧 for best experience use Firefox browser<br>tap any number to start</div>
+<div class="instruction">press keys 1 2 3 4 5 6 7 → match dots</div>
+<div id="startupMsg" class="startup-message">for best experience use Firefox browser<br>press any number key to start</div>
 
 <script>
     // ================================================================
-    // RADIO SIGNAL GAME – fully mobile, circular number buttons,
-    // audible frequency bands (200-8000 Hz), startup message fades.
+    // RADIO SIGNAL GAME – keyboard only (no on‑screen buttons)
+    // Mute band toggle, pure red failures, white startup message.
     // ================================================================
 
     let shapes = [];            // floating white outline circles (no trails)
@@ -253,6 +229,8 @@
     let radioVolumeSlider;
     let currentBand = "cband";
     let radioStarted = false;
+    let isMuted = false;
+    let lastVolume = 0.28;
 
     // Game state
     let gameActive = false;
@@ -292,10 +270,13 @@
         setBand("cband");
         radioNoise.amp(0.6);
         radioGain.amp(0.28);
+        lastVolume = 0.28;
         
         radioVolumeSlider = select('#radioVolume');
         radioVolumeSlider.input(() => {
-            if (radioGain) radioGain.amp(parseFloat(radioVolumeSlider.value()));
+            let vol = parseFloat(radioVolumeSlider.value());
+            if (!isMuted) radioGain.amp(vol);
+            lastVolume = vol;
         });
         
         // Band buttons (inline)
@@ -317,18 +298,13 @@
         }
         select('.band-btn[data-band="cband"]').addClass('active');
         
+        // Mute band button
+        let muteBtn = select('#muteBandBtn');
+        muteBtn.mousePressed(toggleMute);
+        muteBtn.touchStarted(() => { toggleMute(); return false; });
+        
         failCounterDiv = select('#failCounter');
         updateFailDisplay();
-        
-        // Create circular number buttons (1-7)
-        let panel = select('#numberPanel');
-        for (let i = 1; i <= 7; i++) {
-            let btn = createButton(str(i));
-            btn.addClass('num-btn');
-            btn.parent(panel);
-            btn.mousePressed(() => handleNumberPress(i));
-            btn.touchStarted(() => { handleNumberPress(i); return false; });
-        }
         
         // Startup message
         startupMsgDiv = select('#startupMsg');
@@ -336,16 +312,30 @@
         background(0);
     }
     
-    // Set band to audible frequencies (200-8000 Hz) – all bands now produce sound
+    function toggleMute() {
+        isMuted = !isMuted;
+        let muteBtn = select('#muteBandBtn');
+        if (isMuted) {
+            radioGain.amp(0);
+            muteBtn.addClass('muted');
+            muteBtn.html('Unmute band');
+        } else {
+            radioGain.amp(lastVolume);
+            muteBtn.removeClass('muted');
+            muteBtn.html('Mute band');
+        }
+    }
+    
+    // Set band to audible frequencies (200-8000 Hz) – all bands audible
     function setBand(band) {
         currentBand = band;
         let freqHz;
         switch(band) {
-            case "cband":  freqHz = 600; break;   // C-band: 600 Hz (warm)
-            case "kuband": freqHz = 1800; break;  // Ku-band: 1.8 kHz
-            case "lband":  freqHz = 350; break;   // L-band: 350 Hz
-            case "kaband": freqHz = 5000; break;  // Ka-band: 5 kHz (clearly audible)
-            case "xband":  freqHz = 1000; break;  // X-band: 1 kHz
+            case "cband":  freqHz = 600; break;
+            case "kuband": freqHz = 1800; break;
+            case "lband":  freqHz = 350; break;
+            case "kaband": freqHz = 5000; break;
+            case "xband":  freqHz = 1000; break;
             default: freqHz = 600;
         }
         if (radioBandFilter) radioBandFilter.freq(freqHz);
@@ -355,7 +345,7 @@
         if (radioStarted) return;
         radioStarted = true;
         radioNoise.start();
-        radioGain.amp(parseFloat(radioVolumeSlider.value()));
+        radioGain.amp(isMuted ? 0 : lastVolume);
     }
     
     // fade and remove startup message on first interaction
@@ -409,7 +399,7 @@
             textFont('monospace');
             text("signal lost", width/2, height/2 - 40);
             textSize(12);
-            text("tap a number to restart", width/2, height/2 + 20);
+            text("press a number key (1-7) to restart", width/2, height/2 + 20);
         }
     }
     
@@ -524,13 +514,12 @@
     
     function updateFailDisplay() {
         failCounterDiv.html("failures " + failCount + "/18");
-        if (failCount >= 15) failCounterDiv.style('border-color', '#ff8888');
-        else failCounterDiv.style('border-color', '#ffaa88');
+        if (failCount >= 15) failCounterDiv.style('border-color', '#ff0000');
+        else failCounterDiv.style('border-color', '#ff0000');
     }
     
-    // handle both button and keyboard
+    // handle number input (keyboard only)
     function handleNumberPress(num) {
-        // dismiss startup message on first user action
         dismissStartupMessage();
         
         userStartAudio().then(() => {
@@ -555,6 +544,7 @@
         else onWrong();
     }
     
+    // keyboard input only (no touch buttons)
     function keyPressed() {
         let k = key;
         if (['1','2','3','4','5','6','7'].includes(k)) {
@@ -568,6 +558,7 @@
         return false;
     }
     
+    // touch start to enable audio (but no on-screen buttons)
     function touchStarted() {
         userStartAudio().catch(()=>{});
         return false;
