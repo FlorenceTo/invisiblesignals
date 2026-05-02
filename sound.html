@@ -54,26 +54,16 @@
             cursor: pointer;
             transition: 0.1s;
         }
-        .band-btn:active, .band-btn.active {
+        .band-btn.active {
             background: #9afc9722;
             border-color: #9afc97;
             color: #9afc97;
         }
-        .mute-btn {
-            background: rgba(30,30,40,0.8);
-            border: 1px solid #ff8888;
-            border-radius: 40px;
-            padding: 5px 12px;
-            font-size: 11px;
-            font-family: monospace;
-            color: #ff8888;
-            cursor: pointer;
-            transition: 0.1s;
-        }
-        .mute-btn.muted {
-            background: #ff888822;
+        .band-btn.muted {
+            background: rgba(30,30,40,0.5);
             border-color: #ff8888;
-            color: #ffaa88;
+            color: #ff8888;
+            text-decoration: line-through;
         }
         .volume-control {
             display: flex;
@@ -112,7 +102,7 @@
             padding: 4px 12px;
             font-size: 11px;
             font-family: monospace;
-            color: #ff0000;  /* pure red */
+            color: #ff0000;
             border: 1px solid #ff0000;
             white-space: nowrap;
         }
@@ -146,7 +136,6 @@
             pointer-events: none;
             z-index: 25;
         }
-        /* startup message – white text, higher position */
         .startup-message {
             position: fixed;
             top: 25%;
@@ -156,7 +145,7 @@
             backdrop-filter: blur(12px);
             padding: 16px 24px;
             border-radius: 40px;
-            color: #ffffff;  /* white text */
+            color: #ffffff;
             font-family: monospace;
             font-size: 14px;
             text-align: center;
@@ -168,7 +157,7 @@
             white-space: nowrap;
         }
         @media (max-width: 640px) {
-            .band-btn, .mute-btn { font-size: 9px; padding: 4px 8px; }
+            .band-btn { font-size: 9px; padding: 4px 8px; }
             .volume-control input { width: 70px; }
             .fail-counter { font-size: 9px; padding: 4px 8px; }
             .startup-message { font-size: 11px; white-space: normal; width: 90%; padding: 12px 16px; top: 20%; }
@@ -185,12 +174,11 @@
 <body>
 <div class="top-bar">
     <div class="band-buttons" id="bandButtons">
-        <button class="band-btn" data-band="cband">C‑band</button>
-        <button class="band-btn" data-band="kuband">Ku‑band</button>
-        <button class="band-btn" data-band="lband">L‑band</button>
-        <button class="band-btn" data-band="kaband">Ka‑band</button>
-        <button class="band-btn" data-band="xband">X‑band</button>
-        <button id="muteBandBtn" class="mute-btn">Mute band</button>
+        <button class="band-btn" data-band="cband" data-freq="600">C‑band (600 Hz)</button>
+        <button class="band-btn" data-band="kuband" data-freq="1800">Ku‑band (1800 Hz)</button>
+        <button class="band-btn" data-band="lband" data-freq="350">L‑band (350 Hz)</button>
+        <button class="band-btn" data-band="kaband" data-freq="5000">Ka‑band (5000 Hz)</button>
+        <button class="band-btn" data-band="xband" data-freq="1000">X‑band (1000 Hz)</button>
     </div>
     <div class="volume-control">
         <span>vol</span>
@@ -200,27 +188,19 @@
 </div>
 <a href="index.html" class="back-link">← radio</a>
 <div class="instruction">press keys 1 2 3 4 5 6 7 → match dots</div>
-<div id="startupMsg" class="startup-message">for best experience use Firefox browser<br>press any number key to start</div>
+<div id="startupMsg" class="startup-message">Use Firefox browser for best experience<br>press 1 to start</div>
 
 <script>
     // ================================================================
-    // RADIO SIGNAL GAME – keyboard only (no on‑screen buttons)
-    // Mute band toggle, pure red failures, white startup message.
+    // RADIO SIGNAL GAME – keyboard only, band toggles,
+    // generative frequency visualization, smooth envelope.
     // ================================================================
 
-    let shapes = [];            // floating white outline circles (no trails)
+    let shapes = [];
     let reverb, melodicFilter;
     
-    // Just intonation feedback tones (mellow, within minor third)
-    const feedbackFreqs = [
-        110.00,    // 1
-        123.75,    // 2
-        132.00,    // 3
-        137.50,    // 4
-        146.67,    // 5
-        154.66,    // 6
-        165.00     // 7
-    ];
+    // Just intonation feedback tones (mellow)
+    const feedbackFreqs = [110.00, 123.75, 132.00, 137.50, 146.67, 154.66, 165.00];
     
     // Background radio noise
     let radioNoise;
@@ -229,9 +209,20 @@
     let radioVolumeSlider;
     let currentBand = "cband";
     let radioStarted = false;
-    let isMuted = false;
+    let bandMuted = {
+        cband: false,
+        kuband: false,
+        lband: false,
+        kaband: false,
+        xband: false
+    };
     let lastVolume = 0.28;
-
+    
+    // Visualization variables
+    let wavePoints = [];
+    let bandFreqDisplay = 600;
+    let timeOffset = 0;
+    
     // Game state
     let gameActive = false;
     let currentTarget = 1;
@@ -242,10 +233,10 @@
     let speedLevel = 0;
     let baseDelay = 1500;
     let currentDelay = 1500;
-
+    
     let failCounterDiv;
     let startupMsgDiv;
-
+    
     function setup() {
         createCanvas(windowWidth, windowHeight);
         noStroke();
@@ -257,7 +248,7 @@
         melodicFilter = new p5.LowPass();
         melodicFilter.freq(1800);
         
-        // Background radio (brown noise + bandpass) – audible frequencies
+        // Background radio (brown noise + bandpass)
         radioNoise = new p5.Noise('brown');
         radioBandFilter = new p5.BandPass();
         radioBandFilter.res(6);
@@ -275,58 +266,87 @@
         radioVolumeSlider = select('#radioVolume');
         radioVolumeSlider.input(() => {
             let vol = parseFloat(radioVolumeSlider.value());
-            if (!isMuted) radioGain.amp(vol);
+            radioGain.amp(vol);
             lastVolume = vol;
         });
         
-        // Band buttons (inline)
+        // Band buttons – toggle on/off (first click on, second click off)
         let bandBtns = selectAll('.band-btn');
         for (let btn of bandBtns) {
             btn.mousePressed(() => {
                 let band = btn.attribute('data-band');
-                setBand(band);
-                for (let b of bandBtns) b.removeClass('active');
-                btn.addClass('active');
+                toggleBand(band);
             });
             btn.touchStarted(() => {
                 let band = btn.attribute('data-band');
-                setBand(band);
-                for (let b of bandBtns) b.removeClass('active');
-                btn.addClass('active');
+                toggleBand(band);
                 return false;
             });
         }
-        select('.band-btn[data-band="cband"]').addClass('active');
-        
-        // Mute band button
-        let muteBtn = select('#muteBandBtn');
-        muteBtn.mousePressed(toggleMute);
-        muteBtn.touchStarted(() => { toggleMute(); return false; });
         
         failCounterDiv = select('#failCounter');
         updateFailDisplay();
         
-        // Startup message
         startupMsgDiv = select('#startupMsg');
+        
+        // Initialize wave points for visualization
+        for (let i = 0; i <= width; i += 8) {
+            wavePoints.push({x: i, y: height/2});
+        }
         
         background(0);
     }
     
-    function toggleMute() {
-        isMuted = !isMuted;
-        let muteBtn = select('#muteBandBtn');
-        if (isMuted) {
-            radioGain.amp(0);
-            muteBtn.addClass('muted');
-            muteBtn.html('Unmute band');
+    function toggleBand(band) {
+        // If band is currently active (playing), mute it; otherwise unmute and set as active
+        let isCurrentlyMuted = bandMuted[band];
+        if (isCurrentlyMuted) {
+            // unmute
+            bandMuted[band] = false;
+            // if this band becomes the current active band, update filter
+            if (currentBand === band) {
+                setBand(band);
+                radioGain.amp(lastVolume);
+            }
         } else {
+            // mute
+            bandMuted[band] = true;
+            if (currentBand === band) {
+                radioGain.amp(0);
+            }
+        }
+        // Update button appearance
+        let btn = select(`.band-btn[data-band="${band}"]`);
+        if (bandMuted[band]) {
+            btn.addClass('muted');
+        } else {
+            btn.removeClass('muted');
+        }
+        // If we unmuted and it's not the current band, we don't auto-switch – user must click again to select
+        // But we also allow switching bands by clicking again? The original behavior: clicking a band selects it.
+        // Let's implement: if band is muted and we click, unmute and activate it. If band is active and not muted, muting turns it off.
+        // Also, if band is not muted and it's not the current band, we should switch to it.
+        if (!bandMuted[band] && currentBand !== band) {
+            // Switch to this band
+            setBand(band);
             radioGain.amp(lastVolume);
-            muteBtn.removeClass('muted');
-            muteBtn.html('Mute band');
+        }
+        // Update active visual highlight
+        for (let b of selectAll('.band-btn')) {
+            let bband = b.attribute('data-band');
+            if (bband === band && !bandMuted[band]) {
+                b.addClass('active');
+            } else if (bband !== band) {
+                b.removeClass('active');
+            }
+        }
+        if (bandMuted[band]) {
+            btn.removeClass('active');
+        } else {
+            btn.addClass('active');
         }
     }
     
-    // Set band to audible frequencies (200-8000 Hz) – all bands audible
     function setBand(band) {
         currentBand = band;
         let freqHz;
@@ -338,17 +358,24 @@
             case "xband":  freqHz = 1000; break;
             default: freqHz = 600;
         }
-        if (radioBandFilter) radioBandFilter.freq(freqHz);
+        bandFreqDisplay = freqHz;
+        if (radioBandFilter && !bandMuted[band]) {
+            radioBandFilter.freq(freqHz);
+        } else if (bandMuted[band]) {
+            radioBandFilter.freq(freqHz); // still set but gain is 0
+        } else {
+            radioBandFilter.freq(freqHz);
+        }
     }
     
     function startRadioBackground() {
         if (radioStarted) return;
         radioStarted = true;
         radioNoise.start();
-        radioGain.amp(isMuted ? 0 : lastVolume);
+        if (!bandMuted[currentBand]) radioGain.amp(lastVolume);
+        else radioGain.amp(0);
     }
     
-    // fade and remove startup message on first interaction
     function dismissStartupMessage() {
         if (startupMsgDiv && startupMsgDiv.elt) {
             startupMsgDiv.style('opacity', '0');
@@ -358,10 +385,56 @@
         }
     }
     
+    // ----- Generative frequency visualization (waveform based on band freq) -----
+    function drawVisualization() {
+        // Update wave shape based on band frequency
+        let freq = bandFreqDisplay;
+        let amplitude = 40 + 20 * sin(frameCount * 0.02); // subtle breathing
+        let phase = frameCount * (freq / 2000.0); // speed relates to frequency
+        
+        for (let i = 0; i < wavePoints.length; i++) {
+            let x = wavePoints[i].x;
+            // More precise: using sine wave with frequency component
+            let y = height/2 + sin(x * freq / 8000.0 + phase) * amplitude + cos(x * freq / 12000.0) * (amplitude * 0.5);
+            wavePoints[i].y = y;
+        }
+        
+        // Draw the waveform
+        stroke(154, 252, 151, 100);
+        strokeWeight(2);
+        noFill();
+        beginShape();
+        for (let p of wavePoints) {
+            vertex(p.x, p.y);
+        }
+        endShape();
+        
+        // Draw frequency label
+        fill(154, 252, 151, 180);
+        noStroke();
+        textAlign(RIGHT, TOP);
+        textSize(12);
+        textFont('monospace');
+        text(`${currentBand.toUpperCase()} ${bandFreqDisplay} Hz`, width - 20, 60);
+        
+        // Draw small particles that move with frequency (generative)
+        stroke(255, 200);
+        strokeWeight(1.5);
+        for (let i = 0; i < 30; i++) {
+            let x = (frameCount * (freq / 2000) + i * 70) % width;
+            let y = height/2 + sin(x * freq / 3000 + frameCount * 0.05) * 25;
+            point(x, y);
+        }
+    }
+    
     // ----- visual: floating white outline circles (no trails) -----
     function draw() {
         background(0);
         
+        // Draw generative frequency visualization first
+        drawVisualization();
+        
+        // Draw floating circles from key presses
         for (let i = shapes.length-1; i >= 0; i--) {
             let s = shapes[i];
             s.x += s.vx;
@@ -425,13 +498,20 @@
         text("speed: " + (speedLevel + 1), width/2, height/2 - 48);
     }
     
+    // Smooth sound envelope to eliminate click at end
     function playFeedbackTone(num) {
         let freq = feedbackFreqs[num-1];
         if (!freq) return;
+        
         let osc = new p5.Oscillator('sine');
+        let env = new p5.Envelope();
+        env.setADSR(0.01, 0.1, 0.5, 0.4);
+        env.setRange(0.28, 0);
+        
         osc.freq(freq);
         osc.start();
-        osc.amp(0.28, 0.03);
+        env.play(osc);
+        
         osc.freq(freq * (1 + random(-0.003, 0.003)));
         osc.disconnect();
         osc.connect(melodicFilter);
@@ -449,6 +529,11 @@
             amp: ampObj,
             opacity: 200
         });
+        
+        // Schedule stop after envelope finishes
+        setTimeout(() => {
+            if (osc) osc.stop();
+        }, 800);
     }
     
     // game logic
@@ -518,7 +603,6 @@
         else failCounterDiv.style('border-color', '#ff0000');
     }
     
-    // handle number input (keyboard only)
     function handleNumberPress(num) {
         dismissStartupMessage();
         
@@ -544,7 +628,6 @@
         else onWrong();
     }
     
-    // keyboard input only (no touch buttons)
     function keyPressed() {
         let k = key;
         if (['1','2','3','4','5','6','7'].includes(k)) {
@@ -558,7 +641,6 @@
         return false;
     }
     
-    // touch start to enable audio (but no on-screen buttons)
     function touchStarted() {
         userStartAudio().catch(()=>{});
         return false;
@@ -567,6 +649,11 @@
     function windowResized() {
         resizeCanvas(windowWidth, windowHeight);
         background(0);
+        // Reinitialize wave points
+        wavePoints = [];
+        for (let i = 0; i <= width; i += 8) {
+            wavePoints.push({x: i, y: height/2});
+        }
     }
 </script>
 </body>
