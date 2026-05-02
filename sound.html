@@ -59,23 +59,6 @@
             border-color: #9afc97;
             color: #9afc97;
         }
-        .band-btn.muted {
-            background: rgba(255,68,68,0.2);
-            border-color: #ff4444;
-            color: #ff8888;
-            text-decoration: line-through;
-        }
-        .all-on-btn {
-            background: rgba(30,30,40,0.8);
-            border: 1px solid #9afc97;
-            border-radius: 40px;
-            padding: 5px 12px;
-            font-size: 11px;
-            font-family: monospace;
-            color: #9afc97;
-            cursor: pointer;
-            transition: 0.1s;
-        }
         .volume-control {
             display: flex;
             align-items: center;
@@ -168,7 +151,7 @@
             white-space: nowrap;
         }
         @media (max-width: 640px) {
-            .band-btn, .all-on-btn { font-size: 9px; padding: 4px 8px; }
+            .band-btn { font-size: 9px; padding: 4px 8px; }
             .volume-control input { width: 70px; }
             .fail-counter { font-size: 9px; padding: 4px 8px; }
             .startup-message { font-size: 11px; white-space: normal; width: 90%; padding: 12px 16px; top: 20%; }
@@ -185,16 +168,15 @@
 <body>
 <div class="top-bar">
     <div class="band-buttons" id="bandButtons">
-        <button class="band-btn active" data-band="cband" data-freq="600">C‑band (600 Hz)</button>
-        <button class="band-btn muted" data-band="kuband" data-freq="1800">Ku‑band (1800 Hz)</button>
-        <button class="band-btn muted" data-band="lband" data-freq="350">L‑band (350 Hz)</button>
-        <button class="band-btn muted" data-band="kaband" data-freq="5000">Ka‑band (5000 Hz)</button>
-        <button class="band-btn muted" data-band="xband" data-freq="1000">X‑band (1000 Hz)</button>
-        <button id="allOnBtn" class="all-on-btn">All On</button>
+        <button class="band-btn active" data-band="cband">C‑band (600 Hz)</button>
+        <button class="band-btn" data-band="kuband">Ku‑band (1800 Hz)</button>
+        <button class="band-btn" data-band="lband">L‑band (350 Hz)</button>
+        <button class="band-btn" data-band="kaband">Ka‑band (5000 Hz)</button>
+        <button class="band-btn" data-band="xband">X‑band (1000 Hz)</button>
     </div>
     <div class="volume-control">
-        <span>vol</span>
-        <input type="range" id="radioVolume" min="0" max="1" step="0.01" value="0.28">
+        <span>radio vol</span>
+        <input type="range" id="radioVolume" min="0" max="1" step="0.01" value="1.0">
     </div>
     <div class="fail-counter" id="failCounter">failures 0/18</div>
 </div>
@@ -204,29 +186,28 @@
 
 <script>
     // ================================================================
-    // RADIO GAME – All Bands On (parallel filters mix),
-    // visualization 40% brighter, white particles,
-    // chorus intensity reduced 20% for louder notes.
+    // CLEAN RADIO GAME – background bands low volume (25%),
+    // number tones full volume, independent toggles,
+    // stacked waveforms for all active bands.
     // ================================================================
 
     let shapes = [];
     let ripples = [];
     let reverb, melodicFilter;
     
-    // Feedback frequencies raised by 5 semitones
+    // Feedback frequencies (raised 5 semitones)
     const baseFeedbackFreqs = [110.00, 123.75, 132.00, 137.50, 146.67, 154.66, 165.00];
     const feedbackFreqs = baseFeedbackFreqs.map(f => f * 1.33483985417);
     
-    // Multi‑band radio mixer
+    // Radio background – low volume (25% of user slider)
     let radioNoise;
-    let bandFilters = {};        // one BandPass per band
-    let bandGains = {};          // Gain nodes for each band
-    let masterGain;
+    let bandFilters = {};     // BandPass per band
+    let bandGains = {};       // Gain per band
+    let radioMasterGain;      // overall radio gain (fixed 0.25)
+    let userRadioGain;        // slider gain (0-1)
     let radioStarted = false;
-    let lastVolume = 0.28;
-    let allOnMode = false;       // when true, all bands are active simultaneously
     
-    // Band frequencies and state
+    // Band state and frequencies
     const bands = {
         cband: { freq: 600, active: true, color: [154,252,151] },
         kuband: { freq: 1800, active: false, color: [154,252,151] },
@@ -234,12 +215,9 @@
         kaband: { freq: 5000, active: false, color: [154,252,151] },
         xband: { freq: 1000, active: false, color: [154,252,151] }
     };
-    let currentBand = "cband";   // for visualization and solo mode, but all‑on overrides
     
-    // Visualization
-    let wavePoints = [];
-    let bandFreqDisplay = 600;
-    let waveformBrightness = 1.0; // 40% brighter = multiplier 1.4
+    // Waveform storage for each band (multiple layers)
+    let wavePointsMap = {};   // each band stores its own array of points
     
     // Game state
     let gameActive = false;
@@ -254,48 +232,58 @@
     
     let failCounterDiv;
     let startupMsgDiv;
+    let radioSlider;
     
     function setup() {
         createCanvas(windowWidth, windowHeight);
         noStroke();
         frameRate(60);
         
+        // Reverb for number tones (full volume)
         reverb = new p5.Reverb();
         reverb.set(5, 3);
         melodicFilter = new p5.LowPass();
         melodicFilter.freq(2200);
         
-        // Background noise source
+        // Radio noise source
         radioNoise = new p5.Noise('brown');
-        radioNoise.amp(0.51);   // 15% quieter base
-        masterGain = new p5.Gain();
+        radioNoise.amp(0.51);   // base noise level (15% quieter than before)
         
-        // Create band‑pass filters and gains for each band
+        // Master gain for radio background (fixed 25%)
+        radioMasterGain = new p5.Gain();
+        radioMasterGain.amp(0.25);
+        userRadioGain = new p5.Gain();
+        userRadioGain.amp(1.0);   // slider will adjust this
+        
+        // Create per‑band filter and gain
         for (let [band, info] of Object.entries(bands)) {
-            let bpFilter = new p5.BandPass();
-            bpFilter.freq(info.freq);
-            bpFilter.res(6);
-            let gainNode = new p5.Gain();
-            radioNoise.connect(bpFilter);
-            bpFilter.connect(gainNode);
-            gainNode.connect(masterGain);
-            bandFilters[band] = bpFilter;
-            bandGains[band] = gainNode;
-            // set initial gain: active if that band is current and not all‑on
-            gainNode.amp(info.active ? lastVolume : 0);
+            let bp = new p5.BandPass();
+            bp.freq(info.freq);
+            bp.res(6);
+            let gain = new p5.Gain();
+            radioNoise.connect(bp);
+            bp.connect(gain);
+            gain.connect(userRadioGain);
+            bandFilters[band] = bp;
+            bandGains[band] = gain;
+            gain.amp(info.active ? 1.0 : 0.0);  // on/off (later multiplied by master)
+            // prepare waveform points for this band
+            wavePointsMap[band] = [];
+            for (let i = 0; i <= width; i += 8) {
+                wavePointsMap[band].push({x: i, y: height/2});
+            }
         }
-        masterGain.connect();
+        userRadioGain.connect(radioMasterGain);
+        radioMasterGain.connect();
         
-        // Set initial solo mode (only C‑band active)
-        setBandSolo("cband");
-        
-        radioVolumeSlider = select('#radioVolume');
-        radioVolumeSlider.input(() => {
-            lastVolume = parseFloat(radioVolumeSlider.value());
-            updateAllGains();
+        // Volume slider (controls only radio background)
+        radioSlider = select('#radioVolume');
+        radioSlider.input(() => {
+            let val = parseFloat(radioSlider.value());
+            userRadioGain.amp(val);
         });
         
-        // Band buttons – toggle individual bands on/off
+        // Band buttons: simple on/off toggle
         let bandBtns = selectAll('.band-btn');
         for (let btn of bandBtns) {
             btn.mousePressed(() => {
@@ -309,145 +297,33 @@
             });
         }
         
-        // "All On" button – activate all bands simultaneously
-        let allOnBtn = select('#allOnBtn');
-        allOnBtn.mousePressed(() => {
-            enableAllBands();
-        });
-        allOnBtn.touchStarted(() => {
-            enableAllBands();
-            return false;
-        });
-        
         failCounterDiv = select('#failCounter');
         updateFailDisplay();
         startupMsgDiv = select('#startupMsg');
         
-        // Initialize wave points for visualization
-        for (let i = 0; i <= width; i += 8) {
-            wavePoints.push({x: i, y: height/2});
-        }
-        
         background(0);
     }
     
-    function setBandSolo(band) {
-        // Turn off all bands, then turn on only the selected one
-        for (let b of Object.keys(bands)) {
-            bands[b].active = false;
-            bandGains[b].amp(0);
-        }
-        bands[band].active = true;
-        bandGains[band].amp(lastVolume);
-        currentBand = band;
-        bandFreqDisplay = bands[band].freq;
-        allOnMode = false;
-        // Update button visuals
-        for (let b of Object.keys(bands)) {
-            let btn = select(`.band-btn[data-band="${b}"]`);
-            if (b === band) {
-                btn.removeClass('muted');
-                btn.addClass('active');
-            } else {
-                btn.addClass('muted');
-                btn.removeClass('active');
-            }
-        }
-    }
-    
-    function enableAllBands() {
-        allOnMode = true;
-        for (let b of Object.keys(bands)) {
-            bands[b].active = true;
-            bandGains[b].amp(lastVolume);
-            let btn = select(`.band-btn[data-band="${b}"]`);
-            btn.removeClass('muted');
-            btn.addClass('active');
-        }
-        // Visualization still shows the last selected band's frequency (or cycle)
-        // But we can choose one for display (e.g., first)
-        currentBand = "cband";
-        bandFreqDisplay = bands.cband.freq;
-    }
-    
     function toggleBand(band) {
-        if (allOnMode) {
-            // If in all‑on mode, turning off one band exits all‑on mode and goes to solo mixed? Better: exit all‑on and set that band solo
-            allOnMode = false;
-            // Turn all gains to 0
-            for (let b of Object.keys(bands)) {
-                bandGains[b].amp(0);
-                let btn = select(`.band-btn[data-band="${b}"]`);
-                btn.addClass('muted');
-                btn.removeClass('active');
-            }
-            // Then activate the clicked band
-            bands[band].active = true;
-            bandGains[band].amp(lastVolume);
-            currentBand = band;
-            bandFreqDisplay = bands[band].freq;
-            let btn = select(`.band-btn[data-band="${band}"]`);
-            btn.removeClass('muted');
+        bands[band].active = !bands[band].active;
+        let btn = select(`.band-btn[data-band="${band}"]`);
+        if (bands[band].active) {
+            bandGains[band].amp(1.0);
             btn.addClass('active');
+            btn.removeClass('muted');
         } else {
-            // Solo mode: toggle this band on/off
-            let isActive = bands[band].active;
-            if (isActive) {
-                // Turn it off
-                bands[band].active = false;
-                bandGains[band].amp(0);
-                let btn = select(`.band-btn[data-band="${band}"]`);
-                btn.addClass('muted');
-                btn.removeClass('active');
-                // If no band left active, default to C‑band
-                let anyActive = Object.values(bands).some(b => b.active);
-                if (!anyActive) {
-                    bands.cband.active = true;
-                    bandGains.cband.amp(lastVolume);
-                    currentBand = "cband";
-                    bandFreqDisplay = bands.cband.freq;
-                    let cbtn = select(`.band-btn[data-band="cband"]`);
-                    cbtn.removeClass('muted');
-                    cbtn.addClass('active');
-                } else {
-                    // Find the first active band for visualization
-                    for (let b of Object.keys(bands)) {
-                        if (bands[b].active) {
-                            currentBand = b;
-                            bandFreqDisplay = bands[b].freq;
-                            break;
-                        }
-                    }
-                }
-            } else {
-                // Turn it on
-                bands[band].active = true;
-                bandGains[band].amp(lastVolume);
-                let btn = select(`.band-btn[data-band="${band}"]`);
-                btn.removeClass('muted');
-                btn.addClass('active');
-                currentBand = band;
-                bandFreqDisplay = bands[band].freq;
-            }
+            bandGains[band].amp(0);
+            btn.removeClass('active');
+            btn.addClass('muted');
         }
-        updateAllGains();
-    }
-    
-    function updateAllGains() {
-        for (let b of Object.keys(bands)) {
-            if (bands[b].active) {
-                bandGains[b].amp(lastVolume);
-            } else {
-                bandGains[b].amp(0);
-            }
-        }
+        // No "all‑on" or solo mode – each band independent
     }
     
     function startRadioBackground() {
         if (radioStarted) return;
         radioStarted = true;
         radioNoise.start();
-        updateAllGains();
+        // initial gains already set
     }
     
     function dismissStartupMessage() {
@@ -459,56 +335,62 @@
         }
     }
     
-    // Visualization 40% brighter (increase alpha and stroke brightness)
-    function drawVisualization() {
-        let freq = bandFreqDisplay;
-        let amplitude = 55 + 20 * sin(frameCount * 0.015); // increased amplitude for brightness
-        let phase = frameCount * (freq / 1800.0);
-        for (let i = 0; i < wavePoints.length; i++) {
-            let x = wavePoints[i].x;
-            let y = height/2 + sin(x * freq / 7000.0 + phase) * amplitude + cos(x * freq / 11000.0) * (amplitude * 0.6);
-            wavePoints[i].y = y;
+    // ---------- Multiple waveform drawing (all active bands) ----------
+    function drawAllWaveforms() {
+        let time = frameCount;
+        for (let [band, info] of Object.entries(bands)) {
+            if (!info.active) continue;
+            let freq = info.freq;
+            let amplitude = 40 + 10 * sin(time * 0.015);
+            let phase = time * (freq / 1800.0);
+            let points = wavePointsMap[band];
+            for (let i = 0; i < points.length; i++) {
+                let x = points[i].x;
+                let y = height/2 + sin(x * freq / 7000.0 + phase) * amplitude + cos(x * freq / 11000.0) * (amplitude * 0.5);
+                points[i].y = y;
+            }
+            
+            // Draw waveform for this band (semi‑transparent green, 0.6 opacity)
+            stroke(154, 252, 151, 100);
+            strokeWeight(1.0);
+            noFill();
+            beginShape();
+            for (let p of points) vertex(p.x, p.y);
+            endShape();
         }
         
-        let waveColor = bands[currentBand].active ? [154,252,151] : [100,100,100];
-        let alphaMult = 1.4; // 40% brighter
-        stroke(waveColor[0], waveColor[1], waveColor[2], constrain(255 * alphaMult, 0, 255));
-        strokeWeight(1.2);    // slightly thicker for visibility
-        noFill();
-        beginShape();
-        for (let p of wavePoints) vertex(p.x, p.y);
-        endShape();
-        
-        fill(waveColor[0], waveColor[1], waveColor[2], 220);
-        noStroke();
-        textAlign(RIGHT, TOP);
-        textSize(12);
-        textFont('monospace');
-        text(`${currentBand.toUpperCase()} ${bandFreqDisplay} Hz`, width - 20, 65);
-        
-        // Particles – now white (255)
-        stroke(255, 220);
-        strokeWeight(1.2);
-        for (let i = 0; i < 45; i++) {
-            let x = (frameCount * (freq / 1800) + i * 55) % width;
-            let y = height/2 + sin(x * freq / 2800 + frameCount * 0.04) * 28;
+        // Also draw floating white particles (non‑band specific)
+        stroke(255, 180);
+        strokeWeight(1);
+        for (let i = 0; i < 40; i++) {
+            let x = (frameCount * 0.8 + i * 70) % width;
+            let y = height/2 + sin(x * 0.01 + frameCount * 0.05) * 30;
             point(x, y);
         }
+        
+        // Display current active bands count (optional)
+        let activeCount = Object.values(bands).filter(b => b.active).length;
+        fill(200, 200, 200, 150);
+        noStroke();
+        textAlign(LEFT, TOP);
+        textSize(10);
+        textFont('monospace');
+        text(`active bands: ${activeCount}`, 15, 65);
     }
     
-    // Chorus intensity reduced by 20% (detune cents scaled)
+    // ---------- Musical feedback (full volume, reduced chorus) ----------
     function playFeedbackTone(num) {
         let baseFreq = feedbackFreqs[num-1];
         if (!baseFreq) return;
         addFrequencyRipple(baseFreq);
         
-        let volumeBoost = 1.35;
+        let volumeBoost = 1.35;   // full volume
         let env = new p5.Envelope();
         env.setADSR(0.02, 0.15, 0.6, 1.2);
-        env.setRange(0.22 * volumeBoost, 0);
+        env.setRange(0.28 * volumeBoost, 0);
         
-        // Reduced detune: original [0,7,-5] -> scale 0.8 => [0,5.6,-4] (use 0,6,-4)
-        let detunes = [0, 6, -4];  // approximately 20% less intensity
+        // Reduced chorus intensity (20% less: cents 0, ±5 instead of ±7)
+        let detunes = [0, 5, -5];
         let voices = [];
         for (let i = 0; i < detunes.length; i++) {
             let osc = new p5.Oscillator('sine');
@@ -552,7 +434,7 @@
             x: width/2,
             y: height/2,
             radius: 20,
-            maxRadius: min(width,height) * 0.8,
+            maxRadius: min(width,height) * 0.7,
             life: 255,
             freq: noteFreq
         };
@@ -562,8 +444,8 @@
     function drawRipples() {
         for (let i = ripples.length-1; i >= 0; i--) {
             let r = ripples[i];
-            r.radius += 6;
-            r.life -= 5;
+            r.radius += 5;
+            r.life -= 6;
             if (r.radius > r.maxRadius || r.life <= 0) {
                 ripples.splice(i,1);
                 continue;
@@ -572,7 +454,7 @@
             stroke(154,252,151, r.life);
             strokeWeight(1.2);
             circle(r.x, r.y, r.radius * 2);
-            let innerRadius = r.radius * (r.freq / 300);
+            let innerRadius = r.radius * (r.freq / 350);
             stroke(255, 200, 100, r.life * 0.6);
             circle(r.x, r.y, innerRadius * 2);
         }
@@ -648,9 +530,10 @@
     
     function draw() {
         background(0);
-        drawVisualization();
+        drawAllWaveforms();
         drawRipples();
         
+        // Draw floating circles from number presses
         for (let i = shapes.length-1; i >= 0; i--) {
             let s = shapes[i];
             s.x += s.vx;
@@ -750,8 +633,14 @@
     function windowResized() {
         resizeCanvas(windowWidth, windowHeight);
         background(0);
-        wavePoints = [];
-        for (let i = 0; i <= width; i += 8) wavePoints.push({x: i, y: height/2});
+        // re‑initialize waveform points for each band
+        for (let [band, points] of Object.entries(wavePointsMap)) {
+            let newPoints = [];
+            for (let i = 0; i <= width; i += 8) {
+                newPoints.push({x: i, y: height/2});
+            }
+            wavePointsMap[band] = newPoints;
+        }
     }
 </script>
 </body>
