@@ -92,20 +92,6 @@
             z-index: 30;
             transition: opacity 0.2s;
         }
-        .instruction {
-            position: fixed;
-            bottom: 16px;
-            right: 16px;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
-            padding: 4px 10px;
-            border-radius: 30px;
-            font-size: 10px;
-            font-family: monospace;
-            color: #ccc;
-            pointer-events: none;
-            z-index: 25;
-        }
         .startup-message {
             position: fixed;
             top: 50%;
@@ -122,6 +108,7 @@
             white-space: nowrap;
             border: none;
             text-shadow: none;
+            line-height: 1.6;
         }
         @media (max-width: 640px) {
             .band-btn { font-size: 9px; padding: 4px 8px; }
@@ -152,8 +139,7 @@
     <div class="fail-counter" id="failCounter">0/18</div>
 </div>
 <a href="/" class="back-link">← radio</a>
-<div class="instruction">press 1‑7 to match dots</div>
-<div id="startupMsg" class="startup-message">press 1 to begin</div>
+<div id="startupMsg" class="startup-message">press 1-7 to match dots<br>press 1 to begin</div>
 
 <script>
     // ================================================================
@@ -181,7 +167,6 @@
     let audioStarted = false;
     let reverb;
 
-    // Dotted wave visibility – simple boolean
     let showDottedWave = true;
 
     const noteFreqs = {
@@ -198,7 +183,6 @@
     let bandNames = ['c', 'db', 'e', 'f', 'g', 'a', 'b'];
     let wavePoints = {};
 
-    // Game state
     let gameActive = false;
     let currentTarget = 1;
     let waitingForInput = true;
@@ -346,7 +330,6 @@
             if (bandPulse[band] > 0) bandPulse[band] *= 0.92;
         }
 
-        // ----- SINGULAR DOTTED WAVEFORM (shows only when game is not active) -----
         if (showDottedWave) {
             stroke(255, 200);
             strokeWeight(2);
@@ -357,7 +340,6 @@
             }
         }
 
-        // Active bands counter
         let activeCount = bandNames.filter(b => bandActive[b]).length;
         fill(200,200,200,150);
         noStroke();
@@ -423,7 +405,6 @@
             if (roundTimer) clearTimeout(roundTimer);
             resetAllBandsOff();
             failCounterDiv.html("18/18 · lost");
-            // Reappear dotted wave
             showDottedWave = true;
         } else {
             waitingForInput = true;
@@ -443,8 +424,6 @@
         waitingForInput = true;
         if (roundTimer) clearTimeout(roundTimer);
         activateAllBands();
-
-        // Turn off the dotted wave immediately
         showDottedWave = false;
     }
 
