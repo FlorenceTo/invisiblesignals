@@ -21,7 +21,68 @@
             padding: 0;
             box-sizing: border-box;
         }
-
+        /* Links - use the green accent color */
+        a {
+            color: #9afc97;
+            text-decoration: none;
+            transition: opacity 0.2s ease, color 0.2s ease;
+        }
+        a:hover {
+            opacity: 0.7;
+        }
+        
+        /* Override for specific elements that already have link styling */
+        .nav-right a,
+        .right-col-bottom a,
+        .episode-desc a,
+        .contact-text a,
+        .marquee-text a,
+        .schedule-note a,
+        .resonance-mobile-link {
+            color: #9afc97;
+        }
+        /* Keep the dotted border for .right-col-bottom a (if desired) */
+        .right-col-bottom a {
+            border-bottom: 1px dotted #9afc97;
+        }
+        .right-col-bottom a:hover {
+            border-bottom-color: #9afc97;
+            opacity: 0.7;
+        }
+        
+        /* Light mode overrides */
+        body.light-bg a,
+        body.light-bg .nav-right a,
+        body.light-bg .right-col-bottom a,
+        body.light-bg .episode-desc a,
+        body.light-bg .contact-text a,
+        body.light-bg .marquee-text a,
+        body.light-bg .schedule-note a,
+        body.light-bg .resonance-mobile-link {
+            color: #2c6e2c; /* darker green for readability on light backgrounds */
+        }
+        body.light-bg .right-col-bottom a {
+            border-bottom-color: #2c6e2c;
+        }
+        
+        /* Text selection highlight */
+        ::selection {
+            background: #2a2a2a;  /* dark grey */
+            color: #f0f0f0;       /* light text */
+        }
+        ::-moz-selection {
+            background: #2a2a2a;
+            color: #f0f0f0;
+        }
+        
+        body.light-bg ::selection {
+            background: #d0d0d0;   /* light grey on light background */
+            color: #1a1a1a;        /* dark text */
+        }
+        body.light-bg ::-moz-selection {
+            background: #d0d0d0;
+            color: #1a1a1a;
+        }
         body {
             background: #adadad;
             font-family: 'Inter', 'Monument Grotesk Variable', -apple-system, BlinkMacSystemFont, sans-serif;
