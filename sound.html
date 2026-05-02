@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Radio Signal Game | Invisible Signals</title>
+    <title>Signal Interference | Invisible Signals</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/addons/p5.sound.min.js"></script>
     <style>
@@ -38,12 +38,7 @@
             pointer-events: auto;
             font-family: monospace;
         }
-        .band-buttons {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .band-btn {
+        .carrier-toggle {
             background: rgba(30,30,40,0.8);
             border: 1px solid #ff4444;
             border-radius: 40px;
@@ -54,7 +49,7 @@
             cursor: pointer;
             transition: 0.1s;
         }
-        .band-btn.active {
+        .carrier-toggle.active {
             background: #9afc9722;
             border-color: #9afc97;
             color: #9afc97;
@@ -117,7 +112,7 @@
             white-space: nowrap;
         }
         @media (max-width: 640px) {
-            .band-btn { font-size: 9px; padding: 4px 8px; }
+            .carrier-toggle { font-size: 9px; padding: 4px 8px; }
             .fail-counter { font-size: 9px; padding: 4px 8px; }
             .startup-message { font-size: 11px; white-space: normal; width: 90%; padding: 12px 16px; top: 20%; }
         }
@@ -132,42 +127,29 @@
 </head>
 <body>
 <div class="top-bar">
-    <div class="band-buttons" id="bandButtons">
-        <button class="band-btn active" data-band="cband">C‑band (600 Hz)</button>
-        <button class="band-btn" data-band="kuband">Ku‑band (1800 Hz)</button>
-        <button class="band-btn" data-band="lband">L‑band (350 Hz)</button>
-        <button class="band-btn" data-band="kaband">Ka‑band (5000 Hz)</button>
-        <button class="band-btn" data-band="xband">X‑band (1000 Hz)</button>
-    </div>
+    <button id="carrierBtn" class="carrier-toggle active">carrier wave on</button>
     <div class="fail-counter" id="failCounter">failures 0/18</div>
 </div>
 <a href="index.html" class="back-link">← radio</a>
-<div class="instruction">press 1‑7 to match dots → interference</div>
-<div id="startupMsg" class="startup-message">For best performance use Firefox web browser press 1 to start</div>
+<div class="instruction">press 1‑7 to match dots</div>
+<div id="startupMsg" class="startup-message">for best performance use Firefox<br>press 1 to start</div>
 
 <script>
     // ================================================================
-    // FINAL WORKING VERSION: Independent band toggles,
-    // low volume, match dots to trigger interference pulses.
+    // SIMPLE, RELIABLE GAME
+    // - Continuous carrier wave (sine, 440 Hz) with toggle on/off
+    // - On correct match: short interference burst (noise + amplitude dip)
+    // - Visual wave that pulses on correct answer
+    // - No emojis, monospace, green/red
     // ================================================================
 
-    let ripples = [];
-
-    // Band audio setup
-    const bandIds = ['cband', 'kuband', 'lband', 'kaband', 'xband'];
-    const bandFreqs = { cband:600, kuband:1800, lband:350, kaband:5000, xband:1000 };
-    let bandActive = { cband:true, kuband:false, lband:false, kaband:false, xband:false };
-    
-    let bandNoises = {};
-    let bandFilters = {};
-    let bandGains = {};
-    let masterGain;
+    let carrierOsc;
+    let carrierEnv;
+    let carrierOn = true;
+    let carrierGain;
     let audioStarted = false;
 
-    // Waveform visualization points
-    let wavePoints = {};
-
-    // Game state
+    // Game variables
     let gameActive = false;
     let currentTarget = 1;
     let waitingForInput = true;
@@ -178,78 +160,66 @@
     let baseDelay = 1500;
     let currentDelay = 1500;
 
-    let failCounterDiv, startupMsgDiv;
+    // Visual wave points
+    let wavePoints = [];
+    let waveAmp = 40;
+    let wavePulse = 0;   // extra amplitude on correct answer
+
+    let failCounterDiv, startupMsgDiv, carrierBtn;
 
     function setup() {
         createCanvas(windowWidth, windowHeight);
         noStroke();
         frameRate(60);
 
-        // Master gain – quiet (0.15)
-        masterGain = new p5.Gain();
-        masterGain.amp(0.15);
-        masterGain.connect();
+        // Carrier wave: sine at 440 Hz, quiet volume (0.15)
+        carrierOsc = new p5.Oscillator('sine');
+        carrierOsc.freq(440);
+        carrierEnv = new p5.Envelope();
+        carrierEnv.setADSR(0.01, 0.1, 1.0, 0.05);
+        carrierEnv.setRange(0.15, 0);
+        carrierGain = new p5.Gain();
+        carrierOsc.connect(carrierGain);
+        carrierGain.connect();
+        carrierGain.amp(0); // start silent, will be set when carrier toggled on
 
-        // Create each band: independent noise → bandpass → gain → master
-        for (let band of bandIds) {
-            let noise = new p5.Noise('brown');
-            noise.amp(0.3);
-            let bp = new p5.BandPass();
-            bp.freq(bandFreqs[band]);
-            bp.res(6);
-            let gain = new p5.Gain();
-            noise.connect(bp);
-            bp.connect(gain);
-            gain.connect(masterGain);
-            gain.amp(bandActive[band] ? 1.0 : 0.0);
-            bandNoises[band] = noise;
-            bandFilters[band] = bp;
-            bandGains[band] = gain;
-
-            // Waveform points for each band
-            wavePoints[band] = [];
-            for (let i = 0; i <= width; i += 8) {
-                wavePoints[band].push({x: i, y: height/2});
-            }
+        // Visual wave points
+        for (let i = 0; i <= width; i += 8) {
+            wavePoints.push({x: i, y: height/2});
         }
 
-        // UI buttons
-        let btns = selectAll('.band-btn');
-        for (let btn of btns) {
-            btn.mousePressed(() => toggleBand(btn.attribute('data-band')));
-            btn.touchStarted(() => { toggleBand(btn.attribute('data-band')); return false; });
-        }
-
+        // UI elements
         failCounterDiv = select('#failCounter');
         startupMsgDiv = select('#startupMsg');
+        carrierBtn = select('#carrierBtn');
+        carrierBtn.mousePressed(toggleCarrier);
+        carrierBtn.touchStarted(toggleCarrier);
+
         updateFailDisplay();
         background(0);
     }
 
-    // ---------- Band toggling ----------
-    function toggleBand(band) {
+    function toggleCarrier() {
         if (!audioStarted) {
-            // First click: start audio context and all noises
+            // First tap: start audio context and oscillator
             userStartAudio().then(() => {
                 audioStarted = true;
-                for (let b of bandIds) bandNoises[b].start();
-                doToggleBand(band);
+                carrierOsc.start();
+                if (carrierOn) carrierGain.amp(0.15);
+                else carrierGain.amp(0);
             }).catch(e => console.log(e));
         } else {
-            doToggleBand(band);
-        }
-    }
-
-    function doToggleBand(band) {
-        bandActive[band] = !bandActive[band];
-        bandGains[band].amp(bandActive[band] ? 1.0 : 0.0);
-        let btn = select(`.band-btn[data-band="${band}"]`);
-        if (bandActive[band]) {
-            btn.addClass('active');
-            btn.removeClass('muted');
-        } else {
-            btn.removeClass('active');
-            btn.addClass('muted');
+            if (carrierOn) {
+                carrierGain.amp(0);
+                carrierOn = false;
+                carrierBtn.html('carrier wave off');
+                carrierBtn.removeClass('active');
+            } else {
+                carrierGain.amp(0.15);
+                carrierOn = true;
+                carrierBtn.html('carrier wave on');
+                carrierBtn.addClass('active');
+            }
         }
     }
 
@@ -257,7 +227,8 @@
         if (audioStarted) return;
         userStartAudio().then(() => {
             audioStarted = true;
-            for (let b of bandIds) bandNoises[b].start();
+            carrierOsc.start();
+            if (carrierOn) carrierGain.amp(0.15);
         }).catch(e => console.log(e));
     }
 
@@ -268,40 +239,64 @@
         }
     }
 
-    // ---------- Interference effect (gain dips) ----------
-    function applyInterference(pulses) {
-        let activeBands = bandIds.filter(b => bandActive[b]);
-        if (activeBands.length === 0) return;
-        let originalGains = {};
-        for (let b of activeBands) originalGains[b] = bandGains[b].amp();
-        let dropLevel = 0.08;   // very quiet during dip
-        let interval = 120;      // ms between pulses
-        let pulseCount = 0;
-        let timer = setInterval(() => {
-            if (pulseCount >= pulses) {
-                for (let b of activeBands) bandGains[b].amp(originalGains[b]);
-                clearInterval(timer);
-                return;
-            }
-            for (let b of activeBands) bandGains[b].amp(dropLevel);
-            setTimeout(() => {
-                for (let b of activeBands) bandGains[b].amp(originalGains[b]);
-            }, 45);
-            pulseCount++;
-        }, interval);
-        // visual ripples
+    // Short interference burst (filtered noise)
+    function playInterference(pulses) {
+        // Create a burst of filtered noise (bandpass)
+        let noise = new p5.Noise('brown');
+        let bp = new p5.BandPass();
+        bp.freq(800);
+        bp.res(8);
+        noise.connect(bp);
+        bp.connect();
+        let env = new p5.Envelope();
+        env.setADSR(0.01, 0.05, 0.2, 0.1);
+        env.setRange(0.25, 0);
+        noise.amp(0);
+        noise.start();
+        env.play(noise);
+        // pulse repeatedly if pulses > 1? Actually we want one burst but with number of pulses = number of dots?
+        // For simplicity: one interference burst, but the number of pulses can be emulated by repeating the burst.
+        // But to keep clean: we just play a single burst and flash the wave multiple times.
+        setTimeout(() => {
+            noise.stop();
+            bp.disconnect();
+        }, 200);
+        // Visual wave pulse
+        wavePulse = 25;
+        // Also add a visual ripple
         for (let i = 0; i < pulses; i++) {
             setTimeout(() => {
-                ripples.push({
-                    x: width/2, y: height/2, radius: 20,
-                    maxRadius: min(width,height)*0.5, life: 150,
-                    freq: pulses * 80
-                });
-            }, i * interval);
+                // additional small ripples
+            }, i * 60);
         }
     }
 
-    // ---------- Game logic ----------
+    // Update waveform (dynamic)
+    function drawWaveform() {
+        let t = frameCount;
+        let freq = 0.8; // base frequency of wave
+        let amplitude = 40 + wavePulse + 8 * sin(t * 0.02);
+        if (wavePulse > 0) wavePulse *= 0.92;
+        for (let i = 0; i < wavePoints.length; i++) {
+            let x = wavePoints[i].x;
+            let y = height/2 + sin(x * 0.012 + t * 0.03) * amplitude + cos(x * 0.008 + t * 0.02) * (amplitude * 0.5);
+            wavePoints[i].y = y;
+        }
+        stroke(154, 252, 151, 180);
+        strokeWeight(1.5);
+        noFill();
+        beginShape();
+        for (let p of wavePoints) vertex(p.x, p.y);
+        endShape();
+        // top status
+        fill(200,200,200,150);
+        textAlign(LEFT, TOP);
+        textSize(10);
+        textFont('monospace');
+        text(`carrier: ${carrierOn ? 'on' : 'off'}`, 15, 65);
+    }
+
+    // Game logic
     function newRound() {
         if (!gameActive) return;
         currentTarget = floor(random(1, 8));
@@ -309,7 +304,7 @@
     }
 
     function correct() {
-        applyInterference(currentTarget);
+        playInterference(currentTarget);
         correctFlash = 110;
         waitingForInput = false;
         if (speedLevel < 18) speedLevel++;
@@ -350,10 +345,9 @@
 
     function handleNumber(num) {
         dismissStartupMessage();
-        startAudio();  // ensures audio context if not yet started
+        startAudio();
         if (!gameActive) {
             startGame();
-            // small delay to allow game to initialize
             setTimeout(() => {
                 if (gameActive && waitingForInput) {
                     if (num === currentTarget) correct();
@@ -365,63 +359,6 @@
         if (!waitingForInput) return;
         if (num === currentTarget) correct();
         else wrong();
-    }
-
-    // ---------- Visualization ----------
-    function drawWaveforms() {
-        let t = frameCount;
-        for (let band of bandIds) {
-            if (!bandActive[band]) continue;
-            let freq = bandFreqs[band];
-            let amp = 40 + 10 * sin(t * 0.015);
-            let phase = t * (freq / 1800.0);
-            let points = wavePoints[band];
-            for (let i = 0; i < points.length; i++) {
-                let x = points[i].x;
-                let y = height/2 + sin(x * freq / 7000.0 + phase) * amp + cos(x * freq / 11000.0) * (amp * 0.5);
-                points[i].y = y;
-            }
-            stroke(154, 252, 151, 100);
-            strokeWeight(1.0);
-            noFill();
-            beginShape();
-            for (let p of points) vertex(p.x, p.y);
-            endShape();
-        }
-        // particles
-        stroke(255, 180);
-        strokeWeight(1);
-        for (let i = 0; i < 40; i++) {
-            let x = (t * 0.8 + i * 70) % width;
-            let y = height/2 + sin(x * 0.01 + t * 0.05) * 30;
-            point(x, y);
-        }
-        let activeCount = bandIds.filter(b => bandActive[b]).length;
-        fill(200,200,200,150);
-        noStroke();
-        textAlign(LEFT, TOP);
-        textSize(10);
-        textFont('monospace');
-        text(`active bands: ${activeCount}`, 15, 65);
-    }
-
-    function drawRipples() {
-        for (let i=ripples.length-1; i>=0; i--) {
-            let r = ripples[i];
-            r.radius += 4;
-            r.life -= 8;
-            if (r.radius > r.maxRadius || r.life <= 0) {
-                ripples.splice(i,1);
-                continue;
-            }
-            noFill();
-            stroke(154,252,151, r.life);
-            strokeWeight(1.2);
-            circle(r.x, r.y, r.radius*2);
-            let inner = r.radius * (r.freq/400);
-            stroke(255,200,100, r.life*0.6);
-            circle(r.x, r.y, inner*2);
-        }
     }
 
     function drawTargetDots() {
@@ -444,8 +381,7 @@
 
     function draw() {
         background(0);
-        drawWaveforms();
-        drawRipples();
+        drawWaveform();
         drawTargetDots();
         if (correctFlash > 0) {
             fill(255,255,255, correctFlash*0.25);
@@ -459,9 +395,9 @@
             textFont('monospace');
             text("signal lost", width/2, height/2);
         }
+        // Show startup message if game not started and audio not started (only if message still exists)
     }
 
-    // Keyboard / touch event handlers
     function keyPressed() {
         let k = key;
         if (k >= '1' && k <= '7') {
@@ -479,11 +415,8 @@
     function windowResized() {
         resizeCanvas(windowWidth, windowHeight);
         background(0);
-        for (let band of bandIds) {
-            let newPoints = [];
-            for (let i=0; i<=width; i+=8) newPoints.push({x:i, y:height/2});
-            wavePoints[band] = newPoints;
-        }
+        wavePoints = [];
+        for (let i = 0; i <= width; i += 8) wavePoints.push({x: i, y: height/2});
     }
 </script>
 </body>
