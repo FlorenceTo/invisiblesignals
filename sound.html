@@ -18,24 +18,40 @@
             overflow: hidden;
             font-family: 'Inter', 'Monument Grotesk Variable', monospace;
         }
-        .info {
+        .top-bar {
             position: fixed;
-            bottom: 20px;
+            top: 16px;
             left: 0;
             right: 0;
             text-align: center;
-            background: rgba(0,0,0,0.6);
+            z-index: 20;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 0 12px;
+        }
+        .instruction {
+            background: rgba(0,0,0,0.7);
             backdrop-filter: blur(8px);
-            padding: 8px 16px;
-            width: fit-content;
-            margin: 0 auto;
+            padding: 6px 14px;
             border-radius: 40px;
-            font-size: 14px;
+            font-size: 12px;
             font-family: monospace;
             color: #9afc97;
-            pointer-events: none;
-            z-index: 20;
             border: 1px solid #9afc97;
+            pointer-events: none;
+        }
+        .fail-counter {
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-family: monospace;
+            color: #ff8888;
+            border: 1px solid #ff8888;
+            pointer-events: none;
         }
         .back-link {
             position: fixed;
@@ -56,87 +72,76 @@
         .back-link:active {
             background: #9afc9722;
         }
-        .status {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(0,0,0,0.55);
-            backdrop-filter: blur(8px);
-            padding: 4px 12px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-family: monospace;
-            color: #9afc97;
-            pointer-events: none;
-            z-index: 20;
-        }
         @media (max-width: 640px) {
-            .info { font-size: 12px; bottom: 16px; }
-            .back-link { bottom: 16px; left: 12px; font-size: 10px; }
-            .status { font-size: 10px; top: 12px; left: 12px; }
+            .instruction, .fail-counter { font-size: 10px; padding: 4px 10px; }
+            .back-link { font-size: 10px; bottom: 16px; left: 12px; }
         }
     </style>
 </head>
 <body>
-<div class="status" id="gameStatus">press any key to start</div>
-<div class="info">dots = number &nbsp;&nbsp;|&nbsp;&nbsp; keys: A(1) S(2) D(3) F(4) G(5) H(6) J(7)</div>
+<div class="top-bar">
+    <div class="instruction">dots = number &nbsp;&nbsp;|&nbsp;&nbsp; press keys 1 2 3 4 5 6 7</div>
+    <div class="fail-counter" id="failCounter">failures: 0 / 18</div>
+</div>
 <a href="index.html" class="back-link">← radio</a>
 
 <script>
     // --------------------------------------------------------------
-    // DOT-COUNT GAME – based on original ellipse visual style
-    // No score, no polygons – pure ellipses, trails, reverb.
-    // Show random number of dots (1-7). User must press matching key.
+    // NUMBER DOT GAME (keys 1-7)
+    // Speed increases after each success. 18 failures = game over.
+    // Visuals: circles only (no sperm-like ellipses). Preserve trail & glow.
     // --------------------------------------------------------------
 
-    let shapes = [];           // visual ellipses from key presses (same as original)
-    let keyMap = {};
-    let scaleFreqs = [261.63, 277.18, 329.63, 369.99, 415.30, 466.16, 493.88]; // enigmatic scale
+    let shapes = [];           // visual circles from key presses
+    let keyMap = {};          // map number keys to frequencies (using enigmatic scale)
+    let scaleFreqs = [261.63, 277.18, 329.63, 369.99, 415.30, 466.16, 493.88];
     let reverb;
-    let filter;               // low-pass filter for dreaminess
+    let filter;
 
     // Game state
     let gameActive = false;
-    let currentTarget = 1;    // number of dots (1 to 7)
+    let currentTarget = 1;          // number of dots (1-7)
     let waitingForInput = true;
     let feedbackTimer = null;
-    let correctFlash = 0;     // for visual feedback
+    let correctFlash = 0;
+    let failCount = 0;
+    let speedLevel = 0;             // 0 = slowest, increases with correct answers
+    let baseDelay = 1500;           // initial delay before next round (ms)
+    let currentDelay = 1500;
 
-    // Mapping: key -> target number (A=1, S=2, D=3, F=4, G=5, H=6, J=7)
-    const keyToNumber = {
-        'A': 1, 'S': 2, 'D': 3, 'F': 4,
-        'G': 5, 'H': 6, 'J': 7
-    };
-    const validKeys = ['A','S','D','F','G','H','J'];
+    // Mapping: key number (as string) -> target value (1-7)
+    const validKeys = ['1','2','3','4','5','6','7'];
+    const numToTone = {1:'A',2:'S',3:'D',4:'F',5:'G',6:'H',7:'J'}; // for sound mapping
 
     // UI elements
-    let statusDiv;
+    let failCounterDiv;
 
     function setup() {
         createCanvas(windowWidth, windowHeight);
         noStroke();
         frameRate(60);
 
-        // Audio setup (same as original sketch)
+        // Audio setup
         reverb = new p5.Reverb();
         reverb.set(4, 2);
         filter = new p5.LowPass();
         filter.freq(1200);
 
-        // Map full alphabet to frequencies (enigmatic scale, octaves)
-        let keys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        for (let i = 0; i < keys.length; i++) {
+        // Map all letters to frequencies (enigmatic scale) for sound generation
+        let letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        for (let i = 0; i < letters.length; i++) {
             let octave = i < 7 ? 1 : i < 14 ? 2 : 3;
-            keyMap[keys[i]] = scaleFreqs[i % scaleFreqs.length] / Math.pow(2, 1 - octave);
+            keyMap[letters[i]] = scaleFreqs[i % scaleFreqs.length] / Math.pow(2, 1 - octave);
         }
 
-        statusDiv = select('#gameStatus');
+        failCounterDiv = select('#failCounter');
+        updateFailDisplay();
     }
 
     function draw() {
         background(0);
 
-        // Draw floating ellipses (same as original sketch)
+        // Draw floating circles (trail and glow)
         for (let i = shapes.length - 1; i >= 0; i--) {
             let s = shapes[i];
             s.x += s.vx;
@@ -145,90 +150,89 @@
             let level = s.amp.getLevel();
             let ampScale = map(level, 0, 0.3, 0.5, 2);
 
-            // Draw trail
+            // Draw trail (circles)
             s.trail.push({x: s.x, y: s.y, opacity: 255});
-            if (s.trail.length > 30) s.trail.shift();
+            if (s.trail.length > 25) s.trail.shift();
             for (let t of s.trail) {
                 fill(255, t.opacity);
-                ellipse(t.x, t.y, 20 * ampScale);
-                t.opacity -= 6;
+                circle(t.x, t.y, 18 * ampScale);
+                t.opacity -= 5;
             }
 
-            // Glow
+            // Glow (reddish, as in original)
             if (s.glow > 0) {
                 fill(255, 50, 50, s.glow);
-                ellipse(s.x, s.y, 36 * ampScale);
+                circle(s.x, s.y, 34 * ampScale);
                 s.glow *= 0.92;
             }
 
-            // Main ellipse outline
+            // Main circle (white outline, semi-transparent fill)
             stroke(255);
             strokeWeight(1.5);
             fill(255, s.opacity);
-            ellipse(s.x, s.y, 30 * ampScale);
+            circle(s.x, s.y, 28 * ampScale);
             noStroke();
 
             s.opacity -= 1;
             if (s.opacity <= 0) {
-                s.osc.amp(0, 1.5);
-                setTimeout(() => s.osc.stop(), 1600);
+                s.osc.amp(0, 1.2);
+                setTimeout(() => s.osc.stop(), 1400);
                 shapes.splice(i, 1);
             }
         }
 
-        // Draw the target dots (static in the center)
+        // Draw target dots (center)
         drawTargetDots();
 
-        // Draw correct flash overlay
+        // Draw correct/incorrect flash
         if (correctFlash > 0) {
-            fill(154, 252, 151, correctFlash * 0.8);
+            fill(154, 252, 151, correctFlash * 0.7);
             rect(0, 0, width, height);
             correctFlash -= 8;
         }
+
+        // Game over message overlay if inactive
+        if (!gameActive) {
+            fill(255, 255, 255, 200);
+            textAlign(CENTER, CENTER);
+            textSize(24);
+            textFont('monospace');
+            text("GAME OVER", width/2, height/2 - 40);
+            textSize(14);
+            text("press any number key to restart", width/2, height/2 + 20);
+        }
     }
 
-    // Draw the required number of dots (no text, just circles)
     function drawTargetDots() {
-        if (!gameActive) {
-            // Draw a subtle invitation
-            fill(100, 100, 100, 100);
-            textAlign(CENTER, CENTER);
-            textSize(20);
-            textFont('monospace');
-            text("press any key to start", width/2, height/2 - 40);
-            return;
-        }
+        if (!gameActive) return;
 
-        let dotDiameter = 45;
-        let spacing = 70;
+        let dotDiameter = 50;
+        let spacing = 75;
         let totalDots = currentTarget;
         let startX = width/2 - (totalDots-1) * spacing / 2;
         let yPos = height/2;
 
         for (let i = 0; i < totalDots; i++) {
-            fill(154, 252, 151, 220);
+            fill(154, 252, 151, 230);
             noStroke();
-            ellipse(startX + i * spacing, yPos, dotDiameter, dotDiameter);
+            circle(startX + i * spacing, yPos, dotDiameter);
             // inner highlight
-            fill(255, 255, 255, 180);
-            ellipse(startX + i * spacing, yPos, dotDiameter * 0.45, dotDiameter * 0.45);
+            fill(255, 255, 255, 200);
+            circle(startX + i * spacing, yPos, dotDiameter * 0.4);
         }
 
-        // subtle instruction text
-        fill(154, 252, 151, 150);
-        textSize(14);
-        textAlign(CENTER, TOP);
-        text("press matching key", width/2, height/2 + 50);
+        // small speed indicator (optional)
+        fill(154, 252, 151, 120);
+        textSize(12);
+        textAlign(CENTER, BOTTOM);
+        text("speed: " + (speedLevel + 1), width/2, height/2 - 60);
     }
 
-    // Play a tone (using the same sound engine as original)
+    // Play a tone for a given number (1-7)
     function playToneForNumber(num) {
-        let keyChar = null;
-        for (let [k, v] of Object.entries(keyToNumber)) {
-            if (v === num) { keyChar = k; break; }
-        }
-        if (!keyChar) return;
-        let freq = keyMap[keyChar];
+        let letter = numToTone[num];
+        if (!letter) return;
+        let freq = keyMap[letter];
         if (!freq) return;
 
         let osc = new p5.Oscillator('triangle');
@@ -244,7 +248,7 @@
         let amp = new p5.Amplitude();
         amp.setInput(osc);
 
-        // Create a visual shape (exactly like original)
+        // Create a circle visual (no ellipses)
         let s = {
             x: random(width),
             y: random(height),
@@ -259,99 +263,148 @@
         shapes.push(s);
     }
 
-    // Generate new random target (1-7)
-    function newRandomTarget() {
-        currentTarget = floor(random(1, 8));
-        waitingForInput = true;
-        if (statusDiv) statusDiv.html("your turn");
+    // Update speed (delay between rounds) based on correct answers
+    function updateSpeed() {
+        // speedLevel increases with each correct answer (capped)
+        let newDelay = baseDelay - (speedLevel * 60);
+        if (newDelay < 300) newDelay = 300;
+        currentDelay = newDelay;
     }
 
-    // Handle correct answer
+    // Generate next target
+    function nextRound() {
+        if (!gameActive) return;
+        currentTarget = floor(random(1, 8));
+        waitingForInput = true;
+        // update status via fail counter color? not needed
+    }
+
+    // Correct answer
     function onCorrect() {
         playToneForNumber(currentTarget);
-        correctFlash = 180;   // green flash
-        if (statusDiv) statusDiv.html("correct!");
+        correctFlash = 150;
         waitingForInput = false;
+
+        // Increase speed level (max 15)
+        if (speedLevel < 18) speedLevel++;
+        updateSpeed();
 
         // Clear any pending timer
         if (feedbackTimer) clearTimeout(feedbackTimer);
-        // After a short pause, show next target
         feedbackTimer = setTimeout(() => {
-            newRandomTarget();
+            if (gameActive) nextRound();
             feedbackTimer = null;
-        }, 500);
+        }, currentDelay);
     }
 
-    // Handle wrong answer: show error, keep same target
+    // Wrong answer: increase fail counter, check loss
     function onWrong() {
-        correctFlash = 80;    // redder flash (but we use greenish? make red)
-        fill(255, 80, 80, 120);
+        failCount++;
+        updateFailDisplay();
+
+        // visual red flash
+        correctFlash = 80;
+        fill(255, 80, 80, 100);
         rect(0, 0, width, height);
-        if (statusDiv) statusDiv.html("wrong – try again");
-        // Play a short error buzz? Optional: play a low unpleasant note? Better not.
-        // Just visual feedback. Keep same target.
+
+        if (failCount >= 18) {
+            gameOver();
+            return;
+        }
+
+        // Keep same target, allow retry
         waitingForInput = true;
-        // reset status after 0.8s
+        // brief status (no permanent message, but we can blink fail counter)
         setTimeout(() => {
-            if (gameActive && waitingForInput) statusDiv.html("your turn");
-        }, 800);
+            if (gameActive && waitingForInput) {
+                // do nothing
+            }
+        }, 400);
     }
 
-    // Start the game (called once on first key)
-    function startGame() {
-        if (gameActive) return;
-        gameActive = true;
-        currentTarget = floor(random(1, 8));
-        waitingForInput = true;
-        if (statusDiv) statusDiv.html("your turn");
-        // Clear any existing shapes from previous idle state
+    function gameOver() {
+        gameActive = false;
+        waitingForInput = false;
+        if (feedbackTimer) clearTimeout(feedbackTimer);
+        // clear all shapes
         for (let s of shapes) {
             if (s.osc) s.osc.amp(0, 0.5);
         }
         shapes = [];
+        failCounterDiv.html("failures: " + failCount + " / 18  GAME OVER");
     }
 
-    // Handle key press (game logic)
-    function handleKey(keyChar) {
+    function startGame() {
+        gameActive = true;
+        failCount = 0;
+        speedLevel = 0;
+        currentDelay = baseDelay;
+        updateFailDisplay();
+        // clear any remaining shapes
+        for (let s of shapes) {
+            if (s.osc) s.osc.amp(0, 0.5);
+        }
+        shapes = [];
+        // random first target
+        currentTarget = floor(random(1, 8));
+        waitingForInput = true;
+        if (feedbackTimer) clearTimeout(feedbackTimer);
+    }
+
+    function updateFailDisplay() {
+        if (failCounterDiv) {
+            failCounterDiv.html("failures: " + failCount + " / 18");
+            if (failCount >= 15) failCounterDiv.style('color', '#ff5555');
+            else failCounterDiv.style('color', '#ff8888');
+        }
+    }
+
+    // Handle number key press
+    function handleKey(numStr) {
+        let num = parseInt(numStr, 10);
+        if (isNaN(num) || num < 1 || num > 7) return;
+
         if (!gameActive) {
-            // Start game on any key
+            // restart
             userStartAudio();
             startGame();
             return;
         }
 
-        if (!waitingForInput) return; // between rounds, ignore
+        if (!waitingForInput) return;
 
-        let pressedNum = keyToNumber[keyChar];
-        if (pressedNum === undefined) return; // invalid key
-
-        if (pressedNum === currentTarget) {
+        if (num === currentTarget) {
             onCorrect();
         } else {
             onWrong();
         }
     }
 
-    // p5 keyPressed callback
+    // p5 keyPressed
     function keyPressed() {
-        let k = key.toUpperCase();
+        let k = key;
+        // accept numeric keys 1-7
         if (validKeys.includes(k)) {
-            userStartAudio();   // ensure audio context
+            userStartAudio();
             handleKey(k);
             return false;
         }
-        // any key to start if game not active
-        if (!gameActive) {
+        // also accept numpad? but fine
+        // restart if game over and any key pressed
+        if (!gameActive && (k === ' ' || k === 'Enter' || validKeys.includes(k))) {
             userStartAudio();
             startGame();
+            return false;
         }
         return false;
     }
 
-    // Touch/mouse support for mobile starts game
+    // Touch start to enable audio but not auto-start game
     function touchStarted() {
         userStartAudio();
-        if (!gameActive) startGame();
+        if (!gameActive) {
+            // optional: show instruction but don't start until key press
+        }
         return false;
     }
 
