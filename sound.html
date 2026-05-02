@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Sound Game | Invisible Signals</title>
+    <title>Radio Signal Game | Invisible Signals</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/addons/p5.sound.min.js"></script>
     <style>
@@ -18,29 +18,46 @@
             overflow: hidden;
             font-family: 'Inter', 'Monument Grotesk Variable', monospace;
         }
-        .top-bar {
+        .control-panel {
             position: fixed;
             top: 16px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            z-index: 20;
+            left: 16px;
+            right: 16px;
             display: flex;
-            justify-content: center;
-            gap: 20px;
             flex-wrap: wrap;
-            padding: 0 12px;
+            justify-content: center;
+            gap: 12px;
+            z-index: 30;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(12px);
+            padding: 10px 18px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.3);
+            pointer-events: auto;
         }
-        .instruction {
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            padding: 6px 14px;
+        .band-selector, .volume-control {
+            background: rgba(20,20,30,0.8);
             border-radius: 40px;
+            padding: 4px 12px;
             font-size: 12px;
             font-family: monospace;
-            color: #9afc97;
+            color: #ddd;
             border: 1px solid #9afc97;
-            pointer-events: none;
+            cursor: pointer;
+        }
+        select, input {
+            background: transparent;
+            border: none;
+            color: #9afc97;
+            font-family: monospace;
+            font-size: 12px;
+            outline: none;
+            cursor: pointer;
+        }
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .fail-counter {
             background: rgba(0,0,0,0.7);
@@ -52,6 +69,10 @@
             color: #ff8888;
             border: 1px solid #ff8888;
             pointer-events: none;
+            position: fixed;
+            top: 80px;
+            right: 16px;
+            z-index: 25;
         }
         .back-link {
             position: fixed;
@@ -72,32 +93,67 @@
         .back-link:active {
             background: #9afc9722;
         }
-        @media (max-width: 640px) {
-            .instruction, .fail-counter { font-size: 10px; padding: 4px 10px; }
-            .back-link { font-size: 10px; bottom: 16px; left: 12px; }
+        .instruction {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-family: monospace;
+            color: #ccc;
+            pointer-events: none;
+            z-index: 25;
+        }
+        @media (max-width: 700px) {
+            .control-panel { top: 8px; left: 8px; right: 8px; padding: 6px 12px; }
+            .fail-counter { top: 70px; right: 12px; font-size: 10px; }
+            .instruction { font-size: 9px; }
         }
     </style>
 </head>
 <body>
-<div class="top-bar">
-    <div class="instruction">dots = number &nbsp;&nbsp;|&nbsp;&nbsp; press keys 1 2 3 4 5 6 7</div>
-    <div class="fail-counter" id="failCounter">failures: 0 / 18</div>
+<div class="control-panel">
+    <div class="band-selector">
+        <label style="color:#aaa;">band </label>
+        <select id="bandSelect">
+            <option value="cband">C-band (4-8 GHz)</option>
+            <option value="kuband">Ku-band (12-18 GHz)</option>
+            <option value="lband">L-band (1-2 GHz)</option>
+        </select>
+    </div>
+    <div class="volume-control">
+        <span style="color:#aaa;">🔊</span>
+        <input type="range" id="radioVolume" min="0" max="1" step="0.01" value="0.35">
+    </div>
 </div>
+<div class="fail-counter" id="failCounter">failures: 0 / 18</div>
 <a href="index.html" class="back-link">← radio</a>
+<div class="instruction">press 1 2 3 4 5 6 7  →  match the number of dots</div>
 
 <script>
-    // --------------------------------------------------------------
-    // NUMBER DOT GAME (keys 1-7)
-    // Speed increases after each success. 18 failures = game over.
-    // Visuals: circles only (no sperm-like ellipses). Preserve trail & glow.
-    // --------------------------------------------------------------
+    // ================================================================
+    // RADIO SIGNAL GAME – white dots, transparent outlined particles,
+    // background radio wave synthesis (C‑band, Ku‑band, L‑band),
+    // educational bandwidth switching + volume control.
+    // Game mechanics: speed increases, fail limit 18.
+    // ================================================================
 
-    let shapes = [];           // visual circles from key presses
-    let keyMap = {};          // map number keys to frequencies (using enigmatic scale)
+    let shapes = [];            // floating circles (transparent fill, white stroke)
+    let keyMap = {};           // for the melodic response tones (enigmatic scale)
     let scaleFreqs = [261.63, 277.18, 329.63, 369.99, 415.30, 466.16, 493.88];
-    let reverb;
-    let filter;
+    let reverb, filter;
 
+    // Background radio noise oscillators & filters
+    let radioNoise;            // p5.Oscillator or p5.Noise? We'll use band-limited noise
+    let radioFilter;
+    let radioGain;
+    let radioVolumeSlider;
+    let currentBand = "cband";
+    let bandSelectEl;
+    
     // Game state
     let gameActive = false;
     let currentTarget = 1;          // number of dots (1-7)
@@ -105,309 +161,307 @@
     let feedbackTimer = null;
     let correctFlash = 0;
     let failCount = 0;
-    let speedLevel = 0;             // 0 = slowest, increases with correct answers
-    let baseDelay = 1500;           // initial delay before next round (ms)
+    let speedLevel = 0;
+    let baseDelay = 1500;
     let currentDelay = 1500;
 
-    // Mapping: key number (as string) -> target value (1-7)
     const validKeys = ['1','2','3','4','5','6','7'];
-    const numToTone = {1:'A',2:'S',3:'D',4:'F',5:'G',6:'H',7:'J'}; // for sound mapping
+    const numToTone = {1:'A',2:'S',3:'D',4:'F',5:'G',6:'H',7:'J'};
 
-    // UI elements
     let failCounterDiv;
 
     function setup() {
         createCanvas(windowWidth, windowHeight);
         noStroke();
         frameRate(60);
-
-        // Audio setup
+        
+        // -- audio for melodic response (same as original sketch) --
         reverb = new p5.Reverb();
         reverb.set(4, 2);
         filter = new p5.LowPass();
         filter.freq(1200);
-
-        // Map all letters to frequencies (enigmatic scale) for sound generation
+        
         let letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         for (let i = 0; i < letters.length; i++) {
             let octave = i < 7 ? 1 : i < 14 ? 2 : 3;
             keyMap[letters[i]] = scaleFreqs[i % scaleFreqs.length] / Math.pow(2, 1 - octave);
         }
-
+        
+        // --- Background radio wave synthesis (educational) ---
+        radioNoise = new p5.Noise('brown');   // brown noise feels like radio static
+        radioNoise.amp(0.35);
+        radioFilter = new p5.BandPass();
+        radioFilter.res(8);
+        radioGain = new p5.Gain();
+        radioNoise.disconnect();
+        radioNoise.connect(radioFilter);
+        radioFilter.connect(radioGain);
+        radioGain.connect();
+        
+        // initial C-band
+        setBand("cband");
+        
+        radioVolumeSlider = select('#radioVolume');
+        radioVolumeSlider.input(() => {
+            let vol = parseFloat(radioVolumeSlider.value());
+            radioGain.amp(vol);
+        });
+        
+        bandSelectEl = select('#bandSelect');
+        bandSelectEl.changed(() => {
+            let band = bandSelectEl.value();
+            setBand(band);
+        });
+        
+        radioNoise.start();
+        radioGain.amp(0.35);
+        
+        // UI
         failCounterDiv = select('#failCounter');
         updateFailDisplay();
     }
-
+    
+    // Set filter frequency based on selected band (educational)
+    function setBand(band) {
+        currentBand = band;
+        let freq = 6000; // default C-band center
+        if (band === "cband") freq = 6000;     // 6 GHz
+        else if (band === "kuband") freq = 15000; // 15 GHz
+        else if (band === "lband") freq = 1500;   // 1.5 GHz
+        radioFilter.freq(freq);
+        // tiny visual feedback: change border color of control panel? optional
+        let ctrl = select('.control-panel');
+        if (ctrl) ctrl.style('border-color', '#9afc97');
+    }
+    
     function draw() {
         background(0);
-
-        // Draw floating circles (trail and glow)
+        
+        // --- draw floating circles (transparent fill, white outline, resonance trails) ---
         for (let i = shapes.length - 1; i >= 0; i--) {
             let s = shapes[i];
             s.x += s.vx;
             s.y += s.vy;
-
+            
             let level = s.amp.getLevel();
-            let ampScale = map(level, 0, 0.3, 0.5, 2);
-
-            // Draw trail (circles)
-            s.trail.push({x: s.x, y: s.y, opacity: 255});
+            let ampScale = map(level, 0, 0.3, 0.5, 1.8);
+            
+            // Trail (resonance traces): semi‑transparent white circles
+            s.trail.push({x: s.x, y: s.y, opacity: 180});
             if (s.trail.length > 25) s.trail.shift();
             for (let t of s.trail) {
-                fill(255, t.opacity);
-                circle(t.x, t.y, 18 * ampScale);
-                t.opacity -= 5;
+                fill(255, t.opacity * 0.5);
+                noStroke();
+                circle(t.x, t.y, 16 * ampScale);
+                t.opacity -= 4;
             }
-
-            // Glow (reddish, as in original)
+            
+            // Glow (very subtle warm)
             if (s.glow > 0) {
-                fill(255, 50, 50, s.glow);
-                circle(s.x, s.y, 34 * ampScale);
-                s.glow *= 0.92;
+                fill(255, 100, 80, s.glow * 0.3);
+                noStroke();
+                circle(s.x, s.y, 30 * ampScale);
+                s.glow *= 0.94;
             }
-
-            // Main circle (white outline, semi-transparent fill)
+            
+            // Main circle: transparent fill, white outline
             stroke(255);
-            strokeWeight(1.5);
-            fill(255, s.opacity);
-            circle(s.x, s.y, 28 * ampScale);
+            strokeWeight(1.2);
+            fill(255, s.opacity * 0.25);
+            circle(s.x, s.y, 26 * ampScale);
             noStroke();
-
-            s.opacity -= 1;
+            
+            s.opacity -= 1.2;
             if (s.opacity <= 0) {
-                s.osc.amp(0, 1.2);
-                setTimeout(() => s.osc.stop(), 1400);
+                s.osc.amp(0, 1.0);
+                setTimeout(() => s.osc.stop(), 1200);
                 shapes.splice(i, 1);
             }
         }
-
-        // Draw target dots (center)
+        
+        // Draw target dots (pure white, no green)
         drawTargetDots();
-
-        // Draw correct/incorrect flash
+        
+        // Flash feedback (white/grey)
         if (correctFlash > 0) {
-            fill(154, 252, 151, correctFlash * 0.7);
+            fill(255, 255, 255, correctFlash * 0.4);
             rect(0, 0, width, height);
-            correctFlash -= 8;
+            correctFlash -= 6;
         }
-
-        // Game over message overlay if inactive
+        
+        // Game over screen
         if (!gameActive) {
-            fill(255, 255, 255, 200);
+            fill(200, 200, 200, 220);
             textAlign(CENTER, CENTER);
-            textSize(24);
+            textSize(22);
             textFont('monospace');
-            text("GAME OVER", width/2, height/2 - 40);
-            textSize(14);
-            text("press any number key to restart", width/2, height/2 + 20);
+            text("SIGNAL LOST", width/2, height/2 - 40);
+            textSize(13);
+            text("press 1-7 to restart", width/2, height/2 + 20);
         }
     }
-
+    
     function drawTargetDots() {
         if (!gameActive) return;
-
-        let dotDiameter = 50;
-        let spacing = 75;
-        let totalDots = currentTarget;
-        let startX = width/2 - (totalDots-1) * spacing / 2;
+        let dotDiameter = 52;
+        let spacing = 78;
+        let total = currentTarget;
+        let startX = width/2 - (total-1) * spacing / 2;
         let yPos = height/2;
-
-        for (let i = 0; i < totalDots; i++) {
-            fill(154, 252, 151, 230);
+        
+        for (let i = 0; i < total; i++) {
+            // white dots with subtle transparency
+            fill(255, 240);
             noStroke();
             circle(startX + i * spacing, yPos, dotDiameter);
-            // inner highlight
-            fill(255, 255, 255, 200);
-            circle(startX + i * spacing, yPos, dotDiameter * 0.4);
+            // inner highlight (faint)
+            fill(255, 100);
+            circle(startX + i * spacing, yPos, dotDiameter * 0.35);
         }
-
-        // small speed indicator (optional)
-        fill(154, 252, 151, 120);
-        textSize(12);
+        
+        // tiny speed indicator (educational)
+        fill(180, 180, 180, 150);
+        textSize(11);
         textAlign(CENTER, BOTTOM);
-        text("speed: " + (speedLevel + 1), width/2, height/2 - 60);
+        text("speed: " + (speedLevel + 1), width/2, height/2 - 55);
     }
-
-    // Play a tone for a given number (1-7)
+    
+    // melodic response when user matches (educational tone)
     function playToneForNumber(num) {
         let letter = numToTone[num];
         if (!letter) return;
         let freq = keyMap[letter];
         if (!freq) return;
-
+        
         let osc = new p5.Oscillator('triangle');
         osc.freq(freq);
         osc.start();
-        osc.amp(0.3, 0.05);
-        osc.freq(freq * (1 + random(-0.002, 0.002)));
-
+        osc.amp(0.28, 0.04);
+        osc.freq(freq * (1 + random(-0.0018, 0.0018)));
         osc.disconnect();
         osc.connect(filter);
-        reverb.process(filter, 2, 2);
-
+        reverb.process(filter, 2.2, 1.8);
+        
         let amp = new p5.Amplitude();
         amp.setInput(osc);
-
-        // Create a circle visual (no ellipses)
+        
+        // add a floating circle (transparent, white outline)
         let s = {
             x: random(width),
             y: random(height),
-            vx: random(-2, 2),
-            vy: random(-2, 2),
+            vx: random(-1.5, 1.5),
+            vy: random(-2, -0.6),
             osc: osc,
             amp: amp,
-            opacity: 255,
+            opacity: 200,
             trail: [],
-            glow: 250
+            glow: 180
         };
         shapes.push(s);
     }
-
-    // Update speed (delay between rounds) based on correct answers
+    
     function updateSpeed() {
-        // speedLevel increases with each correct answer (capped)
-        let newDelay = baseDelay - (speedLevel * 60);
-        if (newDelay < 300) newDelay = 300;
-        currentDelay = newDelay;
+        currentDelay = max(300, baseDelay - (speedLevel * 55));
     }
-
-    // Generate next target
+    
     function nextRound() {
         if (!gameActive) return;
         currentTarget = floor(random(1, 8));
         waitingForInput = true;
-        // update status via fail counter color? not needed
     }
-
-    // Correct answer
+    
     function onCorrect() {
         playToneForNumber(currentTarget);
-        correctFlash = 150;
+        correctFlash = 120;
         waitingForInput = false;
-
-        // Increase speed level (max 15)
         if (speedLevel < 18) speedLevel++;
         updateSpeed();
-
-        // Clear any pending timer
         if (feedbackTimer) clearTimeout(feedbackTimer);
         feedbackTimer = setTimeout(() => {
             if (gameActive) nextRound();
             feedbackTimer = null;
         }, currentDelay);
     }
-
-    // Wrong answer: increase fail counter, check loss
+    
     function onWrong() {
         failCount++;
         updateFailDisplay();
-
-        // visual red flash
-        correctFlash = 80;
-        fill(255, 80, 80, 100);
-        rect(0, 0, width, height);
-
+        correctFlash = 70;   // dim flash
         if (failCount >= 18) {
             gameOver();
             return;
         }
-
-        // Keep same target, allow retry
-        waitingForInput = true;
-        // brief status (no permanent message, but we can blink fail counter)
-        setTimeout(() => {
-            if (gameActive && waitingForInput) {
-                // do nothing
-            }
-        }, 400);
+        waitingForInput = true;  // stay on same target
     }
-
+    
     function gameOver() {
         gameActive = false;
         waitingForInput = false;
         if (feedbackTimer) clearTimeout(feedbackTimer);
-        // clear all shapes
         for (let s of shapes) {
-            if (s.osc) s.osc.amp(0, 0.5);
+            if (s.osc) s.osc.amp(0, 0.4);
         }
         shapes = [];
-        failCounterDiv.html("failures: " + failCount + " / 18  GAME OVER");
+        failCounterDiv.html("failures: " + failCount + " / 18  ·  SIGNAL LOST");
     }
-
+    
     function startGame() {
         gameActive = true;
         failCount = 0;
         speedLevel = 0;
         currentDelay = baseDelay;
         updateFailDisplay();
-        // clear any remaining shapes
         for (let s of shapes) {
-            if (s.osc) s.osc.amp(0, 0.5);
+            if (s.osc) s.osc.amp(0, 0.3);
         }
         shapes = [];
-        // random first target
         currentTarget = floor(random(1, 8));
         waitingForInput = true;
         if (feedbackTimer) clearTimeout(feedbackTimer);
     }
-
+    
     function updateFailDisplay() {
-        if (failCounterDiv) {
-            failCounterDiv.html("failures: " + failCount + " / 18");
-            if (failCount >= 15) failCounterDiv.style('color', '#ff5555');
-            else failCounterDiv.style('color', '#ff8888');
-        }
+        let remaining = 18 - failCount;
+        failCounterDiv.html("failures: " + failCount + " / 18");
+        if (failCount >= 15) failCounterDiv.style('color', '#ff8888');
+        else failCounterDiv.style('color', '#ffaa88');
     }
-
-    // Handle number key press
+    
     function handleKey(numStr) {
         let num = parseInt(numStr, 10);
         if (isNaN(num) || num < 1 || num > 7) return;
-
+        
         if (!gameActive) {
-            // restart
             userStartAudio();
             startGame();
             return;
         }
-
         if (!waitingForInput) return;
-
-        if (num === currentTarget) {
-            onCorrect();
-        } else {
-            onWrong();
-        }
+        if (num === currentTarget) onCorrect();
+        else onWrong();
     }
-
-    // p5 keyPressed
+    
     function keyPressed() {
         let k = key;
-        // accept numeric keys 1-7
         if (validKeys.includes(k)) {
             userStartAudio();
             handleKey(k);
             return false;
         }
-        // also accept numpad? but fine
-        // restart if game over and any key pressed
-        if (!gameActive && (k === ' ' || k === 'Enter' || validKeys.includes(k))) {
+        // restart on any number if game over
+        if (!gameActive && validKeys.includes(k)) {
             userStartAudio();
             startGame();
             return false;
         }
         return false;
     }
-
-    // Touch start to enable audio but not auto-start game
+    
     function touchStarted() {
         userStartAudio();
-        if (!gameActive) {
-            // optional: show instruction but don't start until key press
-        }
         return false;
     }
-
+    
     function windowResized() {
         resizeCanvas(windowWidth, windowHeight);
         background(0);
