@@ -14,55 +14,28 @@
             user-select: none;
         }
         body {
-            background: #0a0c12;
+            background: black;
             overflow: hidden;
             font-family: 'Inter', 'Monument Grotesk Variable', monospace;
-            color: #e3ffa9;
         }
-        .game-ui {
+        .info {
             position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.65);
-            backdrop-filter: blur(12px);
-            padding: 0.6rem 1.5rem;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            padding: 8px 16px;
+            width: fit-content;
+            margin: 0 auto;
             border-radius: 40px;
+            font-size: 14px;
+            font-family: monospace;
+            color: #9afc97;
+            pointer-events: none;
+            z-index: 20;
             border: 1px solid #9afc97;
-            font-size: 1.1rem;
-            font-family: monospace;
-            white-space: nowrap;
-            pointer-events: none;
-            z-index: 20;
-            color: #9afc97;
-        }
-        .score-board {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.55);
-            backdrop-filter: blur(8px);
-            padding: 0.4rem 1rem;
-            border-radius: 30px;
-            font-family: monospace;
-            font-size: 1.2rem;
-            border-left: 3px solid #9afc97;
-            pointer-events: none;
-            z-index: 20;
-            color: #9afc97;
-        }
-        .status {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(0,0,0,0.55);
-            backdrop-filter: blur(8px);
-            padding: 0.4rem 1rem;
-            border-radius: 30px;
-            font-size: 0.8rem;
-            font-family: monospace;
-            pointer-events: none;
-            z-index: 20;
         }
         .back-link {
             position: fixed;
@@ -70,9 +43,9 @@
             left: 20px;
             background: rgba(0,0,0,0.7);
             backdrop-filter: blur(8px);
-            padding: 0.4rem 1rem;
+            padding: 6px 14px;
             border-radius: 30px;
-            font-size: 0.8rem;
+            font-size: 12px;
             text-decoration: none;
             color: #9afc97;
             font-family: monospace;
@@ -83,401 +56,305 @@
         .back-link:active {
             background: #9afc9722;
         }
-        .instruction {
+        .status {
             position: fixed;
-            bottom: 85px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 0.7rem;
-            color: #9afc97;
-            opacity: 0.7;
-            pointer-events: none;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(8px);
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
             font-family: monospace;
+            color: #9afc97;
+            pointer-events: none;
+            z-index: 20;
         }
         @media (max-width: 640px) {
-            .game-ui { font-size: 0.9rem; padding: 0.4rem 1rem; bottom: 16px; }
-            .score-board { font-size: 1rem; top: 12px; right: 12px; }
-            .status { font-size: 0.7rem; top: 12px; left: 12px; }
-            .back-link { bottom: 16px; left: 12px; font-size: 0.7rem; }
-            .instruction { bottom: 70px; font-size: 0.6rem; }
-        }
-        canvas {
-            display: block;
-            touch-action: none;
+            .info { font-size: 12px; bottom: 16px; }
+            .back-link { bottom: 16px; left: 12px; font-size: 10px; }
+            .status { font-size: 10px; top: 12px; left: 12px; }
         }
     </style>
 </head>
 <body>
-<div class="score-board">SCORE: <span id="scoreValue">0</span></div>
-<div class="status" id="gameStatus">ready</div>
-<div class="game-ui">
-    <span id="displayNote">press a key</span>
-</div>
-<a href="index.html" class="back-link">radio</a>
-<div class="instruction">keys: a s d f g h j  (enigmatic scale)</div>
+<div class="status" id="gameStatus">press any key to start</div>
+<div class="info">dots = number &nbsp;&nbsp;|&nbsp;&nbsp; keys: A(1) S(2) D(3) F(4) G(5) H(6) J(7)</div>
+<a href="index.html" class="back-link">← radio</a>
 
 <script>
     // --------------------------------------------------------------
-    // ORIGINAL GAME LOGIC (sequence memory) - NO STARS, NO TRIANGLES
-    // Visuals: rotating diamonds / squares only (no ellipses)
-    // Enigmatic scale frequencies
-    // GPU safe: max 60 particles, frameRate(60)
+    // DOT-COUNT GAME – based on original ellipse visual style
+    // No score, no polygons – pure ellipses, trails, reverb.
+    // Show random number of dots (1-7). User must press matching key.
     // --------------------------------------------------------------
-    
-    let shapes = [];
+
+    let shapes = [];           // visual ellipses from key presses (same as original)
     let keyMap = {};
-    let reverb, filter;
-    
-    // Enigmatic scale (as provided)
-    let scaleFreqs = [261.63, 277.18, 329.63, 369.99, 415.30, 466.16, 493.88];
-    
+    let scaleFreqs = [261.63, 277.18, 329.63, 369.99, 415.30, 466.16, 493.88]; // enigmatic scale
+    let reverb;
+    let filter;               // low-pass filter for dreaminess
+
     // Game state
-    let currentSequence = [];
-    let playerInput = [];
-    let score = 0;
-    let roundActive = false;
-    let waitingForInput = false;
-    let gameStarted = false;
-    let currentNoteIndex = 0;
-    
-    const keyLetters = ['A', 'S', 'D', 'F', 'G', 'H', 'J'];
-    let keyToIndex = {};
-    
+    let gameActive = false;
+    let currentTarget = 1;    // number of dots (1 to 7)
+    let waitingForInput = true;
+    let feedbackTimer = null;
+    let correctFlash = 0;     // for visual feedback
+
+    // Mapping: key -> target number (A=1, S=2, D=3, F=4, G=5, H=6, J=7)
+    const keyToNumber = {
+        'A': 1, 'S': 2, 'D': 3, 'F': 4,
+        'G': 5, 'H': 6, 'J': 7
+    };
+    const validKeys = ['A','S','D','F','G','H','J'];
+
     // UI elements
-    let scoreSpan, statusDiv, displaySpan;
-    
-    // Limit particles to avoid GPU overload
-    const MAX_PARTICLES = 60;
-    
+    let statusDiv;
+
     function setup() {
         createCanvas(windowWidth, windowHeight);
-        frameRate(60); // stable pace, prevent overloading
         noStroke();
-        
-        // Audio setup
+        frameRate(60);
+
+        // Audio setup (same as original sketch)
         reverb = new p5.Reverb();
-        reverb.set(3.5, 2.0);
+        reverb.set(4, 2);
         filter = new p5.LowPass();
-        filter.freq(1400);
-        
-        // Map keys
-        for (let i = 0; i < keyLetters.length; i++) {
-            keyMap[keyLetters[i]] = scaleFreqs[i];
-            keyToIndex[keyLetters[i]] = i;
+        filter.freq(1200);
+
+        // Map full alphabet to frequencies (enigmatic scale, octaves)
+        let keys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        for (let i = 0; i < keys.length; i++) {
+            let octave = i < 7 ? 1 : i < 14 ? 2 : 3;
+            keyMap[keys[i]] = scaleFreqs[i % scaleFreqs.length] / Math.pow(2, 1 - octave);
         }
-        
-        scoreSpan = select('#scoreValue');
+
         statusDiv = select('#gameStatus');
-        displaySpan = select('#displayNote');
-        
-        // Wait for user interaction to start (audio context)
-        statusDiv.html("press any key");
-        displaySpan.html("start");
-        gameStarted = false;
     }
-    
-    function startGame() {
-        if (gameStarted) return;
-        gameStarted = true;
-        score = 0;
-        currentSequence = [];
-        playerInput = [];
-        updateScoreUI();
-        startNewRound();
-        statusDiv.html("new round");
-    }
-    
-    function startNewRound() {
-        if (!gameStarted) return;
-        roundActive = true;
-        waitingForInput = false;
-        playerInput = [];
-        let newNote = floor(random(0, keyLetters.length));
-        currentSequence.push(newNote);
-        playSequence();
-    }
-    
-    function playSequence() {
-        currentNoteIndex = 0;
-        roundActive = false;
-        waitingForInput = false;
-        let interval = setInterval(() => {
-            if (!gameStarted) {
-                clearInterval(interval);
-                return;
-            }
-            if (currentNoteIndex >= currentSequence.length) {
-                clearInterval(interval);
-                roundActive = false;
-                waitingForInput = true;
-                statusDiv.html("your turn");
-                displaySpan.html("?");
-                return;
-            }
-            let noteIdx = currentSequence[currentNoteIndex];
-            let keyChar = keyLetters[noteIdx];
-            playTone(keyChar);
-            addVisualShape(noteIdx);
-            displaySpan.html(keyChar);
-            currentNoteIndex++;
-        }, 550);
-    }
-    
-    function playTone(keyChar) {
-        let freq = keyMap[keyChar];
-        if (!freq) return;
-        let osc = new p5.Oscillator('triangle');
-        osc.freq(freq);
-        osc.start();
-        osc.amp(0.28, 0.02);
-        // slight detune for depth
-        osc.freq(freq * (1 + random(-0.0015, 0.0015)));
-        osc.disconnect();
-        osc.connect(filter);
-        reverb.process(filter, 1.8, 1.5);
-        let ampObj = new p5.Amplitude();
-        ampObj.setInput(osc);
-        
-        // Create a visual particle (diamond/square) - no ellipses, no stars, no triangles
-        addParticle(osc, ampObj);
-        
-        // fade out after a second
-        setTimeout(() => {
-            if (osc) osc.amp(0, 0.6);
-        }, 1000);
-    }
-    
-    function addParticle(osc, ampObj) {
-        // limit particle count to avoid GPU overload
-        if (shapes.length > MAX_PARTICLES) {
-            let oldest = shapes.shift();
-            if (oldest.osc) oldest.osc.amp(0, 0.3);
-        }
-        let col = [154, 252, 151]; // green #9afc97
-        let shapeType = (random() > 0.5) ? 'diamond' : 'square';
-        shapes.push({
-            x: random(width * 0.2, width * 0.8),
-            y: random(height * 0.3, height * 0.7),
-            vx: random(-1.2, 1.2),
-            vy: random(-2.0, -0.5),
-            life: 180,
-            col: col,
-            type: shapeType,
-            rot: random(TWO_PI),
-            osc: osc,
-            amp: ampObj,
-            glow: 120
-        });
-    }
-    
-    function addVisualShape(noteIdx) {
-        // burst effect without ellipses
-        if (shapes.length > MAX_PARTICLES) return;
-        let burst = {
-            x: random(width * 0.3, width * 0.7),
-            y: random(height * 0.4, height * 0.6),
-            vx: random(-0.8, 0.8),
-            vy: random(-1.2, -0.2),
-            life: 100,
-            col: [200, 255, 180],
-            type: 'square',
-            rot: 0,
-            glow: 100,
-            amp: null
-        };
-        shapes.push(burst);
-    }
-    
-    function handlePlayerInput(keyChar) {
-        if (!gameStarted) {
-            userStartAudio();
-            startGame();
-            // after a tiny delay, process this same key if needed
-            setTimeout(() => {
-                if (gameStarted && waitingForInput) handlePlayerInput(keyChar);
-            }, 100);
-            return;
-        }
-        if (!waitingForInput) return;
-        
-        let expectedIdx = currentSequence[playerInput.length];
-        let pressedIdx = keyToIndex[keyChar];
-        if (pressedIdx === undefined) return;
-        
-        // play tone anyway for feedback
-        playTone(keyChar);
-        
-        if (pressedIdx === expectedIdx) {
-            playerInput.push(pressedIdx);
-            statusDiv.html("correct");
-            
-            // add a small celebratory square
-            if (shapes.length < MAX_PARTICLES) {
-                shapes.push({
-                    x: mouseX || width/2, y: mouseY || height/2,
-                    vx: random(-1,1), vy: random(-1.5,-0.3),
-                    life: 90, col: [154,252,151], type: 'diamond', rot: 0, glow: 100
-                });
-            }
-            
-            if (playerInput.length === currentSequence.length) {
-                score++;
-                updateScoreUI();
-                statusDiv.html("round complete");
-                waitingForInput = false;
-                displaySpan.html("ok");
-                setTimeout(() => {
-                    if (gameStarted) startNewRound();
-                }, 800);
-            } else {
-                setTimeout(() => {
-                    if (waitingForInput && gameStarted) statusDiv.html("your turn");
-                }, 500);
-            }
-        } else {
-            // wrong note: game over
-            statusDiv.html("game over");
-            displaySpan.html("x");
-            gameStarted = false;
-            waitingForInput = false;
-            roundActive = false;
-            currentSequence = [];
-            playerInput = [];
-            score = 0;
-            updateScoreUI();
-            // kill all oscillators gently
-            for (let s of shapes) {
-                if (s.osc) s.osc.amp(0, 0.3);
-            }
-            shapes = [];
-            setTimeout(() => {
-                if (!gameStarted) {
-                    statusDiv.html("press any key");
-                    displaySpan.html("restart");
-                }
-            }, 1500);
-        }
-    }
-    
-    function updateScoreUI() {
-        if (scoreSpan) scoreSpan.html(score);
-    }
-    
-    // ---------- DRAW: only diamonds and squares (no ellipses, stars, triangles) ----------
+
     function draw() {
-        background(0, 0, 0, 35); // trailing effect
-        
-        // update and draw each particle
-        for (let i = shapes.length-1; i >= 0; i--) {
+        background(0);
+
+        // Draw floating ellipses (same as original sketch)
+        for (let i = shapes.length - 1; i >= 0; i--) {
             let s = shapes[i];
             s.x += s.vx;
             s.y += s.vy;
-            s.life -= 2.2;
-            
-            let ampScale = 1.0;
-            if (s.amp) {
-                let level = s.amp.getLevel();
-                ampScale = map(level, 0, 0.25, 0.7, 1.6);
+
+            let level = s.amp.getLevel();
+            let ampScale = map(level, 0, 0.3, 0.5, 2);
+
+            // Draw trail
+            s.trail.push({x: s.x, y: s.y, opacity: 255});
+            if (s.trail.length > 30) s.trail.shift();
+            for (let t of s.trail) {
+                fill(255, t.opacity);
+                ellipse(t.x, t.y, 20 * ampScale);
+                t.opacity -= 6;
             }
-            
-            push();
-            translate(s.x, s.y);
-            rotate(s.rot + frameCount * 0.02);
-            let alphaVal = constrain(s.life, 0, 220);
-            fill(s.col[0], s.col[1], s.col[2], alphaVal);
-            noStroke();
-            
-            let sizeBase = 22 * ampScale;
-            if (s.type === 'diamond') {
-                drawDiamond(0, 0, sizeBase);
-            } else { // square
-                drawSquare(0, 0, sizeBase);
-            }
-            pop();
-            
-            // subtle glow (greenish)
+
+            // Glow
             if (s.glow > 0) {
-                push();
-                translate(s.x, s.y);
-                fill(154, 252, 151, s.glow * 0.25);
-                noStroke();
-                // simple rectangle glow (not ellipse)
-                rectMode(CENTER);
-                rect(0, 0, sizeBase * 1.4, sizeBase * 1.4);
-                s.glow -= 6;
-                pop();
+                fill(255, 50, 50, s.glow);
+                ellipse(s.x, s.y, 36 * ampScale);
+                s.glow *= 0.92;
             }
-            
-            if (s.life <= 0) {
-                if (s.osc) {
-                    s.osc.amp(0, 0.4);
-                    setTimeout(() => { if(s.osc) s.osc.stop(); }, 500);
-                }
-                shapes.splice(i,1);
+
+            // Main ellipse outline
+            stroke(255);
+            strokeWeight(1.5);
+            fill(255, s.opacity);
+            ellipse(s.x, s.y, 30 * ampScale);
+            noStroke();
+
+            s.opacity -= 1;
+            if (s.opacity <= 0) {
+                s.osc.amp(0, 1.5);
+                setTimeout(() => s.osc.stop(), 1600);
+                shapes.splice(i, 1);
             }
         }
-        
-        // draw a subtle wave line (low GPU)
-        drawWaveGuide();
-    }
-    
-    // Diamond shape (angular, safe)
-    function drawDiamond(x, y, size) {
-        let half = size / 2;
-        beginShape();
-        vertex(x, y - half);
-        vertex(x + half * 0.85, y);
-        vertex(x, y + half);
-        vertex(x - half * 0.85, y);
-        endShape(CLOSE);
-    }
-    
-    // Square shape (neutral)
-    function drawSquare(x, y, size) {
-        let r = size / 2;
-        rectMode(CENTER);
-        rect(x, y, size, size);
-    }
-    
-    function drawWaveGuide() {
-        strokeWeight(1);
-        stroke(154, 252, 151, 60);
-        noFill();
-        beginShape();
-        for (let x = 0; x < width; x += 50) {
-            let y = height/2 + sin(x * 0.008 + frameCount * 0.02) * 35;
-            vertex(x, y);
+
+        // Draw the target dots (static in the center)
+        drawTargetDots();
+
+        // Draw correct flash overlay
+        if (correctFlash > 0) {
+            fill(154, 252, 151, correctFlash * 0.8);
+            rect(0, 0, width, height);
+            correctFlash -= 8;
         }
-        endShape();
     }
-    
-    // ---- Keyboard interaction ----
+
+    // Draw the required number of dots (no text, just circles)
+    function drawTargetDots() {
+        if (!gameActive) {
+            // Draw a subtle invitation
+            fill(100, 100, 100, 100);
+            textAlign(CENTER, CENTER);
+            textSize(20);
+            textFont('monospace');
+            text("press any key to start", width/2, height/2 - 40);
+            return;
+        }
+
+        let dotDiameter = 45;
+        let spacing = 70;
+        let totalDots = currentTarget;
+        let startX = width/2 - (totalDots-1) * spacing / 2;
+        let yPos = height/2;
+
+        for (let i = 0; i < totalDots; i++) {
+            fill(154, 252, 151, 220);
+            noStroke();
+            ellipse(startX + i * spacing, yPos, dotDiameter, dotDiameter);
+            // inner highlight
+            fill(255, 255, 255, 180);
+            ellipse(startX + i * spacing, yPos, dotDiameter * 0.45, dotDiameter * 0.45);
+        }
+
+        // subtle instruction text
+        fill(154, 252, 151, 150);
+        textSize(14);
+        textAlign(CENTER, TOP);
+        text("press matching key", width/2, height/2 + 50);
+    }
+
+    // Play a tone (using the same sound engine as original)
+    function playToneForNumber(num) {
+        let keyChar = null;
+        for (let [k, v] of Object.entries(keyToNumber)) {
+            if (v === num) { keyChar = k; break; }
+        }
+        if (!keyChar) return;
+        let freq = keyMap[keyChar];
+        if (!freq) return;
+
+        let osc = new p5.Oscillator('triangle');
+        osc.freq(freq);
+        osc.start();
+        osc.amp(0.3, 0.05);
+        osc.freq(freq * (1 + random(-0.002, 0.002)));
+
+        osc.disconnect();
+        osc.connect(filter);
+        reverb.process(filter, 2, 2);
+
+        let amp = new p5.Amplitude();
+        amp.setInput(osc);
+
+        // Create a visual shape (exactly like original)
+        let s = {
+            x: random(width),
+            y: random(height),
+            vx: random(-2, 2),
+            vy: random(-2, 2),
+            osc: osc,
+            amp: amp,
+            opacity: 255,
+            trail: [],
+            glow: 250
+        };
+        shapes.push(s);
+    }
+
+    // Generate new random target (1-7)
+    function newRandomTarget() {
+        currentTarget = floor(random(1, 8));
+        waitingForInput = true;
+        if (statusDiv) statusDiv.html("your turn");
+    }
+
+    // Handle correct answer
+    function onCorrect() {
+        playToneForNumber(currentTarget);
+        correctFlash = 180;   // green flash
+        if (statusDiv) statusDiv.html("correct!");
+        waitingForInput = false;
+
+        // Clear any pending timer
+        if (feedbackTimer) clearTimeout(feedbackTimer);
+        // After a short pause, show next target
+        feedbackTimer = setTimeout(() => {
+            newRandomTarget();
+            feedbackTimer = null;
+        }, 500);
+    }
+
+    // Handle wrong answer: show error, keep same target
+    function onWrong() {
+        correctFlash = 80;    // redder flash (but we use greenish? make red)
+        fill(255, 80, 80, 120);
+        rect(0, 0, width, height);
+        if (statusDiv) statusDiv.html("wrong – try again");
+        // Play a short error buzz? Optional: play a low unpleasant note? Better not.
+        // Just visual feedback. Keep same target.
+        waitingForInput = true;
+        // reset status after 0.8s
+        setTimeout(() => {
+            if (gameActive && waitingForInput) statusDiv.html("your turn");
+        }, 800);
+    }
+
+    // Start the game (called once on first key)
+    function startGame() {
+        if (gameActive) return;
+        gameActive = true;
+        currentTarget = floor(random(1, 8));
+        waitingForInput = true;
+        if (statusDiv) statusDiv.html("your turn");
+        // Clear any existing shapes from previous idle state
+        for (let s of shapes) {
+            if (s.osc) s.osc.amp(0, 0.5);
+        }
+        shapes = [];
+    }
+
+    // Handle key press (game logic)
+    function handleKey(keyChar) {
+        if (!gameActive) {
+            // Start game on any key
+            userStartAudio();
+            startGame();
+            return;
+        }
+
+        if (!waitingForInput) return; // between rounds, ignore
+
+        let pressedNum = keyToNumber[keyChar];
+        if (pressedNum === undefined) return; // invalid key
+
+        if (pressedNum === currentTarget) {
+            onCorrect();
+        } else {
+            onWrong();
+        }
+    }
+
+    // p5 keyPressed callback
     function keyPressed() {
         let k = key.toUpperCase();
-        if (keyLetters.includes(k)) {
-            userStartAudio();
-            handlePlayerInput(k);
+        if (validKeys.includes(k)) {
+            userStartAudio();   // ensure audio context
+            handleKey(k);
             return false;
         }
-        // any key to restart when game over
-        if (!gameStarted) {
+        // any key to start if game not active
+        if (!gameActive) {
             userStartAudio();
             startGame();
-            return false;
         }
         return false;
     }
-    
-    // Touch support for mobile (same as key)
+
+    // Touch/mouse support for mobile starts game
     function touchStarted() {
         userStartAudio();
-        if (!gameStarted) {
-            startGame();
-        }
+        if (!gameActive) startGame();
         return false;
     }
-    
+
     function windowResized() {
         resizeCanvas(windowWidth, windowHeight);
         background(0);
