@@ -20,6 +20,7 @@
             font-family: 'Courier New', monospace;
             touch-action: pan-x pan-y;
         }
+        /* existing styles unchanged ... */
         .top-bar {
             position: fixed;
             top: 12px;
@@ -123,10 +124,30 @@
             border: none;
             text-shadow: none;
         }
+        .mobile-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(16px);
+            padding: 20px 30px;
+            border-radius: 24px;
+            color: #ffffff;
+            font-family: monospace;
+            font-size: 16px;
+            text-align: center;
+            z-index: 200;
+            border: 1px solid #9afc97;
+            white-space: normal;
+            max-width: 85%;
+            pointer-events: none;
+        }
         @media (max-width: 640px) {
             .band-btn { font-size: 9px; padding: 4px 8px; }
             .score-level, .fail-counter { font-size: 9px; padding: 4px 8px; }
             .startup-message { font-size: 14px; white-space: normal; width: 90%; }
+            .mobile-message { font-size: 14px; padding: 16px 24px; }
         }
         @media (max-width: 480px) {
             .startup-message { font-size: 12px; }
@@ -157,15 +178,29 @@
 
 <script>
     // ================================================================
-    // GAME WITH WAVE PULSE (NO RIPPLES)
-    // Band toggles control waveform visibility.
-    // Correct number = sound + waveform pulse + screen flash.
-    // All bands turn on at start. Level shows only win count.
-    // Failure counter shows only numbers (e.g., 0/18).
-    // Speed text moved higher (y = height/2 - 90).
-    // Back link points to root (/)
+    // MOBILE DETECTION – show message and disable game on mobile
     // ================================================================
+    function isMobileDevice() {
+        return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
 
+    if (isMobileDevice()) {
+        // Remove any interactive elements and show a message
+        document.body.innerHTML = `
+            <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:black; display:flex; align-items:center; justify-content:center; z-index:1000; font-family:monospace; padding:20px;">
+                <div style="background:rgba(0,0,0,0.9); border:1px solid #9afc97; border-radius:24px; padding:24px; max-width:90%; text-align:center; color:#9afc97;">
+                    This game is designed for desktop browsers.<br><br>Please visit on a computer.
+                    <br><br><a href="/" style="color:#9afc97; text-decoration:underline;">← back to radio</a>
+                </div>
+            </div>
+        `;
+        // Stop execution – no p5 game will load
+        throw new Error("Game blocked on mobile");
+    }
+
+    // ================================================================
+    // GAME CODE (only runs on desktop)
+    // ================================================================
     let audioStarted = false;
     let reverb;
 
