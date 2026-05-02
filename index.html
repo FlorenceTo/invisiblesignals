@@ -21,7 +21,6 @@
             padding: 0;
             box-sizing: border-box;
         }
-        /* Links - use the green accent color */
         a {
             color: #9afc97;
             text-decoration: none;
@@ -30,8 +29,6 @@
         a:hover {
             opacity: 0.7;
         }
-        
-        /* Override for specific elements that already have link styling */
         .nav-right a,
         .right-col-bottom a,
         .episode-desc a,
@@ -41,7 +38,6 @@
         .resonance-mobile-link {
             color: #9afc97;
         }
-        /* Keep the dotted border for .right-col-bottom a (if desired) */
         .right-col-bottom a {
             border-bottom: 1px dotted #9afc97;
         }
@@ -49,16 +45,12 @@
             border-bottom-color: #9afc97;
             opacity: 0.7;
         }
-        
-        /* Make "Florence To" link match the schedule text colour */
         .bodycopy-2 a {
             color: rgba(175, 218, 139, 1);
         }
         .bodycopy-2 a:hover {
             opacity: 0.7;
         }
-        
-        /* Light mode overrides */
         body.light-bg a,
         body.light-bg .nav-right a,
         body.light-bg .right-col-bottom a,
@@ -67,28 +59,25 @@
         body.light-bg .marquee-text a,
         body.light-bg .schedule-note a,
         body.light-bg .resonance-mobile-link {
-            color: #2c6e2c; /* darker green for readability on light backgrounds */
+            color: #2c6e2c;
         }
         body.light-bg .right-col-bottom a {
             border-bottom-color: #2c6e2c;
         }
         body.light-bg .bodycopy-2 a {
-            color: rgba(175, 218, 139, 1); /* keep same soft green in light mode */
+            color: rgba(175, 218, 139, 1);
         }
-        
-        /* Text selection highlight */
         ::selection {
-            background: #2a2a2a;  /* dark grey */
-            color: #f0f0f0;       /* light text */
+            background: #2a2a2a;
+            color: #f0f0f0;
         }
         ::-moz-selection {
             background: #2a2a2a;
             color: #f0f0f0;
         }
-        
         body.light-bg ::selection {
-            background: #d0d0d0;   /* light grey on light background */
-            color: #1a1a1a;        /* dark text */
+            background: #d0d0d0;
+            color: #1a1a1a;
         }
         body.light-bg ::-moz-selection {
             background: #d0d0d0;
@@ -102,7 +91,6 @@
             -webkit-font-smoothing: antialiased;
             transition: background-color 0.2s ease, color 0.2s ease;
         }
-
         body::before {
             content: '';
             position: fixed;
@@ -117,7 +105,6 @@
             z-index: 1;
             transition: opacity 0.2s ease;
         }
-
         #asciiCanvas {
             position: fixed;
             top: 0;
@@ -128,7 +115,6 @@
             z-index: 0;
             opacity: 1;
         }
-
         .content {
             max-width: 1400px;
             margin: 0 auto;
@@ -136,7 +122,6 @@
             position: relative;
             z-index: 2;
         }
-
         .bodycopy-2 {
             font-size: clamp(0.9rem, 4vw, 1.05rem);
             letter-spacing: 0.058em;
@@ -191,7 +176,6 @@
             color: rgba(255, 255, 255, 0.85);
             transition: color 0.2s ease;
         }
-
         .nav-bar {
             position: sticky;
             top: 0;
@@ -234,7 +218,6 @@
         .nav-right a:hover {
             opacity: 0.7;
         }
-
         .color-buttons {
             display: flex;
             align-items: baseline;
@@ -298,7 +281,6 @@
             text-align: center;
             color: #9afc97;
         }
-
         .episode {
             margin: 4rem 0;
             padding-top: 2rem;
@@ -333,7 +315,6 @@
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
         }
-
         body.light-bg {
             color: rgba(0, 0, 0, 0.85);
         }
@@ -369,7 +350,6 @@
         body.light-bg::before {
             opacity: 0.2;
         }
-
         .schedule-note {
             margin-top: 1rem;
             font-size: 0.8rem;
@@ -383,8 +363,6 @@
             font-weight: bold;
             letter-spacing: 0.5px;
         }
-
-        /* Resonance mobile link – solid border forced */
         .resonance-mobile-link {
             display: inline-block;
             margin-top: 0.8rem;
@@ -405,8 +383,6 @@
         body.light-bg .resonance-mobile-link {
             border-color: #2c2c2c !important;
         }
-
-        /* Popup player – works on both desktop and mobile */
         .popup-player {
             position: fixed;
             z-index: 1000;
@@ -483,15 +459,13 @@
                 width: 240px;
             }
         }
-
-        /* Mobile header – redesigned: left side archive, right side dropdown + misc */
+        /* Mobile header – Misc before Episode, Misc uses standard color */
         .mobile-second-row {
             display: none;
         }
         .episode-dropdown {
             display: none;
         }
-
         @media (max-width: 640px) {
             .content { padding: 0.8rem; }
             .nav-bar {
@@ -544,11 +518,15 @@
                 width: auto;
                 max-width: 140px;
             }
+            /* Misc link – standard text color (no green) */
             .misc-mobile-link {
                 font-size: 0.85rem;
                 text-decoration: none;
-                color: inherit;
+                color: inherit;  /* standard color, not green */
                 white-space: nowrap;
+            }
+            .misc-mobile-link:hover {
+                opacity: 0.7;
             }
             .color-buttons { gap: 0.3rem; }
             .episode-grid { grid-template-columns: 1fr; gap: 1rem; }
@@ -559,7 +537,6 @@
             .picker-panel.hidden { display: none; }
             .picker-panel:not(.hidden) { display: flex; }
         }
-
         @media (max-width: 480px) {
             .content { padding: 0.6rem; }
             .nav-bar { padding: 0.5rem 0.6rem 0.5rem 0.6rem; }
@@ -596,6 +573,7 @@
                 <li><a href="#ep6">Episode 06</a></li>
             </ul>
         </div>
+        <!-- Mobile header: Misc BEFORE Episode dropdown -->
         <div class="mobile-second-row">
             <a href="archive.html" class="archive-link-mobile">Research Archive</a>
             <div class="mobile-right-group">
@@ -609,6 +587,7 @@
                         <option value="#ep5">Episode 05</option>
                         <option value="#ep6">Episode 06</option>
                     </select>
+                </div>
             </div>
         </div>
         <div id="customPicker" class="picker-panel hidden">
@@ -641,13 +620,11 @@
                     <div>Next broadcast: 28.05.2026 at 16:30 (London)</div>
                     <div class="countdown" id="countdownTimer">--d --h --m --s</div>
                 </div>
-                <!-- Mobile resonance link only -->
                 <a href="#" id="resonanceLinkMobile" class="resonance-mobile-link">Listen to Resonance FM</a>
             </div>
         </div>
     </section>
 
-    <!-- EPISODES (unchanged) -->
     <section id="ep1" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 01</div>
@@ -662,55 +639,35 @@
     <section id="ep2" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 02</div>
-            <div class="episode-desc">
-                <div class="bodycopy-2">Details for this episode will be announced soon.</div>
-                <div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div>
-            </div>
+            <div class="episode-desc"><div class="bodycopy-2">Details for this episode will be announced soon.</div><div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div></div>
         </div>
     </section>
-
     <section id="ep3" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 03</div>
-            <div class="episode-desc">
-                <div class="bodycopy-2">Details for this episode will be announced soon.</div>
-                <div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div>
-            </div>
+            <div class="episode-desc"><div class="bodycopy-2">Details for this episode will be announced soon.</div><div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div></div>
         </div>
     </section>
-
     <section id="ep4" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 04</div>
-            <div class="episode-desc">
-                <div class="bodycopy-2">Details for this episode will be announced soon.</div>
-                <div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div>
-            </div>
+            <div class="episode-desc"><div class="bodycopy-2">Details for this episode will be announced soon.</div><div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div></div>
         </div>
     </section>
-
     <section id="ep5" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 05</div>
-            <div class="episode-desc">
-                <div class="bodycopy-2">Details for this episode will be announced soon.</div>
-                <div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div>
-            </div>
+            <div class="episode-desc"><div class="bodycopy-2">Details for this episode will be announced soon.</div><div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div></div>
         </div>
     </section>
-
     <section id="ep6" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 06</div>
-            <div class="episode-desc">
-                <div class="bodycopy-2">Details for this episode will be announced soon.</div>
-                <div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div>
-            </div>
+            <div class="episode-desc"><div class="bodycopy-2">Details for this episode will be announced soon.</div><div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div></div>
         </div>
     </section>
 </div>
 
-<!-- Popup player -->
 <div id="resonancePopup" class="popup-player" style="display: none; top: 20px; left: 20px;">
     <div class="popup-header" id="popupHeader">
         <span class="popup-title">Resonance FM</span>
@@ -729,7 +686,6 @@
     let width = window.innerWidth;
     let height = window.innerHeight;
     const chars = ['/', '\\', '|', '-', '_', '+', '.', '·'];
-
     let mouseX = null, mouseY = null;
     const MAGNET_RADIUS = 150;
     const MAGNET_STRENGTH = 0.15;
@@ -742,7 +698,6 @@
         canvas.height = height;
         initParticles();
     }
-
     function initParticles() {
         let particleCount = Math.floor(width * height / 8000);
         particleCount = Math.min(500, Math.max(150, particleCount));
@@ -762,7 +717,6 @@
             });
         }
     }
-
     function updateParticles() {
         if (mouseX !== null && mouseY !== null) {
             for (let p of particles) {
@@ -794,7 +748,6 @@
             if (p.y > height + 50) p.y = -50;
         }
     }
-
     function drawParticles() {
         if (!ctx) return;
         ctx.clearRect(0, 0, width, height);
@@ -809,13 +762,11 @@
         }
         ctx.globalAlpha = 1;
     }
-
     function animate() {
         updateParticles();
         drawParticles();
         requestAnimationFrame(animate);
     }
-
     function updateMousePosition(clientX, clientY) {
         const rect = canvas.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) return;
@@ -828,7 +779,6 @@
         mouseX = canvasX;
         mouseY = canvasY;
     }
-
     window.addEventListener('mousemove', (e) => updateMousePosition(e.clientX, e.clientY));
     window.addEventListener('mouseleave', () => { mouseX = null; mouseY = null; });
     window.addEventListener('resize', () => resizeCanvas());
@@ -842,36 +792,30 @@
     const hexColorInput = document.getElementById('hexColor');
     const alphaSlider = document.getElementById('alphaSlider');
     const rgbaValueSpan = document.getElementById('rgbaValue');
-
     let currentPresetIndex = 2;
     const presets = [
         { name: 'Dark', bg: '#1c1c1b', light: false },
         { name: 'Light', bg: '#f5f3ef', light: true },
         { name: 'Grey', bg: '#adadad', light: true }
     ];
-
     function setBackground(color, isLight) {
         document.body.style.backgroundColor = color;
         if (isLight) document.body.classList.add('light-bg');
         else document.body.classList.remove('light-bg');
     }
-
     function applyPreset(index) {
         const p = presets[index % presets.length];
         setBackground(p.bg, p.light);
         presetBtn.textContent = p.name;
         hidePicker();
     }
-
     function applyCustomColor(hex, alpha) {
         let r, g, b;
         if (hex.startsWith('#')) {
             r = parseInt(hex.slice(1,3), 16);
             g = parseInt(hex.slice(3,5), 16);
             b = parseInt(hex.slice(5,7), 16);
-        } else {
-            r = 173; g = 173; b = 173;
-        }
+        } else { r = 173; g = 173; b = 173; }
         const bgColor = `rgba(${r}, ${g}, ${b}, ${alpha})`;
         document.body.style.backgroundColor = bgColor;
         const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
@@ -881,7 +825,6 @@
         rgbaValueSpan.textContent = `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
         resetHideTimeout();
     }
-
     let hideTimeout = null;
     function showPicker() {
         clearTimeout(hideTimeout);
@@ -910,17 +853,14 @@
         rgbaValueSpan.textContent = `rgba(${r},${g},${b},${a.toFixed(2)})`;
         resetHideTimeout();
     }
-
     function hidePicker() {
         clearTimeout(hideTimeout);
         customPicker.classList.add('hidden');
     }
-
     function resetHideTimeout() {
         clearTimeout(hideTimeout);
         hideTimeout = setTimeout(() => hidePicker(), 5000);
     }
-
     function bindPickerEvents() {
         [hexColorInput, alphaSlider, customPicker].forEach(el => {
             if (!el) return;
@@ -932,24 +872,20 @@
         customPicker.addEventListener('mouseleave', resetHideTimeout);
     }
     bindPickerEvents();
-
     document.addEventListener('click', (event) => {
         if (!customPicker.classList.contains('hidden')) {
             if (!customPicker.contains(event.target) && !customBtn.contains(event.target)) hidePicker();
         }
     });
-
     presetBtn.addEventListener('click', () => {
         currentPresetIndex = (currentPresetIndex + 1) % presets.length;
         applyPreset(currentPresetIndex);
     });
-
     customBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (customPicker.classList.contains('hidden')) showPicker();
         else hidePicker();
     });
-
     function updateCustomColor() {
         applyCustomColor(hexColorInput.value, parseFloat(alphaSlider.value));
     }
@@ -1006,12 +942,11 @@
     updateCountdown();
     setInterval(updateCountdown, 1000);
 
-    // Movable popup player – only for mobile link
+    // Movable popup player
     const popup = document.getElementById('resonancePopup');
     const popupHeader = document.getElementById('popupHeader');
     let isDragging = false;
     let offsetX, offsetY;
-
     function showPopup() {
         popup.style.display = 'block';
         if (!popup.style.top || popup.style.top === 'auto') {
@@ -1019,15 +954,10 @@
             popup.style.left = '20px';
         }
     }
-
     function closePopup(e) {
-        if (e) {
-            e.stopPropagation();
-            e.preventDefault();
-        }
+        if (e) { e.stopPropagation(); e.preventDefault(); }
         popup.style.display = 'none';
     }
-
     function startDrag(e) {
         isDragging = true;
         const rect = popup.getBoundingClientRect();
@@ -1044,7 +974,6 @@
         popup.style.cursor = 'grabbing';
         e.preventDefault();
     }
-
     function onDrag(e) {
         if (!isDragging) return;
         let clientX, clientY;
@@ -1062,23 +991,19 @@
         popup.style.left = newLeft + 'px';
         popup.style.top = newTop + 'px';
     }
-
     function stopDrag() {
         isDragging = false;
         popup.style.cursor = '';
     }
-
     popupHeader.addEventListener('mousedown', startDrag);
     window.addEventListener('mousemove', onDrag);
     window.addEventListener('mouseup', stopDrag);
     popupHeader.addEventListener('touchstart', startDrag);
     window.addEventListener('touchmove', onDrag);
     window.addEventListener('touchend', stopDrag);
-
     const closeBtn = document.getElementById('closePopup');
     closeBtn.addEventListener('click', closePopup);
     closeBtn.addEventListener('touchstart', closePopup);
-
     const resonanceLinkMobile = document.getElementById('resonanceLinkMobile');
     function openPopupHandler(e) {
         e.preventDefault();
