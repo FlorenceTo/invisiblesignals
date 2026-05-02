@@ -150,18 +150,30 @@
 <script>
     // ================================================================
     // FINAL RELIABLE GAME
-    // - No continuous background sound
     // - Band buttons toggle visual waveforms only (enigmatic scale frequencies)
-    // - Pressing a number plays a short sine tone: a minor third interval (6:5)
-    //   above the selected band's root frequency (or A=440 if no band active)
-    // - Game: match dots, correct = note + visual flash, wrong = failure
+    // - Each number key (1-7) plays a distinct tone from the enigmatic scale
+    // - Game: match dots, correct = play the corresponding note, wrong = lower dissonant note
     // ================================================================
 
     let ripples = [];
     let audioStarted = false;
     let reverb;
 
-    // Band frequencies (enigmatic scale from C)
+    // Enigmatic scale frequencies (C, Db, E, F#, G#, A#, B)
+    const noteFreqs = {
+        1: 261.63,   // C
+        2: 277.18,   // D♭
+        3: 329.63,   // E
+        4: 369.99,   // F♯
+        5: 415.30,   // G♯
+        6: 466.16,   // A♯
+        7: 493.88    // B
+    };
+    const noteNames = {
+        1: 'C', 2: 'D♭', 3: 'E', 4: 'F♯', 5: 'G♯', 6: 'A♯', 7: 'B'
+    };
+
+    // Band visualisation (same frequencies, but independent toggle)
     const bandFreqs = {
         c: 261.63,
         db: 277.18,
@@ -204,7 +216,6 @@
         noStroke();
         frameRate(60);
 
-        // Reverb for the short melodic notes (only used when number is pressed)
         reverb = new p5.Reverb();
         reverb.set(3, 2);
 
@@ -217,7 +228,6 @@
         }
 
         // Create band toggle buttons
-        let container = select('#bandButtons');
         let btns = selectAll('.band-btn');
         for (let btn of btns) {
             let band = btn.attribute('data-band');
@@ -233,7 +243,6 @@
         background(0);
     }
 
-    // Toggle band visualisation only (no sound)
     function toggleBand(band) {
         bandActive[band] = !bandActive[band];
         let btn = select(`.band-btn[data-band="${band}"]`);
@@ -260,26 +269,20 @@
         }
     }
 
-    // Play a short melodic note: root frequency is A=440 Hz,
-    // but we can use the frequency of the first active band as root, or just 440.
-    // For a third interval, we play two notes: root and a minor third above (6:5).
-    // To keep it simple and pleasant, we'll play a single sine tone that is the minor third
-    // above a base frequency (base = 440). For each number press, we also add a ripple.
-    function playThirdInterval() {
-        let base = 440.0;
-        let minorThirdRatio = 6/5;   // 1.2 -> 528 Hz
-        let freq = base * minorThirdRatio;
+    // Play the correct note for the pressed number (if correct match)
+    function playNote(num) {
+        let freq = noteFreqs[num];
+        if (!freq) return;
         let env = new p5.Envelope();
-        env.setADSR(0.01, 0.1, 0.4, 0.3);
+        env.setADSR(0.01, 0.1, 0.5, 0.3);
         env.setRange(0.2, 0);
         let osc = new p5.Oscillator('sine');
         osc.freq(freq);
         osc.start();
         env.play(osc);
-        // Connect to reverb for a more atmospheric feel
         osc.disconnect();
         osc.connect(reverb);
-        setTimeout(() => { osc.stop(); }, 500);
+        setTimeout(() => { osc.stop(); }, 600);
         // Visual ripple
         ripples.push({
             x: width/2, y: height/2, radius: 20,
@@ -288,10 +291,9 @@
         });
     }
 
-    // For wrong answer, play a lower, dissonant interval (tritone? just a semitone down)
+    // Wrong answer: play a lower, dissonant note (tritone or minor second)
     function playWrongNote() {
-        let base = 440.0;
-        let freq = base * 0.943874; // minor second below (about 415 Hz)
+        let freq = 415.30; // G♯, somewhat ambiguous
         let env = new p5.Envelope();
         env.setADSR(0.01, 0.1, 0.3, 0.2);
         env.setRange(0.15, 0);
@@ -374,7 +376,7 @@
     }
 
     function correct() {
-        playThirdInterval();
+        playNote(currentTarget);
         correctFlash = 110;
         waitingForInput = false;
         if (speedLevel < 18) speedLevel++;
@@ -416,7 +418,7 @@
 
     function handleNumber(num) {
         dismissStartupMessage();
-        startAudio();  // ensures audio context on first press
+        startAudio();
         if (!gameActive) {
             startGame();
             setTimeout(() => {
