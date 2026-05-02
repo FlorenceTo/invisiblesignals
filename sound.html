@@ -192,20 +192,19 @@
 
 <script>
     // ================================================================
-    // FINAL RADIO GAME – C‑band active by default, others off (red).
-    // Band mute toggles radio sound + waveform visualization (gray when muted).
-    // Number press volume +35%, real‑time frequency ripples.
+    // FINAL RADIO GAME – signal lost text moved lower, no second line,
+    // plain white, monospace, same style as band buttons.
     // ================================================================
 
-    let shapes = [];           // floating circles from key presses
-    let ripples = [];          // real‑time frequency visualization ripples
-    let reverb, chorusDelays = [];
-    let melodicFilter;
+    let shapes = [];
+    let ripples = [];
+    let reverb, melodicFilter;
     
-    // Just intonation feedback tones (mellow) – volume increased by 35%
-    const feedbackFreqs = [110.00, 123.75, 132.00, 137.50, 146.67, 154.66, 165.00];
+    // Feedback frequencies raised by 5 semitones
+    const baseFeedbackFreqs = [110.00, 123.75, 132.00, 137.50, 146.67, 154.66, 165.00];
+    const feedbackFreqs = baseFeedbackFreqs.map(f => f * 1.33483985417);
     
-    // Background radio noise
+    // Background radio noise (15% quieter)
     let radioNoise;
     let radioBandFilter;
     let radioGain;
@@ -214,14 +213,14 @@
     let radioStarted = false;
     let bandMuted = {
         cband: false,
-        kuband: true,   // start muted
+        kuband: true,
         lband: true,
         kaband: true,
         xband: true
     };
     let lastVolume = 0.28;
     
-    // Visualization variables
+    // Visualization
     let wavePoints = [];
     let bandFreqDisplay = 600;
     let waveformAlpha = 255;
@@ -245,14 +244,11 @@
         noStroke();
         frameRate(60);
         
-        // Reverb with longer decay
         reverb = new p5.Reverb();
         reverb.set(5, 3);
-        
         melodicFilter = new p5.LowPass();
         melodicFilter.freq(2200);
         
-        // Background radio (brown noise + bandpass)
         radioNoise = new p5.Noise('brown');
         radioBandFilter = new p5.BandPass();
         radioBandFilter.res(6);
@@ -263,7 +259,7 @@
         radioGain.connect();
         
         setBand("cband");
-        radioNoise.amp(0.6);
+        radioNoise.amp(0.51);
         radioGain.amp(lastVolume);
         
         radioVolumeSlider = select('#radioVolume');
@@ -273,26 +269,23 @@
             if (!bandMuted[currentBand]) radioGain.amp(vol);
         });
         
-        // Band buttons – toggle mute on/off
         let bandBtns = selectAll('.band-btn');
         for (let btn of bandBtns) {
             btn.mousePressed(() => {
                 let band = btn.attribute('data-band');
-                toggleBand(band);
+                toggleBandWithFade(band);
             });
             btn.touchStarted(() => {
                 let band = btn.attribute('data-band');
-                toggleBand(band);
+                toggleBandWithFade(band);
                 return false;
             });
         }
         
         failCounterDiv = select('#failCounter');
         updateFailDisplay();
-        
         startupMsgDiv = select('#startupMsg');
         
-        // Initialize wave points for visualization
         for (let i = 0; i <= width; i += 8) {
             wavePoints.push({x: i, y: height/2});
         }
@@ -300,47 +293,42 @@
         background(0);
     }
     
-    function toggleBand(band) {
-        bandMuted[band] = !bandMuted[band];
+    function toggleBandWithFade(band) {
+        let targetMuted = !bandMuted[band];
+        bandMuted[band] = targetMuted;
         let btn = select(`.band-btn[data-band="${band}"]`);
         
-        // If this band is the current active band, update gain and waveform appearance
         if (currentBand === band) {
-            if (bandMuted[band]) {
-                radioGain.amp(0);
+            if (targetMuted) {
+                radioGain.amp(0, 0.5);
                 btn.addClass('muted');
                 btn.removeClass('active');
-                waveformAlpha = 80;  // dim waveform
+                waveformAlpha = 80;
             } else {
-                radioGain.amp(lastVolume);
+                radioGain.amp(lastVolume, 0.3);
                 btn.removeClass('muted');
                 btn.addClass('active');
                 waveformAlpha = 255;
             }
         } else {
-            // Just update button state
-            if (bandMuted[band]) {
+            if (targetMuted) {
                 btn.addClass('muted');
                 btn.removeClass('active');
             } else {
                 btn.removeClass('muted');
-                // Not active because it's not the current band
                 btn.removeClass('active');
             }
         }
         
-        // If band is unmuted and it's not the current band, switch to it
-        if (!bandMuted[band] && currentBand !== band) {
+        if (!targetMuted && currentBand !== band) {
             setBand(band);
-            radioGain.amp(lastVolume);
+            radioGain.amp(lastVolume, 0.3);
             waveformAlpha = 255;
         }
         
-        // If we muted the current band, remove active class and dim wave
-        if (bandMuted[band] && currentBand === band) {
+        if (targetMuted && currentBand === band) {
             btn.removeClass('active');
-            waveformAlpha = 80;
-        } else if (!bandMuted[band] && currentBand === band) {
+        } else if (!targetMuted && currentBand === band) {
             waveformAlpha = 255;
         }
     }
@@ -361,7 +349,6 @@
         if (!bandMuted[band] && radioStarted) radioGain.amp(lastVolume);
         else if (bandMuted[band]) radioGain.amp(0);
         
-        // Update button active states
         for (let b of selectAll('.band-btn')) {
             let bband = b.attribute('data-band');
             if (bband === band && !bandMuted[band]) {
@@ -394,12 +381,10 @@
         }
     }
     
-    // ----- Generative frequency visualization with band mute awareness -----
     function drawVisualization() {
         let freq = bandFreqDisplay;
         let amplitude = 45 + 15 * sin(frameCount * 0.015);
-        if (waveformAlpha < 200) amplitude *= 0.3; // reduce when muted
-        
+        if (waveformAlpha < 200) amplitude *= 0.3;
         let phase = frameCount * (freq / 1800.0);
         for (let i = 0; i < wavePoints.length; i++) {
             let x = wavePoints[i].x;
@@ -408,8 +393,8 @@
         }
         
         let waveColor = bandMuted[currentBand] ? [100,100,100] : [154,252,151];
-        stroke(waveColor[0], waveColor[1], waveColor[2], waveformAlpha);
-        strokeWeight(2);
+        stroke(waveColor[0], waveColor[1], waveColor[2], waveformAlpha * 0.5);
+        strokeWeight(0.8);
         noFill();
         beginShape();
         for (let p of wavePoints) vertex(p.x, p.y);
@@ -422,9 +407,8 @@
         textFont('monospace');
         text(`${currentBand.toUpperCase()} ${bandFreqDisplay} Hz`, width - 20, 65);
         
-        // particles
         stroke(waveColor[0], waveColor[1], waveColor[2], 150);
-        strokeWeight(1.2);
+        strokeWeight(0.8);
         for (let i = 0; i < (waveformAlpha > 200 ? 35 : 10); i++) {
             let x = (frameCount * (freq / 1800) + i * 55) % width;
             let y = height/2 + sin(x * freq / 2800 + frameCount * 0.04) * 22 * (waveformAlpha/255);
@@ -432,7 +416,6 @@
         }
     }
     
-    // ----- Real‑time frequency ripples on each key press -----
     function addFrequencyRipple(noteFreq) {
         let ripple = {
             x: width/2,
@@ -445,15 +428,12 @@
         ripples.push(ripple);
     }
     
-    // Extended chorus effect with higher volume (+35%)
     function playFeedbackTone(num) {
         let baseFreq = feedbackFreqs[num-1];
         if (!baseFreq) return;
-        
-        // Add real‑time ripple visualization
         addFrequencyRipple(baseFreq);
         
-        let volumeBoost = 1.35; // +35%
+        let volumeBoost = 1.35;
         let env = new p5.Envelope();
         env.setADSR(0.02, 0.15, 0.6, 1.2);
         env.setRange(0.22 * volumeBoost, 0);
@@ -497,7 +477,6 @@
         }, 1800);
     }
     
-    // Draw ripples
     function drawRipples() {
         for (let i = ripples.length-1; i >= 0; i--) {
             let r = ripples[i];
@@ -509,16 +488,14 @@
             }
             noFill();
             stroke(154,252,151, r.life);
-            strokeWeight(2);
+            strokeWeight(1);
             circle(r.x, r.y, r.radius * 2);
-            // inner ring for frequency representation
             let innerRadius = r.radius * (r.freq / 300);
             stroke(255, 200, 100, r.life * 0.6);
             circle(r.x, r.y, innerRadius * 2);
         }
     }
     
-    // game logic
     function updateSpeed() {
         currentDelay = max(320, baseDelay - (speedLevel * 55));
     }
@@ -617,14 +594,15 @@
             correctFlash -= 6;
         }
         
+        // Game over text: only "signal lost", centered lower, plain white, monospace, no bold
         if (!gameActive) {
-            fill(200, 200, 200, 220);
+            fill(255, 255, 255);   // pure white
+            noStroke();
             textAlign(CENTER, CENTER);
             textSize(20);
             textFont('monospace');
-            text("signal lost", width/2, height/2 - 40);
-            textSize(12);
-            text("press a number key (1-7) to restart", width/2, height/2 + 20);
+            // Position it at the vertical center of the waveform (height/2)
+            text("signal lost", width/2, height/2);
         }
     }
     
