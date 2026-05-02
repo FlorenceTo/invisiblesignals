@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Invisible Signals | Wave Game</title>
+    <title>Invisible Signals | Ping Pong Game</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/addons/p5.sound.min.js"></script>
     <style>
@@ -58,6 +58,16 @@
             background: #9afc9722;
             border-color: #9afc97;
             color: #9afc97;
+        }
+        .score-level {
+            background: rgba(30,30,40,0.8);
+            border-radius: 40px;
+            padding: 4px 12px;
+            font-size: 11px;
+            font-family: monospace;
+            color: #9afc97;
+            border: 1px solid #9afc97;
+            white-space: nowrap;
         }
         .fail-counter {
             background: rgba(30,30,40,0.8);
@@ -118,7 +128,7 @@
         }
         @media (max-width: 640px) {
             .band-btn { font-size: 9px; padding: 4px 8px; }
-            .fail-counter { font-size: 9px; padding: 4px 8px; }
+            .score-level, .fail-counter { font-size: 9px; padding: 4px 8px; }
             .startup-message { font-size: 11px; white-space: normal; width: 90%; padding: 12px 16px; top: 20%; }
         }
         @media (max-width: 480px) {
@@ -133,7 +143,7 @@
 <body>
 <div class="top-bar">
     <div class="band-buttons" id="bandButtons">
-        <button class="band-btn active" data-band="c">C (261 Hz)</button>
+        <button class="band-btn" data-band="c">C (261 Hz)</button>
         <button class="band-btn" data-band="db">D♭ (277 Hz)</button>
         <button class="band-btn" data-band="e">E (329 Hz)</button>
         <button class="band-btn" data-band="f">F♯ (369 Hz)</button>
@@ -141,61 +151,39 @@
         <button class="band-btn" data-band="a">A♯ (466 Hz)</button>
         <button class="band-btn" data-band="b">B (493 Hz)</button>
     </div>
+    <div class="score-level" id="scoreLevel">level 0</div>
     <div class="fail-counter" id="failCounter">failures 0/18</div>
 </div>
 <a href="index.html" class="back-link">← radio</a>
-<div class="instruction">press 1‑7 to match dots</div>
+<div class="instruction">press 1‑7 to match moving dots</div>
 <div id="startupMsg" class="startup-message">for best performance use Firefox<br>press 1 to start</div>
 
 <script>
     // ================================================================
-    // FINAL RELIABLE GAME
-    // - Band buttons toggle visual waveforms only (enigmatic scale frequencies)
-    // - Each number key (1-7) plays a distinct tone from the enigmatic scale
-    // - Game: match dots, correct = play the corresponding note, wrong = lower dissonant note
+    // PING PONG GAME
+    // - All band toggles start OFF (signal lost)
+    // - Game starts on first number press
+    // - After 5 correct answers, dots start moving (ping pong)
+    // - Distinct notes for each number (enigmatic scale)
     // ================================================================
 
     let ripples = [];
     let audioStarted = false;
     let reverb;
 
-    // Enigmatic scale frequencies (C, Db, E, F#, G#, A#, B)
+    // Enigmatic scale notes (1‑7)
     const noteFreqs = {
-        1: 261.63,   // C
-        2: 277.18,   // D♭
-        3: 329.63,   // E
-        4: 369.99,   // F♯
-        5: 415.30,   // G♯
-        6: 466.16,   // A♯
-        7: 493.88    // B
-    };
-    const noteNames = {
-        1: 'C', 2: 'D♭', 3: 'E', 4: 'F♯', 5: 'G♯', 6: 'A♯', 7: 'B'
+        1: 261.63, 2: 277.18, 3: 329.63, 4: 369.99, 5: 415.30, 6: 466.16, 7: 493.88
     };
 
-    // Band visualisation (same frequencies, but independent toggle)
+    // Band visualisation only (no sound)
     const bandFreqs = {
-        c: 261.63,
-        db: 277.18,
-        e: 329.63,
-        f: 369.99,
-        g: 415.30,
-        a: 466.16,
-        b: 493.88
+        c: 261.63, db: 277.18, e: 329.63, f: 369.99, g: 415.30, a: 466.16, b: 493.88
     };
     let bandActive = {
-        c: true,
-        db: false,
-        e: false,
-        f: false,
-        g: false,
-        a: false,
-        b: false
+        c: false, db: false, e: false, f: false, g: false, a: false, b: false
     };
     let bandNames = ['c', 'db', 'e', 'f', 'g', 'a', 'b'];
-    let bandDisplay = { c:'C', db:'D♭', e:'E', f:'F♯', g:'G♯', a:'A♯', b:'B' };
-
-    // Visual waveform storage per band
     let wavePoints = {};
 
     // Game state
@@ -205,11 +193,14 @@
     let roundTimer = null;
     let correctFlash = 0;
     let failCount = 0;
-    let speedLevel = 0;
+    let correctCount = 0;     // number of correct answers (score)
+    let pingPongMode = false;  // after 5 correct, dots start moving
+    let dotOffset = 0;
+    let dotSpeed = 2;
     let baseDelay = 1500;
     let currentDelay = 1500;
 
-    let failCounterDiv, startupMsgDiv;
+    let scoreLevelDiv, failCounterDiv, startupMsgDiv;
 
     function setup() {
         createCanvas(windowWidth, windowHeight);
@@ -227,19 +218,20 @@
             }
         }
 
-        // Create band toggle buttons
+        // Create band toggle buttons (all start inactive)
         let btns = selectAll('.band-btn');
         for (let btn of btns) {
             let band = btn.attribute('data-band');
             btn.mousePressed(() => toggleBand(band));
             btn.touchStarted(() => { toggleBand(band); return false; });
-            if (bandActive[band]) btn.addClass('active');
-            else btn.addClass('muted');
+            // all start muted
+            btn.addClass('muted');
         }
 
+        scoreLevelDiv = select('#scoreLevel');
         failCounterDiv = select('#failCounter');
         startupMsgDiv = select('#startupMsg');
-        updateFailDisplay();
+        updateUI();
         background(0);
     }
 
@@ -269,12 +261,16 @@
         }
     }
 
-    // Play the correct note for the pressed number (if correct match)
+    function updateUI() {
+        scoreLevelDiv.html(`level ${correctCount}`);
+        failCounterDiv.html(`failures ${failCount}/18`);
+    }
+
     function playNote(num) {
         let freq = noteFreqs[num];
         if (!freq) return;
         let env = new p5.Envelope();
-        env.setADSR(0.01, 0.1, 0.5, 0.3);
+        env.setADSR(0.01, 0.1, 0.4, 0.3);
         env.setRange(0.2, 0);
         let osc = new p5.Oscillator('sine');
         osc.freq(freq);
@@ -282,18 +278,15 @@
         env.play(osc);
         osc.disconnect();
         osc.connect(reverb);
-        setTimeout(() => { osc.stop(); }, 600);
-        // Visual ripple
+        setTimeout(() => { osc.stop(); }, 500);
         ripples.push({
             x: width/2, y: height/2, radius: 20,
-            maxRadius: min(width,height)*0.5, life: 180,
-            freq: freq
+            maxRadius: min(width,height)*0.5, life: 180, freq: freq
         });
     }
 
-    // Wrong answer: play a lower, dissonant note (tritone or minor second)
     function playWrongNote() {
-        let freq = 415.30; // G♯, somewhat ambiguous
+        let freq = 415.30;
         let env = new p5.Envelope();
         env.setADSR(0.01, 0.1, 0.3, 0.2);
         env.setRange(0.15, 0);
@@ -306,12 +299,11 @@
         setTimeout(() => { osc.stop(); }, 400);
         ripples.push({
             x: width/2, y: height/2, radius: 10,
-            maxRadius: min(width,height)*0.4, life: 120,
-            freq: freq
+            maxRadius: min(width,height)*0.4, life: 120, freq: freq
         });
     }
 
-    // Draw all waveforms for active bands (semi‑transparent, stacked)
+    // Draw waveforms for active bands
     function drawWaveforms() {
         let t = frameCount;
         for (let band of bandNames) {
@@ -332,7 +324,7 @@
             for (let p of points) vertex(p.x, p.y);
             endShape();
         }
-        // floating particles
+        // particles
         stroke(255, 180);
         strokeWeight(1);
         for (let i = 0; i < 40; i++) {
@@ -368,6 +360,33 @@
         }
     }
 
+    // Dots drawing with ping pong movement
+    function drawTargetDots() {
+        if (!gameActive) return;
+        let dia = 28;
+        let baseSpacing = 50;
+        let total = currentTarget;
+        // calculate center offset for ping pong
+        let maxOffset = 60;
+        if (pingPongMode) {
+            dotOffset += dotSpeed;
+            if (dotOffset > maxOffset || dotOffset < -maxOffset) dotSpeed *= -1;
+        }
+        let startX = width/2 - (total-1)*baseSpacing/2 + dotOffset;
+        for (let i=0; i<total; i++) {
+            fill(255,220);
+            noStroke();
+            circle(startX + i*baseSpacing, height/2, dia);
+            fill(255,80);
+            circle(startX + i*baseSpacing, height/2, dia*0.3);
+        }
+        fill(160,160,160,200);
+        textSize(10);
+        textAlign(CENTER,BOTTOM);
+        textFont('monospace');
+        text(`speed: ${speedLevel+1} | ${pingPongMode ? 'ping pong' : 'static'}`, width/2, height/2-48);
+    }
+
     // Game logic
     function newRound() {
         if (!gameActive) return;
@@ -379,8 +398,13 @@
         playNote(currentTarget);
         correctFlash = 110;
         waitingForInput = false;
+        correctCount++;
+        if (correctCount >= 5 && !pingPongMode) {
+            pingPongMode = true;
+        }
         if (speedLevel < 18) speedLevel++;
         currentDelay = max(320, baseDelay - speedLevel * 55);
+        updateUI();
         if (roundTimer) clearTimeout(roundTimer);
         roundTimer = setTimeout(() => {
             if (gameActive) newRound();
@@ -390,7 +414,7 @@
     function wrong() {
         playWrongNote();
         failCount++;
-        updateFailDisplay();
+        updateUI();
         correctFlash = 70;
         if (failCount >= 18) {
             gameActive = false;
@@ -404,16 +428,15 @@
     function startGame() {
         gameActive = true;
         failCount = 0;
+        correctCount = 0;
         speedLevel = 0;
+        pingPongMode = false;
+        dotOffset = 0;
         currentDelay = baseDelay;
-        updateFailDisplay();
+        updateUI();
         currentTarget = floor(random(1, 8));
         waitingForInput = true;
         if (roundTimer) clearTimeout(roundTimer);
-    }
-
-    function updateFailDisplay() {
-        failCounterDiv.html("failures " + failCount + "/18");
     }
 
     function handleNumber(num) {
@@ -432,24 +455,6 @@
         if (!waitingForInput) return;
         if (num === currentTarget) correct();
         else wrong();
-    }
-
-    function drawTargetDots() {
-        if (!gameActive) return;
-        let dia = 28, spc = 50, total = currentTarget;
-        let startX = width/2 - (total-1)*spc/2;
-        for (let i=0; i<total; i++) {
-            fill(255,220);
-            noStroke();
-            circle(startX + i*spc, height/2, dia);
-            fill(255,80);
-            circle(startX + i*spc, height/2, dia*0.3);
-        }
-        fill(160,160,160,200);
-        textSize(10);
-        textAlign(CENTER,BOTTOM);
-        textFont('monospace');
-        text("speed: " + (speedLevel+1), width/2, height/2-48);
     }
 
     function draw() {
