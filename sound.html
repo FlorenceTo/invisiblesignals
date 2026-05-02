@@ -161,7 +161,7 @@
     // Band toggles control waveform visibility.
     // Correct number = sound + waveform pulse + screen flash.
     // All bands turn on at start. Level shows only win count.
-    // Startup message: plain white text "press 1 to begin" without border.
+    // Line width reduced by 30% (normal: 0.5, pulse: 1.8)
     // ================================================================
 
     let audioStarted = false;
@@ -320,7 +320,8 @@
             }
             let alphaBase = 100 + (pulseFactor > 0 ? 150 : 0);
             stroke(160, 252, 151, constrain(alphaBase, 0, 255));
-            strokeWeight(pulseFactor > 0 ? 2.5 : 0.7);
+            // Thinner line width: normal 0.5, pulse 1.8 (approx 30% thinner than before)
+            strokeWeight(pulseFactor > 0 ? 1.8 : 0.5);
             noFill();
             beginShape();
             for (let p of points) vertex(p.x, p.y);
