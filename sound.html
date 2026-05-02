@@ -181,10 +181,8 @@
     let audioStarted = false;
     let reverb;
 
-    // Dotted wave fade control
-    let dottedWaveAlpha = 255;
-    let dottedWaveFadeOut = false;
-    let fadeStartTime = 0;
+    // Dotted wave visibility – simple boolean
+    let showDottedWave = true;
 
     const noteFreqs = {
         1: 261.63, 2: 277.18, 3: 329.63, 4: 369.99, 5: 415.30, 6: 466.16, 7: 493.88
@@ -348,9 +346,9 @@
             if (bandPulse[band] > 0) bandPulse[band] *= 0.92;
         }
 
-        // ----- SINGULAR DOTTED WAVEFORM (fades out on game start, reappears on game over) -----
-        if (dottedWaveAlpha > 0) {
-            stroke(255, dottedWaveAlpha);
+        // ----- SINGULAR DOTTED WAVEFORM (shows only when game is not active) -----
+        if (showDottedWave) {
+            stroke(255, 200);
             strokeWeight(2);
             let step = 15;
             for (let x = 0; x <= width; x += step) {
@@ -426,8 +424,7 @@
             resetAllBandsOff();
             failCounterDiv.html("18/18 · lost");
             // Reappear dotted wave
-            dottedWaveAlpha = 255;
-            dottedWaveFadeOut = false;
+            showDottedWave = true;
         } else {
             waitingForInput = true;
         }
@@ -447,9 +444,8 @@
         if (roundTimer) clearTimeout(roundTimer);
         activateAllBands();
 
-        // Start fading out the dotted wave
-        dottedWaveFadeOut = true;
-        fadeStartTime = millis();
+        // Turn off the dotted wave immediately
+        showDottedWave = false;
     }
 
     function handleNumber(num) {
@@ -471,18 +467,6 @@
     }
 
     function draw() {
-        // Update dotted wave fade
-        if (dottedWaveFadeOut) {
-            let elapsed = millis() - fadeStartTime;
-            let newAlpha = 255 - elapsed * 2; // fade over ~1.3 sec
-            if (newAlpha <= 0) {
-                dottedWaveAlpha = 0;
-                dottedWaveFadeOut = false;
-            } else {
-                dottedWaveAlpha = newAlpha;
-            }
-        }
-
         background(0);
         drawWaveforms();
         drawTargetDots();
