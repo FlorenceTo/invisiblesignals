@@ -639,7 +639,7 @@
 </div>
 
 <script>
-    // ========== ASCII WAVE PARTICLES (unchanged) ==========
+    // ========== ASCII WAVE PARTICLES ==========
     const canvas = document.getElementById('asciiCanvas');
     let ctx = canvas.getContext('2d');
     let particles = [];
@@ -681,38 +681,60 @@
     }
 
     function updateParticles() {
-    if (mouseX !== null && mouseY !== null) {
-        for (let p of particles) {
-            let dx = mouseX - p.x;
-            let dy = mouseY - p.y;
-            let dist = Math.hypot(dx, dy);
-            if (dist < MAGNET_RADIUS && dist > 0.01) {
-                let force = (1 - dist / MAGNET_RADIUS) * MAGNET_STRENGTH;
-                force = Math.min(force, 0.5);
-                let angle = Math.atan2(dy, dx);
-                let ax = Math.cos(angle) * force;
-                let ay = Math.sin(angle) * force;
-                p.vx += ax;
-                p.vy += ay;
-                let spd = Math.hypot(p.vx, p.vy);
-                if (spd > MAX_SPEED) {
-                    p.vx = (p.vx / spd) * MAX_SPEED;
-                    p.vy = (p.vy / spd) * MAX_SPEED;
+        if (mouseX !== null && mouseY !== null) {
+            for (let p of particles) {
+                let dx = mouseX - p.x;
+                let dy = mouseY - p.y;
+                let dist = Math.hypot(dx, dy);
+                if (dist < MAGNET_RADIUS && dist > 0.01) {
+                    let force = (1 - dist / MAGNET_RADIUS) * MAGNET_STRENGTH;
+                    force = Math.min(force, 0.5);
+                    let angle = Math.atan2(dy, dx);
+                    let ax = Math.cos(angle) * force;
+                    let ay = Math.sin(angle) * force;
+                    p.vx += ax;
+                    p.vy += ay;
+                    let spd = Math.hypot(p.vx, p.vy);
+                    if (spd > MAX_SPEED) {
+                        p.vx = (p.vx / spd) * MAX_SPEED;
+                        p.vy = (p.vy / spd) * MAX_SPEED;
+                    }
                 }
             }
         }
+        for (let p of particles) {
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < -50) p.x = width + 50;
+            if (p.x > width + 50) p.x = -50;
+            if (p.y < -50) p.y = height + 50;
+            if (p.y > height + 50) p.y = -50;
+        }
     }
-    for (let p of particles) {
-        p.x += p.vx;
-        p.y += p.vy;   // FIXED: was p.vy += p.vy
-        if (p.x < -50) p.x = width + 50;
-        if (p.x > width + 50) p.x = -50;
-        if (p.y < -50) p.y = height + 50;
-        if (p.y > height + 50) p.y = -50;
-    }
-}
 
-        function updateMousePosition(clientX, clientY) {
+    function drawParticles() {
+        if (!ctx) return;
+        ctx.clearRect(0, 0, width, height);
+        ctx.font = '14px "Courier New", monospace';
+        ctx.fillStyle = '#e3ffa9';
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center';
+        for (let p of particles) {
+            ctx.font = `${p.size}px "Courier New", monospace`;
+            ctx.globalAlpha = p.opacity * 0.9;
+            ctx.fillText(p.char, p.x, p.y);
+        }
+        ctx.globalAlpha = 1;
+    }
+
+    // ✅ ANIMATION LOOP (was missing – fixed)
+    function animate() {
+        updateParticles();
+        drawParticles();
+        requestAnimationFrame(animate);
+    }
+
+    function updateMousePosition(clientX, clientY) {
         const rect = canvas.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) return;
         const scaleX = canvas.width / rect.width;
@@ -744,16 +766,16 @@
     window.addEventListener('touchcancel', resetMousePosition);
     window.addEventListener('resize', () => resizeCanvas());
     resizeCanvas();
-    animate();
+    animate();  // now safe – animate() is defined
 
-    // ========== GREY / DARK MODE WITH PERSISTENCE (localStorage) ==========
+    // ========== LIGHT / DARK MODE WITH PERSISTENCE (localStorage) ==========
     const modeToggleBtn = document.getElementById('modeToggleBtn');
 
-    function setGreyMode() {
+    function setLightMode() {   // renamed from setGreyMode for clarity
         document.body.style.backgroundColor = '#adadad';
         document.body.classList.add('light-bg');
         modeToggleBtn.textContent = 'Light';
-        localStorage.setItem('invisibleSignalsMode', 'grey');
+        localStorage.setItem('invisibleSignalsMode', 'light');
     }
 
     function setDarkMode() {
@@ -764,11 +786,11 @@
     }
 
     function toggleMode() {
-        const isCurrentlyGrey = document.body.classList.contains('light-bg');
-        if (isCurrentlyGrey) {
+        const isCurrentlyLight = document.body.classList.contains('light-bg');
+        if (isCurrentlyLight) {
             setDarkMode();
         } else {
-            setGreyMode();
+            setLightMode();
         }
     }
 
@@ -777,8 +799,8 @@
     if (savedMode === 'dark') {
         setDarkMode();
     } else {
-        // default to grey (including if savedMode is null or 'grey')
-        setGreyMode();
+        // default to light (grey background)
+        setLightMode();
     }
 
     modeToggleBtn.addEventListener('click', toggleMode);
