@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-    
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Invisible Signals – Research Archive</title>
 
     <style>
-        /* ========== same styles as your index.html, but without canvas rules ========== */
+        /* ========== same styles as index.html, but without canvas rules ========== */
         * {
             margin: 0;
             padding: 0;
@@ -141,7 +140,7 @@
             align-items: baseline;
             gap: 0.5rem;
         }
-        .color-btn {
+        .mode-toggle-btn {
             background: transparent;
             border: 1px solid #9afc97;
             border-radius: 20px;
@@ -151,53 +150,6 @@
             transition: all 0.2s ease;
             color: inherit;
             font-family: monospace;
-        }
-        .picker-panel {
-            margin-top: 0.5rem;
-            background: rgba(28, 28, 27, 0.9);
-            backdrop-filter: blur(4px);
-            border: 1px solid #9afc97;
-            border-radius: 12px;
-            padding: 0.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            z-index: 20;
-            min-width: 200px;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        .picker-panel.hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-        .color-input-group {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-        }
-        .color-input-group label {
-            font-size: 0.7rem;
-        }
-        #hexColor {
-            width: 80px;
-            background: #1c1c1b;
-            border: 1px solid #9afc97;
-            color: inherit;
-            padding: 0.2rem;
-            font-family: monospace;
-        }
-        #alphaSlider {
-            flex: 1;
-        }
-        .rgba-value {
-            font-size: 0.6rem;
-            font-family: monospace;
-            text-align: center;
-            color: #9afc97;
         }
 
         /* Archive grid */
@@ -280,7 +232,7 @@
             opacity: 0.7;
         }
 
-        /* Light background overrides */
+        /* Light background overrides (used for Grey mode) */
         body.light-bg {
             color: rgba(0, 0, 0, 0.85);
         }
@@ -297,15 +249,8 @@
         body.light-bg .nav-bar {
             border-color: #2c2c2c;
         }
-        body.light-bg .color-btn {
+        body.light-bg .mode-toggle-btn {
             border-color: #2c2c2c;
-        }
-        body.light-bg .picker-panel {
-            background: rgba(245, 243, 239, 0.95);
-            border-color: #2c2c2c;
-        }
-        body.light-bg .rgba-value {
-            color: #2c2c2c;
         }
         body.light-bg::before {
             opacity: 0.2;
@@ -341,17 +286,6 @@
                 grid-template-columns: 1fr;
                 gap: 1rem;
             }
-            .picker-panel {
-                position: relative;
-                width: 100%;
-                margin-top: 0.5rem;
-            }
-            .picker-panel.hidden {
-                display: none;
-            }
-            .picker-panel:not(.hidden) {
-                display: flex;
-            }
         }
         @media (max-width: 480px) {
             .content {
@@ -374,293 +308,194 @@
             <div class="nav-left">
                 <div class="header-clock" id="liveClock">--:--:--</div>
                 <div class="color-buttons">
-                    <button class="color-btn" id="presetBtn">Grey</button>
-                    <button class="color-btn" id="customBtn">Custom</button>
+                    <button class="mode-toggle-btn" id="modeToggleBtn">Grey</button>
                 </div>
             </div>
             <ul class="nav-right">
                 <li><a href="/">← Back to main</a></li>
             </ul>
         </div>
-        <div id="customPicker" class="picker-panel hidden">
-            <div class="color-input-group">
-                <label>Color:</label>
-                <input type="color" id="hexColor" value="#adadad">
-            </div>
-            <div class="color-input-group">
-                <label>Opacity:</label>
-                <input type="range" id="alphaSlider" min="0" max="1" step="0.01" value="1">
-            </div>
-            <div class="rgba-value" id="rgbaValue">rgba(173,173,173,1)</div>
-        </div>
     </div>
 
     <div class="archive-title">Research Archive</div>
     <div class="grey-caption" style="margin-bottom: 1rem;"></div>
 
-   <!-- Archive grid – each image is clickable -->
+    <!-- Archive grid – each image is clickable -->
     <div class="archive-grid">
-    
         <div class="archive-item">
             <img src="images/recorder.jpg" alt="Research image 1">
             <div class="caption">
                 <span>AN/PRC-90-2 Survival Radio</span>
             </div>
         </div>
-    
         <div class="archive-item">
             <img src="images/sea_women.jpg" alt="Research image 2">
             <div class="caption">
                 <span>Ama Diver harvesting pearls</span>
             </div>
         </div>
-    
         <div class="archive-item">
             <img src="images/human_cam.jpg" alt="Research image 3">
             <div class="caption">
                 <span>DIY Cyborg Prototype</span>
             </div>
         </div>
-    
         <div class="archive-item">
             <img src="images/stone_archive.jpg" alt="Research image 4">
             <div class="caption">
                 <span>Sich aufrichtende Nackenhaare kartieren (Mapping Rising Neck Hair), Philip Loersch</span>
             </div>
         </div>
-    
         <div class="archive-item">
             <img src="images/Gold_Occ_06.jpg" alt="Research image 5">
             <div class="caption">
                 <span>Wooden Banner featuring a Quote by Fred Moten 09.05.2026</span>
             </div>
         </div>
-    
         <div class="archive-item">
             <img src="images/Gold_Occ_05.jpg" alt="Research image 6">
             <div class="caption">
                 <span>Kuffiyeh draped over Out-of-Service Printer, Goldsmiths Library 09.05.2026</span>
             </div>
         </div>
-    
         <div class="archive-item">
             <img src="images/Gold_Occ_02.jpg" alt="Research image 7">
             <div class="caption">
                 <span>Occupation Archive, Goldsmiths Library 09.05.2026</span>
             </div>
         </div>
-
-         <div class="archive-item">
+        <div class="archive-item">
             <img src="images/Gold_Occ_16.jpg" alt="Research image 8">
             <div class="caption">
                 <span>Free Goldsmiths Occupation 09.05.2026</span>
             </div>
         </div>
-
-         <div class="archive-item">
-            <img src="images/Gold_Occ_17.jpg" alt="Research image 8">
+        <div class="archive-item">
+            <img src="images/Gold_Occ_17.jpg" alt="Research image 9">
             <div class="caption">
                 <span>Free Goldsmiths Occupation 09.05.2026</span>
             </div>
         </div>
-        
         <div class="archive-item">
-            <img src="images/Gold_Occ_04.jpg" alt="Research image 8">
+            <img src="images/Gold_Occ_04.jpg" alt="Research image 10">
             <div class="caption">
                 <span>Banner, Free Goldsmiths Occupation 09.05.2026</span>
             </div>
         </div>
-    
         <div class="archive-item">
-            <img src="images/Gold_Occ_07.jpg" alt="Research image 9">
+            <img src="images/Gold_Occ_07.jpg" alt="Research image 11">
             <div class="caption">
                 <span>Collective Workshop Table, Free Goldsmiths Occupation 09.05.2026</span>
             </div>
         </div>
-    
         <div class="archive-item">
-            <img src="images/Gold_Occ_03.jpg" alt="Research image 10">
+            <img src="images/Gold_Occ_03.jpg" alt="Research image 12">
             <div class="caption">
                 <span>The Hub, Free Goldsmiths Occupation 09.05.2026</span>
             </div>
         </div>
-    
         <div class="archive-item">
-            <img src="images/Gold_Occ_11.jpg" alt="Research image 11">
+            <img src="images/Gold_Occ_11.jpg" alt="Research image 13">
             <div class="caption">
                 <span>The Hub, Free Goldsmiths Occupation 29.04.2026</span>
             </div>
         </div>
-    
         <div class="archive-item">
-            <img src="images/Gold_Occ_12.jpg" alt="Research image 12">
+            <img src="images/Gold_Occ_12.jpg" alt="Research image 14">
             <div class="caption">
                 <span>Occupation Archive Installed on Library Windows, Free Goldsmiths Occupation 29.04.2026</span>
             </div>
         </div>
-    
         <div class="archive-item">
-            <img src="images/Gold_Occ_19.jpg" alt="Research image 13">
+            <img src="images/Gold_Occ_19.jpg" alt="Research image 15">
             <div class="caption">
                 <span>End-of-Year BA Curating Exhibition. From The Campus To The Streets, An Activist Starter Kit 07.05.2026</span>
             </div>
         </div>
-
         <div class="archive-item">
-            <img src="images/Gold_Occ_23.jpg" alt="Research image 14">
+            <img src="images/Gold_Occ_23.jpg" alt="Research image 16">
             <div class="caption">
                 <span>End-of-Year BA Curating Exhibition. From The Campus To The Streets, An Activist Starter Kit 07.05.2026</span>
             </div>
         </div>
-        
         <div class="archive-item">
-            <img src="images/Gold_Occ_24.jpg" alt="Research image 15">
+            <img src="images/Gold_Occ_24.jpg" alt="Research image 17">
             <div class="caption">
                 <span>End-of-Year BA Curating Exhibition. From The Campus To The Streets, An Activist Starter Kit 07.05.2026</span>
             </div>
         </div>
-        
         <div class="archive-item">
-            <img src="images/Gold_Occ_25.jpg" alt="Research image 16">
+            <img src="images/Gold_Occ_25.jpg" alt="Research image 18">
             <div class="caption">
                 <span>End-of-Year BA Curating Exhibition. From The Campus To The Streets, An Activist Starter Kit 07.05.2026</span>
             </div>
         </div>
-        
         <div class="archive-item">
-            <img src="images/Gold_Occ_27.jpg" alt="Research image 17">
+            <img src="images/Gold_Occ_27.jpg" alt="Research image 19">
             <div class="caption">
                 <span>End-of-Year BA Curating Exhibition. From The Campus To The Streets, An Activist Starter Kit 07.05.2026</span>
             </div>
         </div>
-        
         <div class="archive-item">
-            <img src="images/Gold_Occ_29.jpg" alt="Research image 18">
+            <img src="images/Gold_Occ_29.jpg" alt="Research image 20">
             <div class="caption">
                 <span>End-of-Year BA Curating Exhibition. From The Campus To The Streets, An Activist Starter Kit 07.05.2026</span>
             </div>
         </div>
-        
         <div class="archive-item">
-            <img src="images/Gold_Occ_20.jpg" alt="Research image 14">
+            <img src="images/Gold_Occ_20.jpg" alt="Research image 21">
             <div class="caption">
                 <span>Free Goldsmiths Rally 27.05.2026</span>
-            </div>     
-        </div>
-        
-         <!-- Lightbox overlay -->
-        <div id="lightbox" class="lightbox">
-            <span class="lightbox-close">&times;</span>
-            <img id="lightbox-img" src="" alt="">
+            </div>
         </div>
     </div>
 
+    <!-- Lightbox overlay -->
+    <div id="lightbox" class="lightbox">
+        <span class="lightbox-close">&times;</span>
+        <img id="lightbox-img" src="" alt="">
+    </div>
+</div>
+
 <script>
-    // ========== COLOUR SWITCHER ==========
-    const presetBtn = document.getElementById('presetBtn');
-    const customBtn = document.getElementById('customBtn');
-    const customPicker = document.getElementById('customPicker');
-    const hexColorInput = document.getElementById('hexColor');
-    const alphaSlider = document.getElementById('alphaSlider');
-    const rgbaValueSpan = document.getElementById('rgbaValue');
+    // ========== GREY / DARK MODE WITH PERSISTENCE (localStorage) ==========
+    const modeToggleBtn = document.getElementById('modeToggleBtn');
 
-    let currentPresetIndex = 2;
-    const presets = [
-        { name: 'Dark', bg: '#1c1c1b', light: false },
-        { name: 'Light', bg: '#f5f3ef', light: true },
-        { name: 'Grey', bg: '#adadad', light: true }
-    ];
+    function setGreyMode() {
+        document.body.style.backgroundColor = '#adadad';
+        document.body.classList.add('light-bg');
+        modeToggleBtn.textContent = 'Grey';
+        localStorage.setItem('invisibleSignalsMode', 'grey');
+    }
 
-    function setBackground(color, isLight) {
-        document.body.style.backgroundColor = color;
-        if (isLight) document.body.classList.add('light-bg');
-        else document.body.classList.remove('light-bg');
+    function setDarkMode() {
+        document.body.style.backgroundColor = '#1c1c1b';
+        document.body.classList.remove('light-bg');
+        modeToggleBtn.textContent = 'Dark';
+        localStorage.setItem('invisibleSignalsMode', 'dark');
     }
-    function applyPreset(index) {
-        const p = presets[index % presets.length];
-        setBackground(p.bg, p.light);
-        presetBtn.textContent = p.name;
-        hidePicker();
-    }
-    function applyCustomColor(hex, alpha) {
-        let r, g, b;
-        if (hex.startsWith('#')) {
-            r = parseInt(hex.slice(1,3), 16);
-            g = parseInt(hex.slice(3,5), 16);
-            b = parseInt(hex.slice(5,7), 16);
-        } else { r = 173; g = 173; b = 173; }
-        const bgColor = `rgba(${r}, ${g}, ${b}, ${alpha})`;
-        document.body.style.backgroundColor = bgColor;
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        const isLight = luminance > 0.5 || alpha < 0.4;
-        if (isLight) document.body.classList.add('light-bg');
-        else document.body.classList.remove('light-bg');
-        rgbaValueSpan.textContent = `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
-        resetHideTimeout();
-    }
-    let hideTimeout = null;
-    function showPicker() {
-        clearTimeout(hideTimeout);
-        customPicker.classList.remove('hidden');
-        const bg = document.body.style.backgroundColor;
-        if (bg && bg.startsWith('rgba')) {
-            const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
-            if (match) {
-                hexColorInput.value = `#${((1 << 24) + (parseInt(match[1]) << 16) + (parseInt(match[2]) << 8) + parseInt(match[3])).toString(16).slice(1)}`;
-                alphaSlider.value = match[4] ? parseFloat(match[4]) : 1;
-            }
+
+    function toggleMode() {
+        const isCurrentlyGrey = document.body.classList.contains('light-bg');
+        if (isCurrentlyGrey) {
+            setDarkMode();
         } else {
-            hexColorInput.value = '#adadad';
-            alphaSlider.value = 1;
+            setGreyMode();
         }
-        const r = parseInt(hexColorInput.value.slice(1,3),16);
-        const g = parseInt(hexColorInput.value.slice(3,5),16);
-        const b = parseInt(hexColorInput.value.slice(5,7),16);
-        const a = parseFloat(alphaSlider.value);
-        rgbaValueSpan.textContent = `rgba(${r},${g},${b},${a.toFixed(2)})`;
-        resetHideTimeout();
     }
-    function hidePicker() {
-        clearTimeout(hideTimeout);
-        customPicker.classList.add('hidden');
-    }
-    function resetHideTimeout() {
-        clearTimeout(hideTimeout);
-        hideTimeout = setTimeout(() => hidePicker(), 5000);
-    }
-    function bindPickerEvents() {
-        [hexColorInput, alphaSlider, customPicker].forEach(el => {
-            if (!el) return;
-            el.addEventListener('mousemove', resetHideTimeout);
-            el.addEventListener('input', resetHideTimeout);
-            el.addEventListener('click', resetHideTimeout);
-        });
-        customPicker.addEventListener('mouseenter', resetHideTimeout);
-        customPicker.addEventListener('mouseleave', resetHideTimeout);
-    }
-    bindPickerEvents();
-    document.addEventListener('click', (e) => {
-        if (!customPicker.classList.contains('hidden')) {
-            if (!customPicker.contains(e.target) && !customBtn.contains(e.target)) hidePicker();
-        }
-    });
-    presetBtn.addEventListener('click', () => {
-        currentPresetIndex = (currentPresetIndex + 1) % presets.length;
-        applyPreset(currentPresetIndex);
-    });
-    customBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (customPicker.classList.contains('hidden')) showPicker();
-        else hidePicker();
-    });
-    function updateCustomColor() {
-        applyCustomColor(hexColorInput.value, parseFloat(alphaSlider.value));
-    }
-    hexColorInput.addEventListener('input', updateCustomColor);
-    alphaSlider.addEventListener('input', updateCustomColor);
-    applyPreset(2);
 
-    // Clock
+    // Load saved preference on page load
+    const savedMode = localStorage.getItem('invisibleSignalsMode');
+    if (savedMode === 'dark') {
+        setDarkMode();
+    } else {
+        // default to grey (including if savedMode is null or 'grey')
+        setGreyMode();
+    }
+
+    modeToggleBtn.addEventListener('click', toggleMode);
+
+    // ========== CLOCK ==========
     function updateClock() {
         const now = new Date();
         document.getElementById('liveClock').textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
@@ -668,7 +503,7 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // Header hide/show on scroll (same as index.html)
+    // ========== HEADER HIDE/SHOW ==========
     let lastScrollTop = 0;
     const header = document.getElementById('mainHeader');
     window.addEventListener('scroll', () => {
@@ -684,7 +519,6 @@
     const lightboxImg = document.getElementById('lightbox-img');
     const closeLightbox = document.querySelector('.lightbox-close');
 
-    // Add click event to all archive items
     const archiveItems = document.querySelectorAll('.archive-item');
     archiveItems.forEach(item => {
         item.addEventListener('click', () => {
@@ -696,10 +530,8 @@
         });
     });
 
-    // Close lightbox when clicking close button or outside the image
     function closeLightboxFn() {
         lightbox.classList.remove('active');
-        // optionally clear src after fade out
         setTimeout(() => {
             if (!lightbox.classList.contains('active')) lightboxImg.src = '';
         }, 300);
@@ -708,8 +540,6 @@
     lightbox.addEventListener('click', (e) => {
         if (e.target === lightbox) closeLightboxFn();
     });
-
-    // Close with Escape key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && lightbox.classList.contains('active')) {
             closeLightboxFn();
