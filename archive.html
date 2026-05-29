@@ -173,7 +173,7 @@
             width: 100%;
             height: auto;
             display: block;
-            pointer-events: none; /* allow click on item div, not on image */
+            pointer-events: none;
         }
         .archive-item .caption {
             padding: 0.8rem;
@@ -232,7 +232,7 @@
             opacity: 0.7;
         }
 
-        /* Light background overrides (used for Grey mode) */
+        /* Light background overrides (used for Light mode) */
         body.light-bg {
             color: rgba(0, 0, 0, 0.85);
         }
@@ -458,14 +458,14 @@
 </div>
 
 <script>
-    // ========== GREY / DARK MODE WITH PERSISTENCE (localStorage) ==========
+    // ========== LIGHT / DARK MODE WITH PERSISTENCE (localStorage) – unified with index.html ==========
     const modeToggleBtn = document.getElementById('modeToggleBtn');
 
-    function setGreyMode() {
+    function setLightMode() {
         document.body.style.backgroundColor = '#adadad';
         document.body.classList.add('light-bg');
         modeToggleBtn.textContent = 'Light';
-        localStorage.setItem('invisibleSignalsMode', 'grey');
+        localStorage.setItem('invisibleSignalsMode', 'light');   // was 'grey', now unified
     }
 
     function setDarkMode() {
@@ -476,11 +476,11 @@
     }
 
     function toggleMode() {
-        const isCurrentlyGrey = document.body.classList.contains('light-bg');
-        if (isCurrentlyGrey) {
+        const isCurrentlyLight = document.body.classList.contains('light-bg');
+        if (isCurrentlyLight) {
             setDarkMode();
         } else {
-            setGreyMode();
+            setLightMode();
         }
     }
 
@@ -489,8 +489,8 @@
     if (savedMode === 'dark') {
         setDarkMode();
     } else {
-        // default to grey (including if savedMode is null or 'grey')
-        setGreyMode();
+        // default to light (matching index.html)
+        setLightMode();
     }
 
     modeToggleBtn.addEventListener('click', toggleMode);
