@@ -712,28 +712,7 @@
     }
 }
 
-    function drawParticles() {
-        if (!ctx) return;
-        ctx.clearRect(0, 0, width, height);
-        ctx.font = '14px "Courier New", monospace';
-        ctx.fillStyle = '#e3ffa9';
-        ctx.textBaseline = 'middle';
-        ctx.textAlign = 'center';
-        for (let p of particles) {
-            ctx.font = `${p.size}px "Courier New", monospace`;
-            ctx.globalAlpha = p.opacity * 0.9;
-            ctx.fillText(p.char, p.x, p.y);
-        }
-        ctx.globalAlpha = 1;
-    }
-
-    function animate() {
-        updateParticles();
-        drawParticles();
-        requestAnimationFrame(animate);
-    }
-
-    function updateMousePosition(clientX, clientY) {
+        function updateMousePosition(clientX, clientY) {
         const rect = canvas.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) return;
         const scaleX = canvas.width / rect.width;
@@ -745,9 +724,24 @@
         mouseX = canvasX;
         mouseY = canvasY;
     }
-
+    
+    function resetMousePosition() {
+        mouseX = null;
+        mouseY = null;
+    }
+    
+    // Mouse events
     window.addEventListener('mousemove', (e) => updateMousePosition(e.clientX, e.clientY));
-    window.addEventListener('mouseleave', () => { mouseX = null; mouseY = null; });
+    window.addEventListener('mouseleave', resetMousePosition);
+    
+    // Touch events for mobile
+    window.addEventListener('touchmove', (e) => {
+        e.preventDefault(); // prevent scrolling while interacting with particles
+        const touch = e.touches[0];
+        if (touch) updateMousePosition(touch.clientX, touch.clientY);
+    });
+    window.addEventListener('touchend', resetMousePosition);
+    window.addEventListener('touchcancel', resetMousePosition);
     window.addEventListener('resize', () => resizeCanvas());
     resizeCanvas();
     animate();
