@@ -224,7 +224,7 @@
             align-items: baseline;
             gap: 0.5rem;
         }
-        .color-btn {
+        .mode-toggle-btn {
             background: transparent;
             border: 1px solid #9afc97;
             border-radius: 20px;
@@ -234,53 +234,6 @@
             transition: all 0.2s ease;
             color: inherit;
             font-family: monospace;
-        }
-        .picker-panel {
-            margin-top: 0.5rem;
-            background: rgba(28, 28, 27, 0.9);
-            backdrop-filter: blur(4px);
-            border: 1px solid #9afc97;
-            border-radius: 12px;
-            padding: 0.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            z-index: 20;
-            min-width: 200px;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        .picker-panel.hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-        .color-input-group {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-        }
-        .color-input-group label {
-            font-size: 0.7rem;
-        }
-        #hexColor {
-            width: 80px;
-            background: #1c1c1b;
-            border: 1px solid #9afc97;
-            color: inherit;
-            padding: 0.2rem;
-            font-family: monospace;
-        }
-        #alphaSlider {
-            flex: 1;
-        }
-        .rgba-value {
-            font-size: 0.6rem;
-            font-family: monospace;
-            text-align: center;
-            color: #9afc97;
         }
         .episode {
             margin: 4rem 0;
@@ -338,15 +291,8 @@
         body.light-bg .nav-bar {
             border-color: #2c2c2c;
         }
-        body.light-bg .color-btn {
+        body.light-bg .mode-toggle-btn {
             border-color: #2c2c2c;
-        }
-        body.light-bg .picker-panel {
-            background: rgba(245, 243, 239, 0.95);
-            border-color: #2c2c2c;
-        }
-        body.light-bg .rgba-value {
-            color: #2c2c2c;
         }
         body.light-bg::before {
             opacity: 0.2;
@@ -541,9 +487,6 @@
             .marquee-content { animation-duration: 35s; }
             .episode { margin: 2.5rem 0; }
             .info-section { margin: 2rem 0 4rem; }
-            .picker-panel { position: relative; width: 100%; margin-top: 0.5rem; }
-            .picker-panel.hidden { display: none; }
-            .picker-panel:not(.hidden) { display: flex; }
         }
         @media (max-width: 480px) {
             .content { padding: 0.6rem; }
@@ -564,8 +507,7 @@
             <div class="nav-left">
                 <div class="header-clock" id="liveClock">--:--:--</div>
                 <div class="color-buttons">
-                    <button class="color-btn" id="presetBtn">Grey</button>
-                    <button class="color-btn" id="customBtn">Custom</button>
+                    <button class="mode-toggle-btn" id="modeToggleBtn">Grey</button>
                 </div>
             </div>
             <ul class="nav-right">
@@ -590,17 +532,6 @@
                     <option value="#ep6">Episode 06</option>
                 </select>
             </div>
-        </div>
-        <div id="customPicker" class="picker-panel hidden">
-            <div class="color-input-group">
-                <label>Color:</label>
-                <input type="color" id="hexColor" value="#adadad">
-            </div>
-            <div class="color-input-group">
-                <label>Opacity:</label>
-                <input type="range" id="alphaSlider" min="0" max="1" step="0.01" value="1">
-            </div>
-            <div class="rgba-value" id="rgbaValue">rgba(173,173,173,1)</div>
         </div>
     </div>
 
@@ -627,7 +558,7 @@
         </div>
     </section>
 
-    <!-- EPISODES (unchanged) -->
+    <!-- EPISODES -->
     <section id="ep1" class="episode">
     <div class="episode-grid">
         <div class="episode-title-left">Episode 01</div>
@@ -636,8 +567,8 @@
             
             <!-- Side-by-side images -->
             <div style="display: flex; gap: 1.5rem; margin: 1.5rem 0; flex-wrap: wrap;">
-                <img src="images/episode_01.gif" alt="Episode 01 visual" style="flex: 1; min-width: 150px; max-width: calc(50% - 0.75rem); height: auto; border-radius: 4px;">
-                <img src="images/IS_Track_List_01.png" alt="Episode 01 visual" style="flex: 1; min-width: 150px; max-width: calc(50% - 0.75rem); height: auto; border-radius: 4px;">
+                <img src="images/episode_01.gif" alt="Episode 01 visual" style="flex: 1; min-width: 150px; max-width: calc(50% - 0.75rem); height: auto; border-radius: 0px;">
+                <img src="images/IS_Track_List_01.png" alt="Episode 01 visual" style="flex: 1; min-width: 150px; max-width: calc(50% - 0.75rem); height: auto; border-radius: 0px;">
             </div>
             
             <div style="margin-top: 1.5rem;"><span class="grey-caption"></span></div>
@@ -773,7 +704,7 @@
         }
         for (let p of particles) {
             p.x += p.vx;
-            p.y += p.vy;
+            p.vy += p.vy;
             if (p.x < -50) p.x = width + 50;
             if (p.x > width + 50) p.x = -50;
             if (p.y < -50) p.y = height + 50;
@@ -821,129 +752,44 @@
     resizeCanvas();
     animate();
 
-    // ========== BACKGROUND COLOR SWITCHER ==========
-    const presetBtn = document.getElementById('presetBtn');
-    const customBtn = document.getElementById('customBtn');
-    const customPicker = document.getElementById('customPicker');
-    const hexColorInput = document.getElementById('hexColor');
-    const alphaSlider = document.getElementById('alphaSlider');
-    const rgbaValueSpan = document.getElementById('rgbaValue');
+    // ========== GREY / DARK MODE WITH PERSISTENCE (localStorage) ==========
+    const modeToggleBtn = document.getElementById('modeToggleBtn');
 
-    let currentPresetIndex = 2;
-    const presets = [
-        { name: 'Dark', bg: '#1c1c1b', light: false },
-        { name: 'Light', bg: '#f5f3ef', light: true },
-        { name: 'Grey', bg: '#adadad', light: true }
-    ];
-
-    function setBackground(color, isLight) {
-        document.body.style.backgroundColor = color;
-        if (isLight) document.body.classList.add('light-bg');
-        else document.body.classList.remove('light-bg');
+    function setGreyMode() {
+        document.body.style.backgroundColor = '#adadad';
+        document.body.classList.add('light-bg');
+        modeToggleBtn.textContent = 'Grey';
+        localStorage.setItem('invisibleSignalsMode', 'grey');
     }
 
-    function applyPreset(index) {
-        const p = presets[index % presets.length];
-        setBackground(p.bg, p.light);
-        presetBtn.textContent = p.name;
-        hidePicker();
+    function setDarkMode() {
+        document.body.style.backgroundColor = '#1c1c1b';
+        document.body.classList.remove('light-bg');
+        modeToggleBtn.textContent = 'Dark';
+        localStorage.setItem('invisibleSignalsMode', 'dark');
     }
 
-    function applyCustomColor(hex, alpha) {
-        let r, g, b;
-        if (hex.startsWith('#')) {
-            r = parseInt(hex.slice(1,3), 16);
-            g = parseInt(hex.slice(3,5), 16);
-            b = parseInt(hex.slice(5,7), 16);
+    function toggleMode() {
+        const isCurrentlyGrey = document.body.classList.contains('light-bg');
+        if (isCurrentlyGrey) {
+            setDarkMode();
         } else {
-            r = 173; g = 173; b = 173;
+            setGreyMode();
         }
-        const bgColor = `rgba(${r}, ${g}, ${b}, ${alpha})`;
-        document.body.style.backgroundColor = bgColor;
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        const isLight = luminance > 0.5 || alpha < 0.4;
-        if (isLight) document.body.classList.add('light-bg');
-        else document.body.classList.remove('light-bg');
-        rgbaValueSpan.textContent = `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
-        resetHideTimeout();
     }
 
-    let hideTimeout = null;
-    function showPicker() {
-        clearTimeout(hideTimeout);
-        customPicker.classList.remove('hidden');
-        const bg = document.body.style.backgroundColor;
-        if (bg && bg.startsWith('rgba')) {
-            const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
-            if (match) {
-                hexColorInput.value = `#${((1 << 24) + (parseInt(match[1]) << 16) + (parseInt(match[2]) << 8) + parseInt(match[3])).toString(16).slice(1)}`;
-                alphaSlider.value = match[4] ? parseFloat(match[4]) : 1;
-            }
-        } else if (bg && bg.startsWith('rgb')) {
-            const match = bg.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-            if (match) {
-                hexColorInput.value = `#${((1 << 24) + (parseInt(match[1]) << 16) + (parseInt(match[2]) << 8) + parseInt(match[3])).toString(16).slice(1)}`;
-                alphaSlider.value = 1;
-            }
-        } else {
-            hexColorInput.value = '#adadad';
-            alphaSlider.value = 1;
-        }
-        const r = parseInt(hexColorInput.value.slice(1,3),16);
-        const g = parseInt(hexColorInput.value.slice(3,5),16);
-        const b = parseInt(hexColorInput.value.slice(5,7),16);
-        const a = parseFloat(alphaSlider.value);
-        rgbaValueSpan.textContent = `rgba(${r},${g},${b},${a.toFixed(2)})`;
-        resetHideTimeout();
+    // Load saved preference on page load
+    const savedMode = localStorage.getItem('invisibleSignalsMode');
+    if (savedMode === 'dark') {
+        setDarkMode();
+    } else {
+        // default to grey (including if savedMode is null or 'grey')
+        setGreyMode();
     }
 
-    function hidePicker() {
-        clearTimeout(hideTimeout);
-        customPicker.classList.add('hidden');
-    }
+    modeToggleBtn.addEventListener('click', toggleMode);
 
-    function resetHideTimeout() {
-        clearTimeout(hideTimeout);
-        hideTimeout = setTimeout(() => hidePicker(), 5000);
-    }
-
-    function bindPickerEvents() {
-        [hexColorInput, alphaSlider, customPicker].forEach(el => {
-            if (!el) return;
-            el.addEventListener('mousemove', resetHideTimeout);
-            el.addEventListener('input', resetHideTimeout);
-            el.addEventListener('click', resetHideTimeout);
-        });
-        customPicker.addEventListener('mouseenter', resetHideTimeout);
-        customPicker.addEventListener('mouseleave', resetHideTimeout);
-    }
-    bindPickerEvents();
-
-    document.addEventListener('click', (event) => {
-        if (!customPicker.classList.contains('hidden')) {
-            if (!customPicker.contains(event.target) && !customBtn.contains(event.target)) hidePicker();
-        }
-    });
-
-    presetBtn.addEventListener('click', () => {
-        currentPresetIndex = (currentPresetIndex + 1) % presets.length;
-        applyPreset(currentPresetIndex);
-    });
-
-    customBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (customPicker.classList.contains('hidden')) showPicker();
-        else hidePicker();
-    });
-
-    function updateCustomColor() {
-        applyCustomColor(hexColorInput.value, parseFloat(alphaSlider.value));
-    }
-    hexColorInput.addEventListener('input', updateCustomColor);
-    alphaSlider.addEventListener('input', updateCustomColor);
-    applyPreset(2);
-
-    // Clock
+    // ========== CLOCK ==========
     function updateClock() {
         const now = new Date();
         document.getElementById('liveClock').textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
@@ -951,7 +797,7 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // Header hide/show
+    // ========== HEADER HIDE/SHOW ==========
     let lastScrollTop = 0;
     const header = document.getElementById('mainHeader');
     window.addEventListener('scroll', () => {
@@ -962,7 +808,7 @@
         lastScrollTop = scrollTop;
     });
 
-    // Mobile dropdown
+    // ========== MOBILE DROPDOWN ==========
     const mobileSelect = document.getElementById('mobileEpisodeSelect');
     if (mobileSelect) {
         mobileSelect.addEventListener('change', function(e) {
@@ -971,7 +817,7 @@
         });
     }
 
-    // Countdown timer
+    // ========== COUNTDOWN TIMER ==========
     function updateCountdown() {
         const targetDateUTC = Date.UTC(2026, 4, 28, 15, 30, 0);
         const now = new Date();
@@ -992,9 +838,9 @@
     updateCountdown();
     setInterval(updateCountdown, 1000);
 
-    // Movable popup player – only for mobile link
+    // ========== MOVABLE POPUP PLAYER ==========
     const popup = document.getElementById('resonancePopup');
-    const popupHeader = document.getElementById('popupHeader');
+    const popupHeaderDrag = document.getElementById('popupHeader');
     let isDragging = false;
     let offsetX, offsetY;
 
@@ -1054,10 +900,10 @@
         popup.style.cursor = '';
     }
 
-    popupHeader.addEventListener('mousedown', startDrag);
+    popupHeaderDrag.addEventListener('mousedown', startDrag);
     window.addEventListener('mousemove', onDrag);
     window.addEventListener('mouseup', stopDrag);
-    popupHeader.addEventListener('touchstart', startDrag);
+    popupHeaderDrag.addEventListener('touchstart', startDrag);
     window.addEventListener('touchmove', onDrag);
     window.addEventListener('touchend', stopDrag);
 
