@@ -507,7 +507,7 @@
             <div class="nav-left">
                 <div class="header-clock" id="liveClock">--:--:--</div>
                 <div class="color-buttons">
-                    <button class="mode-toggle-btn" id="modeToggleBtn">Grey</button>
+                    <button class="mode-toggle-btn" id="modeToggleBtn">Light</button>
                 </div>
             </div>
             <ul class="nav-right">
@@ -752,7 +752,7 @@
     function setGreyMode() {
         document.body.style.backgroundColor = '#adadad';
         document.body.classList.add('light-bg');
-        modeToggleBtn.textContent = 'Grey';
+        modeToggleBtn.textContent = 'Light';
         localStorage.setItem('invisibleSignalsMode', 'grey');
     }
 
