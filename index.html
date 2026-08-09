@@ -867,28 +867,28 @@
         });
     }
 
-    // ========== COUNTDOWN TIMER ==========
+        // ========== COUNTDOWN TIMER ==========
     function updateCountdown() {
-        const targetDate = new Date(Date.UTC(2026, 8, 7, 16, 30, 0)); // September 7, 2026, 16:30 UTC
+        const targetDate = new Date(Date.UTC(2026, 8, 7, 16, 30, 0));
         const now = new Date();
         const diff = targetDate - now;
-    
         const countdownElement = document.getElementById('countdownTimer');
         if (!countdownElement) return;
-    
         if (diff <= 0) {
             countdownElement.textContent = "On air now!";
             return;
         }
-    
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-    
         countdownElement.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
     }
 
+    // ✅ START THE COUNTDOWN
+    updateCountdown();                 // show immediately
+    setInterval(updateCountdown, 1000); // update every second
+    
     // ========== MOVABLE POPUP PLAYER ==========
     const popup = document.getElementById('resonancePopup');
     const popupHeaderDrag = document.getElementById('popupHeader');
