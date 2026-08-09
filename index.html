@@ -549,7 +549,7 @@
                 <strong>Invisible Signals</strong>
                 <a href="mailto:seirynx@mailfence.com">contact</a>
                 <div class="schedule-note">
-                    <div>Next broadcast: Thursday 23.07.2026 at 16:30 (London)</div>
+                    <div>Next broadcast: Monday 07.09.2026 at 16:30 (London)</div>
                     <div class="countdown" id="countdownTimer">--d --h --m --s</div>
                 </div>
                 <a href="/sound" class="resonance-mobile-link" id="waitingRoomBtn">Waiting Room</a>
@@ -869,9 +869,9 @@
 
     // ========== COUNTDOWN TIMER ==========
     function updateCountdown() {
-        const targetDate = new Date(Date.UTC(2026, 6, 23, 16, 30, 0)); // July 30, 2026, 16:30 UTC
+        const targetDate = new Date(Date.UTC(2026, 8, 7, 16, 30, 0)); // September 7, 2026, 16:30 UTC
         const now = new Date();
-        const diff = targetDate - now; // difference in milliseconds
+        const diff = targetDate - now;
     
         const countdownElement = document.getElementById('countdownTimer');
         if (!countdownElement) return;
@@ -888,9 +888,6 @@
     
         countdownElement.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
     }
-    
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
 
     // ========== MOVABLE POPUP PLAYER ==========
     const popup = document.getElementById('resonancePopup');
