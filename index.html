@@ -549,7 +549,7 @@
                 <strong>Invisible Signals</strong>
                 <a href="mailto:seirynx@mailfence.com">contact</a>
                 <div class="schedule-note">
-                    <div>Next broadcast: Thursday 24.09.2026 at 16:30 (London)</div>
+                    <div>Next broadcast: Thursday 22.10.2026 at 16:30 (London)</div>
                     <div class="countdown" id="countdownTimer">--d --h --m --s</div>
                 </div>
                 <a href="/sound" class="resonance-mobile-link" id="waitingRoomBtn">Waiting Room</a>
@@ -634,12 +634,24 @@
         <div class="episode-grid">
             <div class="episode-title-left">Episode 04</div>
             <div class="episode-desc">
-                <div class="bodycopy-2">Details for this episode will be announced soon.</div>
-                <div class="grey-caption" style="margin-top: 1rem;">Coming 2026</div>
+            <div class="bodycopy-2">Across distance, telegraphic signalling turns language into duration and interval, carrying meaning through pulses that may be received, interrupted or lost. This episode of Invisible Signals features archival Morse code transmissions, maritime distress calls and the final broadcasts of radio stations across different geographies. Alongside these recordings, selected segments from the Research Agency publication, developed by Master’s students at the Centre for Research Architecture, are translated into a customised notation responding to the publication’s different curatorial pathways. The episode coincides with the Centre for Research Architecture Public Forum, opening this Thursday at St James Hatcham Church, Goldsmiths, and running until 2 October. Please come down to see the works, the full publication, and the activations and events developed by this year’s cohort.
+</div>
+            
+            <!-- Side-by-side images -->
+            <iframe style="margin-top: 1.5rem; width: 100%; height: 60px;" 
+                    src="https://player-widget.mixcloud.com/widget/iframe/?hide_cover=1&mini=1&hide_artwork=1&feed=%2FResonance%2Finvisible-signals-24-september-2026-4%2F" 
+                    frameborder="0" 
+                    allow="encrypted-media; fullscreen; autoplay; idle-detection; speaker-selection; web-share;">
+            </iframe>
+            <div style="display: flex; gap: 1.5rem; margin: 1.5rem 0; flex-wrap: wrap;">
+                <img src="images/episode_04.png" alt="Episode 04 visual" style="flex: 1; min-width: 150px; max-width: calc(50% - 0.75rem); height: auto; border-radius: 0px;">
+                <img src="images/IS_Track_List_04.png" alt="Episode 04 visual" style="flex: 1; min-width: 150px; max-width: calc(50% - 0.75rem); height: auto; border-radius: 0px;">
             </div>
-        </div>
-    </section>
-
+            <div style="margin-top: 1.5rem;"><span class="grey-caption"></span></div>
+            
+        </div> <!-- end episode-desc -->
+    </div> <!-- end episode-grid -->
+</section>
     <section id="ep5" class="episode">
         <div class="episode-grid">
             <div class="episode-title-left">Episode 05</div>
@@ -869,7 +881,7 @@
 
         // ========== COUNTDOWN TIMER ==========
     function updateCountdown() {
-        const targetDate = new Date('2026-09-24T16:30:00+01:00');
+        const targetDate = new Date('2026-10-22T16:30:00+01:00');
         const now = new Date();
         const diff = targetDate - now;
         const countdownElement = document.getElementById('countdownTimer');
