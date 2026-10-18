@@ -3,24 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
     <title>Multispecies Semiotics of Synthetic Sensing 001 – Florence To</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            max-width: 960px;
-            margin: 2rem auto;
-            padding: 0 1.5rem;
-            background-color: #fafafa;
-            color: #222;
-            line-height: 1.65;
+        /* ---------- RESET & BASE ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
+        a {
+            color: #9afc97;
+            text-decoration: none;
+            transition: opacity 0.2s ease, color 0.2s ease;
+        }
+        a:hover {
+            opacity: 0.7;
+        }
+        body.light-bg a {
+            color: #2c6e2c;
+        }
+        ::selection {
+            background: #2a2a2a;
+            color: #f0f0f0;
+        }
+        ::-moz-selection {
+            background: #2a2a2a;
+            color: #f0f0f0;
+        }
+        body.light-bg ::selection {
+            background: #d0d0d0;
+            color: #1a1a1a;
+        }
+        body.light-bg ::-moz-selection {
+            background: #d0d0d0;
+            color: #1a1a1a;
+        }
+        body {
+            background: #adadad;
+            font-family: 'Inter', 'Monument Grotesk Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.4;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #30342f;
+            mix-blend-mode: overlay;
+            opacity: 0.8;
+            pointer-events: none;
+            z-index: 1;
+            transition: opacity 0.2s ease;
+        }
+        body.light-bg::before {
+            opacity: 0.2;
+        }
+        #asciiCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 1;
+        }
+
+        /* ---------- LAYOUT ---------- */
+        .content {
+            position: relative;
+            z-index: 2;
+            max-width: 880px;
+            margin: 0 auto;
+            padding: 3rem 1.3rem 5rem;
+        }
+
+        /* ---------- VIDEO ---------- */
         .video-wrapper {
             position: relative;
-            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            padding-bottom: 56.25%; /* 16:9 */
             height: 0;
             overflow: hidden;
-            margin-bottom: 2rem;
             background-color: #000;
+            margin-bottom: 0.75rem;
         }
         .video-wrapper video {
             position: absolute;
@@ -29,73 +100,297 @@
             width: 100%;
             height: 100%;
             border: none;
+            display: block;
         }
-        h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin: 0 0 0.25rem 0;
-            letter-spacing: -0.01em;
+        .video-fallback {
+            margin-bottom: 2rem;
+            font-size: clamp(0.7rem, 3.2vw, 0.8rem);
+        }
+
+        /* ---------- TYPE ---------- */
+        .title {
+            font-size: clamp(1.05rem, 4.5vw, 1.3rem);
+            font-weight: 500;
+            line-height: 1.3;
+            letter-spacing: 0.02em;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 0.5rem;
+            transition: color 0.2s ease;
+        }
+        .grey-caption {
+            font-size: clamp(0.75rem, 3.5vw, 0.9rem);
+            color: rgba(255, 255, 255, 0.6);
+            font-family: 'Monument Grotesk Variable', monospace;
+            letter-spacing: 0.037em;
+            transition: color 0.2s ease;
         }
         .meta {
-            font-size: 0.95rem;
-            color: #666;
-            margin-bottom: 1.75rem;
+            margin-bottom: 2rem;
         }
-        .meta span {
-            display: inline-block;
-            margin-right: 1.25rem;
+        .bodycopy-2 {
+            font-size: clamp(0.9rem, 4vw, 1.05rem);
+            letter-spacing: 0.058em;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.85);
+            transition: color 0.2s ease;
         }
-        .statement p {
-            margin: 0 0 1.15rem 0;
-            font-size: 1.02rem;
+        .statement p + p {
+            margin-top: 1.15rem;
         }
         .bio {
-            margin-top: 2rem;
+            margin-top: 2.5rem;
             padding-top: 1.5rem;
-            border-top: 1px solid #e0e0e0;
-            font-size: 0.95rem;
-            color: #444;
+            border-top: 1px solid rgba(255, 255, 255, 0.18);
+            transition: border-color 0.2s ease;
         }
-        .bio p {
-            margin: 0 0 1rem 0;
+        .bio p + p {
+            margin-top: 1rem;
         }
-        a {
-            color: #222;
-            text-decoration: underline;
-            text-underline-offset: 2px;
+
+        /* ---------- LIGHT MODE ---------- */
+        body.light-bg .title,
+        body.light-bg .bodycopy-2 {
+            color: rgba(0, 0, 0, 0.85);
         }
-        a:hover {
-            color: #000;
+        body.light-bg .grey-caption {
+            color: rgba(0, 0, 0, 0.5);
+        }
+        body.light-bg .bio {
+            border-top-color: rgba(0, 0, 0, 0.18);
+        }
+
+        /* ---------- FLOATING MODE TOGGLE ---------- */
+        .mode-toggle-btn {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 20;
+            background: transparent;
+            border: 1px solid #9afc97;
+            border-radius: 20px;
+            padding: 0.25rem 0.7rem;
+            font-size: 0.7rem;
+            font-family: monospace;
+            color: rgba(255, 255, 255, 0.85);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .mode-toggle-btn:hover {
+            opacity: 0.7;
+        }
+        body.light-bg .mode-toggle-btn {
+            border-color: #2c2c2c;
+            color: rgba(0, 0, 0, 0.85);
+        }
+
+        /* ---------- MOBILE ---------- */
+        @media (max-width: 640px) {
+            .content {
+                padding: 2.5rem 0.9rem 3.5rem;
+            }
+            .video-wrapper {
+                margin-bottom: 0.6rem;
+            }
+            .video-fallback {
+                margin-bottom: 1.5rem;
+            }
+            .meta {
+                margin-bottom: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
 
+<canvas id="asciiCanvas"></canvas>
+<button class="mode-toggle-btn" id="modeToggleBtn">Light</button>
+
+<div class="content">
+
     <div class="video-wrapper">
-        <video controls preload="metadata">
-            <!-- Paste your GitHub Release asset URL here -->
+        <video controls preload="metadata" playsinline>
             <source src="https://github.com/FlorenceTo/invisiblesignals/releases/download/v1.0.0/field-conditions.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
     </div>
 
-    <h1>Multispecies Semiotics of Synthetic Sensing 001</h1>
-    <div class="meta">
-        <span>Florence To</span>
-        <span>Duration: 1:02 min</span>
+    <div class="video-fallback grey-caption">
+        <a href="https://github.com/FlorenceTo/invisiblesignals/releases/download/v1.0.0/field-conditions.mp4" target="_blank" rel="noopener noreferrer">Having trouble playing? Open the video directly</a>
     </div>
 
-    <div class="statement">
+    <h1 class="title">Multispecies Semiotics of Synthetic Sensing 001</h1>
+    <div class="grey-caption meta">Florence To&nbsp;&nbsp;·&nbsp;&nbsp;Duration: 1:02 min</div>
+
+    <div class="statement bodycopy-2">
         <p>In the Wadi Auja area, Jericho, large clusters of black kites, white storks, and other birds swarmed above an undesignated wasteland. Discarded matter had been pushed into the ground, forming a damp, decomposing substrate of bacteria, insects, and moisture. Cracks in the softened earth released swarms of flies, while nearby electrical infrastructure introduced another layer of activity into the landscape.</p>
 
         <p>The recordings approach this site as a multispecies sensing environment in which birds, insects, microbial processes, waste, soil, and electromagnetic infrastructures participate in the production of signals. Electromagnetic frequencies were recorded from fissures in the ground while simultaneously documenting the movement of bird flocks overhead. For several hours, the birds repeatedly circled and descended, tracing patterns of attraction linked to food availability and ecological conditions. The visual models generated from these recordings provide another mode of observation. They document atmospheric conditions from the same day while making visible how sound propagates through air, tracing vocal exchanges between birds and the presence of electromagnetic emissions in the surrounding environment.</p>
     </div>
 
-    <div class="bio">
+    <div class="bio bodycopy-2">
         <p>Florence To is an artist and researcher of Hong Kong diasporic heritage based in London. Their transdisciplinary practice engages sound, installation, sculpture, and field research to investigate the relationships between frequency, infrastructure, and memory. Examining how technological systems mediate and reconfigure relations within more-than-human environments, they engage with visual and acoustic ecology and phenomenology, positioning listening as a methodological framework through which technological systems, environments, and multispecies life can be understood.</p>
 
-        <p><a href="https://florence-to.com" target="_blank" rel="noopener">florence-to.com</a></p>
+        <p><a href="https://florence-to.com" target="_blank" rel="noopener noreferrer">florence-to.com</a></p>
     </div>
 
+</div>
+
+<script>
+    // ========== ASCII WAVE PARTICLES ==========
+    const canvas = document.getElementById('asciiCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    const chars = ['/', '\\', '|', '-', '_', '+', '.', '·'];
+
+    let mouseX = null, mouseY = null;
+    const MAGNET_RADIUS = 150;
+    const MAGNET_STRENGTH = 0.15;
+    const MAX_SPEED = 1.5;
+
+    function resizeCanvas() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+        initParticles();
+    }
+
+    function initParticles() {
+        let particleCount = Math.floor(width * height / 8000);
+        particleCount = Math.min(500, Math.max(150, particleCount));
+        particles = [];
+        const isMobile = width < 640;
+        const minSize = isMobile ? 10 : 12;
+        const maxSize = isMobile ? 20 : 24;
+        for (let i = 0; i < particleCount; i++) {
+            particles.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                char: chars[Math.floor(Math.random() * chars.length)],
+                vx: (Math.random() - 0.5) * 0.3,
+                vy: (Math.random() - 0.5) * 0.2 + 0.1,
+                size: minSize + Math.random() * (maxSize - minSize),
+                opacity: 0.3 + Math.random() * 0.5
+            });
+        }
+    }
+
+    function updateParticles() {
+        if (mouseX !== null && mouseY !== null) {
+            for (let p of particles) {
+                let dx = mouseX - p.x;
+                let dy = mouseY - p.y;
+                let dist = Math.hypot(dx, dy);
+                if (dist < MAGNET_RADIUS && dist > 0.01) {
+                    let force = (1 - dist / MAGNET_RADIUS) * MAGNET_STRENGTH;
+                    force = Math.min(force, 0.5);
+                    let angle = Math.atan2(dy, dx);
+                    p.vx += Math.cos(angle) * force;
+                    p.vy += Math.sin(angle) * force;
+                    let spd = Math.hypot(p.vx, p.vy);
+                    if (spd > MAX_SPEED) {
+                        p.vx = (p.vx / spd) * MAX_SPEED;
+                        p.vy = (p.vy / spd) * MAX_SPEED;
+                    }
+                }
+            }
+        }
+        for (let p of particles) {
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < -50) p.x = width + 50;
+            if (p.x > width + 50) p.x = -50;
+            if (p.y < -50) p.y = height + 50;
+            if (p.y > height + 50) p.y = -50;
+        }
+    }
+
+    function drawParticles() {
+        if (!ctx) return;
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = '#e3ffa9';
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center';
+        for (let p of particles) {
+            ctx.font = `${p.size}px "Courier New", monospace`;
+            ctx.globalAlpha = p.opacity * 0.9;
+            ctx.fillText(p.char, p.x, p.y);
+        }
+        ctx.globalAlpha = 1;
+    }
+
+    function animate() {
+        updateParticles();
+        drawParticles();
+        requestAnimationFrame(animate);
+    }
+
+    function updateMousePosition(clientX, clientY) {
+        const rect = canvas.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        let canvasX = (clientX - rect.left) * scaleX;
+        let canvasY = (clientY - rect.top) * scaleY;
+        mouseX = Math.min(Math.max(canvasX, 0), width);
+        mouseY = Math.min(Math.max(canvasY, 0), height);
+    }
+
+    function resetMousePosition() {
+        mouseX = null;
+        mouseY = null;
+    }
+
+    window.addEventListener('mousemove', (e) => updateMousePosition(e.clientX, e.clientY));
+    window.addEventListener('mouseleave', resetMousePosition);
+
+    // Touch: passive so page scrolling still works over the video/text
+    window.addEventListener('touchmove', (e) => {
+        const touch = e.touches[0];
+        if (touch) updateMousePosition(touch.clientX, touch.clientY);
+    }, { passive: true });
+    window.addEventListener('touchend', resetMousePosition, { passive: true });
+    window.addEventListener('touchcancel', resetMousePosition, { passive: true });
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    animate();
+
+    // ========== LIGHT / DARK MODE (shared with main site) ==========
+    const modeToggleBtn = document.getElementById('modeToggleBtn');
+
+    function setLightMode() {
+        document.body.style.backgroundColor = '#adadad';
+        document.body.classList.add('light-bg');
+        modeToggleBtn.textContent = 'Light';
+        localStorage.setItem('invisibleSignalsMode', 'light');
+    }
+
+    function setDarkMode() {
+        document.body.style.backgroundColor = '#1c1c1b';
+        document.body.classList.remove('light-bg');
+        modeToggleBtn.textContent = 'Dark';
+        localStorage.setItem('invisibleSignalsMode', 'dark');
+    }
+
+    function toggleMode() {
+        if (document.body.classList.contains('light-bg')) {
+            setDarkMode();
+        } else {
+            setLightMode();
+        }
+    }
+
+    const savedMode = localStorage.getItem('invisibleSignalsMode');
+    if (savedMode === 'dark') {
+        setDarkMode();
+    } else {
+        setLightMode();
+    }
+
+    modeToggleBtn.addEventListener('click', toggleMode);
+</script>
 </body>
 </html>
